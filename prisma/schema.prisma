@@ -1,0 +1,186 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProgramFrequency {
+  daily
+  weekly
+  monthly
+  adhoc
+}
+
+enum ProgramMode {
+  single
+  flow
+}
+
+enum ProgramCategory {
+  mind
+  body
+  human
+  environment
+  business
+}
+
+enum ExerciseType {
+  checkbox
+  scale
+  multiselect
+  text
+  number
+  html
+}
+
+enum XpTransactionType {
+  earn
+  spend
+}
+
+enum JournalType {
+  learn
+  success
+  gratitude
+}
+
+enum RewardStatus {
+  pending
+  approved
+  rejected
+  cancelled
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  runs        ProgramRun[]
+  xp          XpTransaction[]
+  rewards     RewardRedemption[]
+  journals    Journal[]
+  journalLogs JournalEntry[]
+}
+
+model Program {
+  id              String            @id @default(cuid())
+  slug            String            @unique
+  code            String
+  name            String
+  summary         String
+  category        ProgramCategory
+  frequency       ProgramFrequency
+  durationMinutes Int
+  xpReward        Int
+  mode            ProgramMode
+  createdAt       DateTime          @default(now())
+
+  units ProgramUnit[]
+  runs  ProgramRun[]
+}
+
+model ProgramUnit {
+  id        String     @id @default(cuid())
+  programId String
+  title     String
+  order     Int
+
+  program   Program    @relation(fields: [programId], references: [id])
+  exercises Exercise[]
+}
+
+model Exercise {
+  id        String       @id @default(cuid())
+  unitId    String
+  label     String
+  description String?
+  type      ExerciseType
+  config    Json?
+  xpValue   Int @default(0)
+
+  unit ProgramUnit @relation(fields: [unitId], references: [id])
+}
+
+model ProgramRun {
+  id        String       @id @default(cuid())
+  programId String
+  userId    String
+  mode      ProgramMode
+  xpEarned  Int
+  answers   Json
+  createdAt DateTime      @default(now())
+
+  program Program @relation(fields: [programId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  xp      XpTransaction[]
+}
+
+model XpTransaction {
+  id                String            @id @default(cuid())
+  userId            String
+  category          ProgramCategory
+  amount            Int
+  type              XpTransactionType
+  source            String
+  programRunId      String?
+  rewardRedemptionId String?
+  createdAt         DateTime          @default(now())
+
+  user      User           @relation(fields: [userId], references: [id])
+  programRun ProgramRun?   @relation(fields: [programRunId], references: [id])
+  reward    RewardRedemption? @relation(fields: [rewardRedemptionId], references: [id])
+}
+
+model Reward {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  cost        Int
+  active      Boolean  @default(true)
+
+  redemptions RewardRedemption[]
+}
+
+model RewardRedemption {
+  id        String       @id @default(cuid())
+  rewardId  String
+  userId    String
+  status    RewardStatus @default(pending)
+  requestedAt DateTime   @default(now())
+  resolvedAt DateTime?
+  notes     String?
+
+  reward Reward @relation(fields: [rewardId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  xp     XpTransaction[]
+}
+
+model Journal {
+  id        String      @id @default(cuid())
+  userId    String
+  name      String
+  type      JournalType
+
+  user    User          @relation(fields: [userId], references: [id])
+  entries JournalEntry[]
+}
+
+model JournalEntry {
+  id         String   @id @default(cuid())
+  journalId  String
+  userId     String?
+  contentHtml String
+  createdAt  DateTime @default(now())
+
+  journal Journal @relation(fields: [journalId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id])
+}
