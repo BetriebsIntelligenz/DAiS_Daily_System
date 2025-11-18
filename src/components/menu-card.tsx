@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Brain,
+  Activity,
+  Users2,
+  Leaf,
+  Briefcase,
+  Sparkles
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Card } from "./ui/card";
@@ -12,6 +20,14 @@ interface MenuCardProps {
   chips?: string[];
 }
 
+const iconMap: Record<string, React.ReactNode> = {
+  mind: <Brain className="h-8 w-8" />,
+  body: <Activity className="h-8 w-8" />,
+  human: <Users2 className="h-8 w-8" />,
+  environment: <Leaf className="h-8 w-8" />,
+  business: <Briefcase className="h-8 w-8" />
+};
+
 export function MenuCard({
   title,
   description,
@@ -19,6 +35,10 @@ export function MenuCard({
   accent,
   chips = []
 }: MenuCardProps) {
+  const icon = iconMap[title.toLowerCase()] ?? (
+    <Sparkles className="h-8 w-8" />
+  );
+
   return (
     <Link href={href} className="block">
       <Card
@@ -27,18 +47,17 @@ export function MenuCard({
           accent
         )}
       >
-        <div className="card-gradient h-24 w-full rounded-t-[28px]" />
-        <div className="-mt-10 space-y-4 rounded-[28px] bg-white p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-daisy-500">
-                {chips[0] ?? "FLOW"}
-              </p>
-              <h3 className="mt-1 text-2xl font-semibold">{title}</h3>
-              <p className="text-sm text-gray-500">{description}</p>
-            </div>
-            <ArrowRight className="h-5 w-5 text-daisy-500" />
+        <div className="card-gradient flex h-28 w-full items-center justify-between rounded-t-[28px] px-5 text-white">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-white/80">
+              Kategorie
+            </p>
+            <h3 className="text-2xl font-semibold">{title}</h3>
           </div>
+          <div className="rounded-2xl bg-white/15 p-3 text-white">{icon}</div>
+        </div>
+        <div className="-mt-5 space-y-4 rounded-[28px] bg-white p-5">
+          <p className="text-sm text-gray-600">{description}</p>
           <div className="flex flex-wrap gap-2">
             {chips.slice(0, 3).map((chip) => (
               <span
@@ -48,6 +67,9 @@ export function MenuCard({
                 {chip}
               </span>
             ))}
+          </div>
+          <div className="flex items-center justify-end text-daisy-600">
+            <ArrowRight className="h-5 w-5" />
           </div>
         </div>
       </Card>

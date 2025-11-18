@@ -31,7 +31,8 @@ export async function POST(request: Request) {
       summary: body.summary ?? "",
       frequency: body.frequency ?? "daily",
       durationMinutes: body.durationMinutes ?? 10,
-      xpReward: body.xpReward ?? 200
+      xpReward: body.xpReward ?? 200,
+      mode: body.mode ?? "single"
     }
   });
 

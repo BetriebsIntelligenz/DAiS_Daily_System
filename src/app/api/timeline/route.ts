@@ -6,7 +6,11 @@ function formatDate(date: Date) {
   return date.toISOString();
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const limit = Number(searchParams.get("limit")) || 30;
+  const maxLimit = Math.min(limit, 100);
+
   const [programRuns, journalEntries, rewardRedemptions] = await Promise.all([
     prisma.programRun.findMany({
       include: {
@@ -21,17 +25,17 @@ export async function GET() {
         }
       },
       orderBy: { createdAt: "desc" },
-      take: 25
+      take: maxLimit
     }),
     prisma.journalEntry.findMany({
       include: { journal: true },
       orderBy: { createdAt: "desc" },
-      take: 25
+      take: maxLimit
     }),
     prisma.rewardRedemption.findMany({
       include: { reward: true },
       orderBy: { requestedAt: "desc" },
-      take: 25
+      take: maxLimit
     })
   ]);
 
@@ -126,7 +130,7 @@ export async function GET() {
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     )
-    .slice(0, 30);
+    .slice(0, maxLimit);
 
   return NextResponse.json({ entries });
 }

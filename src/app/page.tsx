@@ -2,11 +2,22 @@ import { categories, programDefinitions } from "@/lib/data";
 import { MenuCard } from "@/components/menu-card";
 import { MobileShell } from "@/components/mobile-shell";
 
-export default function HomePage() {
+export default function HomePage({
+  searchParams
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  const completedProgram = searchParams?.programCompleted;
+  const successMessage =
+    typeof completedProgram === "string"
+      ? `${completedProgram} erfolgreich abgeschlossen! XP gutgeschrieben.`
+      : undefined;
+
   return (
     <MobileShell
       title="Programme Menü"
       description="Wähle eine Kategorie (Mind, Body, Human, Environment, Business) um mit dem nächsten Flow zu starten."
+      successMessage={successMessage}
     >
       <section className="grid gap-6 md:grid-cols-2">
         {categories.map((category) => {

@@ -1,57 +1,20 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma";
-import { getOrCreateDemoUser } from "@/lib/demo-user";
+import { createProgramRun } from "@/server/program-run-service";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { programId, payload } = body;
-
-  const program = await prisma.program.findUnique({
-    where: { id: programId },
-    include: {
-      units: {
-        include: { exercises: true }
-      }
-    }
-  });
-
-  if (!program) {
-    return NextResponse.json({ error: "Programm nicht gefunden" }, { status: 404 });
+  try {
+    const result = await createProgramRun({
+      programId: body.programId,
+      payload: body.payload ?? {},
+      userEmail: body.userEmail,
+      userName: body.userName
+    });
+    return NextResponse.json(result);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Programm konnte nicht gebucht werden";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
-
-  const xpEarned = program.units.reduce((sum, unit) => {
-    return (
-      sum +
-      unit.exercises.reduce((innerSum, exercise) => innerSum + exercise.xpValue, 0)
-    );
-  }, 0);
-
-  const user = await getOrCreateDemoUser({
-    email: body.userEmail,
-    name: body.userName
-  });
-
-  const run = await prisma.programRun.create({
-    data: {
-      programId,
-      userId: user.id,
-      mode: program.mode as "single" | "flow",
-      xpEarned,
-      answers: payload
-    }
-  });
-
-  await prisma.xpTransaction.create({
-    data: {
-      userId: user.id,
-      category: program.category,
-      amount: xpEarned,
-      type: "earn",
-      source: "program",
-      programRunId: run.id
-    }
-  });
-
-  return NextResponse.json({ runId: run.id, xpEarned });
 }

@@ -16,9 +16,9 @@ services:
     build: .
     command: npm run dev
     ports:
-      - "3000:3000"
+      - "51991:3001"
     env_file:
-      - .env.local
+      - .env.docker
     depends_on:
       - db
 

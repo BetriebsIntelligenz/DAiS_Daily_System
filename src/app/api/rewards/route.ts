@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { getOrCreateDemoUser } from "@/lib/demo-user";
 
-export async function GET() {
-  const [rewards, redemptions] = await Promise.all([
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const email = searchParams.get("email") ?? undefined;
+  const user = await getOrCreateDemoUser({ email });
+
+  const [rewards, redemptions, balanceRaw] = await Promise.all([
     prisma.reward.findMany({
       orderBy: { name: "asc" }
     }),
@@ -11,10 +16,16 @@ export async function GET() {
       include: { reward: true },
       orderBy: { requestedAt: "desc" },
       take: 20
+    }),
+    prisma.xpTransaction.aggregate({
+      where: { userId: user.id },
+      _sum: { amount: true }
     })
   ]);
 
-  return NextResponse.json({ rewards, redemptions });
+  const balance = balanceRaw._sum.amount ?? 0;
+
+  return NextResponse.json({ rewards, redemptions, balance });
 }
 
 export async function POST(request: Request) {

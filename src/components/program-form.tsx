@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, type UseFormRegister } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import type { ProgramDefinition, ProgramExercise } from "@/lib/types";
 import { Button } from "./ui/button";
+import { useAuth } from "./auth-gate";
 
 const buildSchema = (exercises: ProgramExercise[]) => {
   const shape: Record<string, z.ZodTypeAny> = {};
@@ -42,22 +44,32 @@ const buildSchema = (exercises: ProgramExercise[]) => {
 export function ProgramForm({ program }: { program: ProgramDefinition }) {
   const exercises = program.units.flatMap((unit) => unit.exercises);
   const schema = useMemo(() => buildSchema(exercises), [exercises]);
+  const router = useRouter();
+  const { user } = useAuth();
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {}
   });
 
   const onSubmit = form.handleSubmit(async (data) => {
-    await fetch("/api/program-runs", {
+    const response = await fetch("/api/program-runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         programId: program.id,
-        payload: data
+        payload: data,
+        userEmail: user?.email,
+        userName: user?.name
       })
     });
+    if (!response.ok) {
+      console.error("Programm konnte nicht gebucht werden", await response.json());
+      return;
+    }
+    const result = await response.json();
+    console.info("Programmlauf gespeichert", result);
     form.reset();
-    alert("Programmlauf gespeichert und XP gutgeschrieben 🚀");
+    router.push(`/?programCompleted=${encodeURIComponent(program.name)}`);
   });
 
   return (

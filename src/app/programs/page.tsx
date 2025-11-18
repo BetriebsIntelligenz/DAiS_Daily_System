@@ -11,7 +11,7 @@ import { MobileShell } from "@/components/mobile-shell";
 
 export default function ProgramsPage() {
   const searchParams = useSearchParams();
-  const category = searchParams.get("category");
+  const category = searchParams?.get("category") ?? null;
 
   const programs = useMemo(() => {
     if (!category) return programDefinitions;

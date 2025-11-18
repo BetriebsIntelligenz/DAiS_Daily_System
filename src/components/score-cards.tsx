@@ -4,11 +4,7 @@ import { useEffect, useState } from "react";
 import { Trophy, TrendingUp } from "lucide-react";
 
 import { Card, CardDescription, CardTitle } from "./ui/card";
-
-interface ScoreCardProps {
-  totalXp: number;
-  categoryXp: Record<string, number>;
-}
+import { useAuth } from "./auth-gate";
 
 interface TimelineSnippet {
   id: string;
@@ -18,15 +14,32 @@ interface TimelineSnippet {
   detail?: string;
 }
 
-export function ScoreCards({ totalXp, categoryXp }: ScoreCardProps) {
+export function ScoreCards() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState<{
+    total: number;
+    categories: Record<string, number>;
+  }>({
+    total: 0,
+    categories: {}
+  });
   const [activities, setActivities] = useState<TimelineSnippet[]>([]);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const response = await fetch("/api/timeline");
-      const data = await response.json();
+      const [timelineResponse, statsResponse] = await Promise.all([
+        fetch("/api/timeline?limit=100"),
+        fetch(
+          `/api/xp/summary${
+            user?.email ? `?email=${encodeURIComponent(user.email)}` : ""
+          }`
+        )
+      ]);
+      const timelineData = await timelineResponse.json();
+      const statsData = await statsResponse.json();
       setActivities(
-        (data.entries as TimelineSnippet[]).slice(0, 3).map((entry) => ({
+        ((timelineData.entries as TimelineSnippet[]) || []).map((entry) => ({
           id: entry.id,
           title: entry.title,
           xp: entry.xp,
@@ -36,20 +49,24 @@ export function ScoreCards({ totalXp, categoryXp }: ScoreCardProps) {
             : undefined
         }))
       );
+      setStats({
+        total: statsData.total ?? 0,
+        categories: statsData.categories ?? {}
+      });
     };
     load();
-  }, []);
+  }, [user?.email]);
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <Card className="bg-white">
         <CardTitle className="flex items-center gap-2 text-2xl">
           <Trophy className="h-6 w-6 text-daisy-500" />
-          {totalXp.toLocaleString()} XP
+          {stats.total.toLocaleString()} XP
         </CardTitle>
         <CardDescription>Gesamter Fortschritt</CardDescription>
         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-          {Object.entries(categoryXp).map(([category, value]) => (
+          {Object.entries(stats.categories).map(([category, value]) => (
             <div key={category} className="rounded-2xl bg-daisy-50 px-3 py-2">
               <p className="text-xs uppercase tracking-wide text-daisy-700">
                 {category}
@@ -71,7 +88,7 @@ export function ScoreCards({ totalXp, categoryXp }: ScoreCardProps) {
           {activities.length === 0 && (
             <li className="text-gray-500">Noch keine Aktivitäten vorhanden.</li>
           )}
-          {activities.map((activity) => (
+          {(showAll ? activities.slice(0, 100) : activities.slice(0, 3)).map((activity) => (
             <li key={activity.id} className="flex flex-col gap-1">
               <div className="flex justify-between">
                 <span className="font-semibold text-gray-900">
@@ -99,6 +116,15 @@ export function ScoreCards({ totalXp, categoryXp }: ScoreCardProps) {
             </li>
           ))}
         </ul>
+        {activities.length > 3 && (
+          <button
+            type="button"
+            onClick={() => setShowAll((prev) => !prev)}
+            className="mt-4 w-full rounded-full border border-daisy-200 py-2 text-sm font-semibold text-daisy-600"
+          >
+            {showAll ? "Weniger anzeigen" : "Alle anzeigen"}
+          </button>
+        )}
       </Card>
     </div>
   );

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "./ui/button";
 import { Card, CardDescription, CardTitle } from "./ui/card";
+import { useAuth } from "./auth-gate";
 
 interface Reward {
   id: string;
@@ -22,15 +23,22 @@ interface Redemption {
 }
 
 export function RewardsGrid() {
+  const { user } = useAuth();
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
+  const [xpBalance, setXpBalance] = useState<number>(0);
 
   const refresh = useCallback(async () => {
-    const response = await fetch("/api/rewards");
+    const emailQuery = user?.email ? `?email=${encodeURIComponent(user.email)}` : "";
+    const response = await fetch(`/api/rewards${emailQuery}`);
     const data = await response.json();
     setRewards(data.rewards);
     setRedemptions(data.redemptions);
-  }, []);
+
+    const summaryResponse = await fetch(`/api/xp/summary${emailQuery}`);
+    const summaryData = await summaryResponse.json();
+    setXpBalance(summaryData.total ?? 0);
+  }, [user?.email]);
 
   useEffect(() => {
     refresh();
@@ -40,7 +48,7 @@ export function RewardsGrid() {
     await fetch("/api/rewards/redeem", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rewardId })
+      body: JSON.stringify({ rewardId, userEmail: user?.email, userName: user?.name })
     });
     await refresh();
   };
@@ -58,6 +66,19 @@ export function RewardsGrid() {
 
   return (
     <div className="space-y-10">
+      <div className="rounded-[30px] bg-gradient-to-r from-daisy-200 via-daisy-300 to-daisy-400 p-6 text-white shadow-soft">
+        <p className="text-sm uppercase tracking-[0.4em] text-white/70">
+          Aktuelle Punkte
+        </p>
+        <div className="mt-2 flex items-end gap-4">
+          <p className="text-5xl font-black drop-shadow-md">
+            {xpBalance.toLocaleString()} XP
+          </p>
+          <span className="animate-pulse text-xs uppercase tracking-[0.4em]">
+            ready
+          </span>
+        </div>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {activeRewards.map((reward) => (
           <Card key={reward.id}>

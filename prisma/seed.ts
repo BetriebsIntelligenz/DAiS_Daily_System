@@ -53,7 +53,7 @@ async function main() {
                 label: exercise.label,
                 description: exercise.description,
                 type: exercise.type,
-                config: exercise.config ?? {},
+                config: JSON.parse(JSON.stringify(exercise.config ?? {})),
                 xpValue: exercise.xpValue
               }))
             }

@@ -7,23 +7,32 @@ import {
   Shield,
   CalendarDays
 } from "lucide-react";
+import { SuccessToast } from "./success-toast";
+import { UserMenu } from "./user-menu";
 
 export function MobileShell({
   title,
   description,
-  children
+  children,
+  successMessage
 }: {
   title: string;
   description: string;
   children: React.ReactNode;
+  successMessage?: string;
 }) {
   return (
     <div className="min-h-screen bg-transparent">
       <div className="relative isolate mx-auto max-w-4xl px-5 pb-16 pt-10">
 
         <div className="space-y-5">
+          {successMessage && (
+            <div className="flex justify-center">
+              <SuccessToast message={successMessage} />
+            </div>
+          )}
           <div className="rounded-[36px] bg-gradient-to-b from-daisy-400 via-daisy-300 to-daisy-200 p-6 text-white shadow-soft">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-white/80">
                   DAiS ☼ MOBILE
@@ -33,7 +42,7 @@ export function MobileShell({
                 </h1>
                 <p className="mt-2 text-sm text-white/90">{description}</p>
               </div>
-              <div className="h-14 w-14 rounded-full bg-white/20 backdrop-blur" />
+              <UserMenu />
             </div>
           </div>
           <nav className="rounded-[30px] bg-black/80 p-5 shadow-soft">
