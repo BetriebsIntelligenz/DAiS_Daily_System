@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDemoUser } from "@/lib/demo-user";
 
@@ -12,29 +14,33 @@ export async function GET(request: Request) {
     ? await getOrCreateDemoUser({ email: userEmail, name: userName ?? undefined })
     : null;
 
+  const milestoneInclude: Prisma.LearningMilestoneInclude | undefined = user
+    ? {
+        progress: {
+          where: { userId: user.id }
+        }
+      }
+    : undefined;
+
   const paths = await prisma.learningPath.findMany({
     orderBy: { createdAt: "asc" },
     include: {
       milestones: {
         orderBy: { order: "asc" },
-        include: user
-          ? {
-              progress: {
-                where: { userId: user.id }
-              }
-            }
-          : false
+        include: milestoneInclude
       }
     }
   });
 
   const payload = paths.map((path) => {
     const milestones = path.milestones.map((milestone) => {
-      const progressEntries = Array.isArray(milestone.progress)
-        ? milestone.progress
+      const progressEntries = Array.isArray((milestone as any).progress)
+        ? (milestone as any).progress
         : [];
       const completedEntry = progressEntries.find((entry) => entry.completed);
-      const { progress: _unused, ...cleanMilestone } = milestone;
+      const { progress: _unused, ...cleanMilestone } = milestone as typeof milestone & {
+        progress?: unknown;
+      };
       return {
         ...cleanMilestone,
         completed: Boolean(completedEntry),
