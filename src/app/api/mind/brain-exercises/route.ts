@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDemoUser } from "@/lib/demo-user";
+import type { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -12,11 +13,11 @@ export async function GET(request: Request) {
     ? await getOrCreateDemoUser({ email: userEmail, name: userName ?? undefined })
     : null;
 
-  const include = user
+  const include: Prisma.BrainExerciseInclude | undefined = user
     ? {
         sessions: {
           where: { userId: user.id },
-          orderBy: { completedAt: "desc" },
+          orderBy: { completedAt: "desc" as Prisma.SortOrder },
           take: 1
         }
       }
