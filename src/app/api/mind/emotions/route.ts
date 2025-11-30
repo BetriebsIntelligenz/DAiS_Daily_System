@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDemoUser } from "@/lib/demo-user";
 
@@ -12,25 +14,27 @@ export async function GET(request: Request) {
     ? await getOrCreateDemoUser({ email: userEmail, name: userName ?? undefined })
     : null;
 
+  const include: Prisma.EmotionPracticeInclude | undefined = user
+    ? {
+        logs: {
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" },
+          take: 3
+        }
+      }
+    : undefined;
+
   const practices = await prisma.emotionPractice.findMany({
     orderBy: { createdAt: "asc" },
-    include: user
-      ? {
-          logs: {
-            where: { userId: user.id },
-            orderBy: { createdAt: "desc" },
-            take: 3
-          }
-        }
-      : false
+    include
   });
 
   const payload = practices.map((practice) => {
     const steps = Array.isArray(practice.regulationSteps)
       ? practice.regulationSteps.map((step) => String(step))
       : [];
-    const logs = Array.isArray(practice.logs) ? practice.logs : [];
-    const { logs: _unused, ...rest } = practice;
+    const logs = Array.isArray((practice as any).logs) ? (practice as any).logs : [];
+    const { logs: _unused, ...rest } = practice as typeof practice & { logs?: unknown };
     return {
       ...rest,
       regulationSteps: steps,
