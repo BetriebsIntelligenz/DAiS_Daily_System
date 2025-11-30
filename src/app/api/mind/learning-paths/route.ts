@@ -35,9 +35,9 @@ export async function GET(request: Request) {
   const payload = paths.map((path) => {
     const milestones = path.milestones.map((milestone) => {
       const progressEntries = Array.isArray((milestone as any).progress)
-        ? (milestone as any).progress
+        ? ((milestone as any).progress as Array<{ completed?: boolean; updatedAt?: Date }>)
         : [];
-      const completedEntry = progressEntries.find((entry) => entry.completed);
+      const completedEntry = progressEntries.find((entry) => entry.completed === true);
       const { progress: _unused, ...cleanMilestone } = milestone as typeof milestone & {
         progress?: unknown;
       };
