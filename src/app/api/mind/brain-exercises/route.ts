@@ -31,12 +31,17 @@ export async function GET(request: Request) {
   const today = new Date();
 
   const payload = exercises.map((exercise) => {
-    const sessions = Array.isArray(exercise.sessions) ? exercise.sessions : [];
+    const candidateSessions = (exercise as unknown as { sessions?: unknown }).sessions;
+    const sessions = Array.isArray(candidateSessions)
+      ? (candidateSessions as { completedAt: string | Date }[])
+      : [];
     const lastSession = sessions[0];
     const doneToday =
       lastSession &&
       new Date(lastSession.completedAt).toDateString() === today.toDateString();
-    const { sessions: _unused, ...rest } = exercise;
+    const { sessions: _unused, ...rest } = exercise as typeof exercise & {
+      sessions?: unknown;
+    };
     return {
       ...rest,
       doneToday: Boolean(doneToday),
