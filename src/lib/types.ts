@@ -180,3 +180,22 @@ export interface EmotionLogEntry {
   note?: string | null;
   createdAt: string;
 }
+
+export type RequirementStatus = "open" | "in_progress" | "problem" | "done";
+export type RequirementArea = "privat" | "finanzen" | "arbeit" | "staat";
+
+export interface RequirementRecord {
+  id: string;
+  title: string;
+  description?: string | null;
+  targetDate?: string | null;
+  requester: string;
+  cost: number;
+  priority: number;
+  xp: number;
+  area: RequirementArea;
+  status: RequirementStatus;
+  userId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -56,6 +56,20 @@ enum RewardStatus {
   cancelled
 }
 
+enum RequirementStatus {
+  open
+  in_progress
+  problem
+  done
+}
+
+enum RequirementArea {
+  privat
+  finanzen
+  arbeit
+  staat
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -74,6 +88,7 @@ model User {
   brainSessions BrainExerciseSession[]
   milestoneProgress LearningMilestoneProgress[]
   emotionLogs EmotionLog[]
+  requirements Requirement[]
 }
 
 model Program {
@@ -177,6 +192,24 @@ model RewardRedemption {
   reward Reward @relation(fields: [rewardId], references: [id])
   user   User   @relation(fields: [userId], references: [id])
   xp     XpTransaction[]
+}
+
+model Requirement {
+  id         String             @id @default(cuid())
+  title      String
+  description String?
+  targetDate DateTime?
+  requester  String
+  cost       Int
+  priority   Int                @default(3)
+  xp         Int                @default(0)
+  area       RequirementArea
+  status     RequirementStatus  @default(open)
+  userId     String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
 }
 
 model Journal {

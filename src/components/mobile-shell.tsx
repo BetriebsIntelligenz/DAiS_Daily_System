@@ -5,7 +5,8 @@ import {
   Gift,
   BookOpen,
   Shield,
-  CalendarDays
+  CalendarDays,
+  ListChecks
 } from "lucide-react";
 import { SuccessToast } from "./success-toast";
 import { UserMenu } from "./user-menu";
@@ -45,28 +46,41 @@ export function MobileShell({
               <UserMenu />
             </div>
           </div>
-          <nav className="rounded-[24px] bg-black/85 p-5 shadow-soft">
-            <div className="flex flex-wrap items-center justify-around gap-3 text-sm font-semibold text-white">
-              <NavLink href="/" icon={<Home className="h-4 w-4" />}>
-                Menu
-              </NavLink>
-              <NavLink href="/score" icon={<BarChart2 className="h-4 w-4" />}>
-                Score
-              </NavLink>
-              <NavLink href="/timeline" icon={<CalendarDays className="h-4 w-4" />}>
-                Timeline
-              </NavLink>
-              <NavLink href="/rewards" icon={<Gift className="h-4 w-4" />}>
-                Belohnungen
-              </NavLink>
-              <NavLink href="/journals" icon={<BookOpen className="h-4 w-4" />}>
-                Journale
-              </NavLink>
-              <NavLink href="/admin" icon={<Shield className="h-4 w-4" />}>
-                Admin
-              </NavLink>
-            </div>
-          </nav>
+      <nav className="rounded-[24px] bg-black/85 p-5 shadow-soft">
+        <div className="flex flex-wrap items-center justify-around gap-4 text-white">
+          <NavLink href="/" label="Menu" icon={<Home className="h-6 w-6" />} />
+          <NavLink
+            href="/score"
+            label="Score"
+            icon={<BarChart2 className="h-6 w-6" />}
+          />
+          <NavLink
+            href="/timeline"
+            label="Timeline"
+            icon={<CalendarDays className="h-6 w-6" />}
+          />
+          <NavLink
+            href="/requirements"
+            label="Anforderungen"
+            icon={<ListChecks className="h-6 w-6" />}
+          />
+          <NavLink
+            href="/rewards"
+            label="Belohnungen"
+            icon={<Gift className="h-6 w-6" />}
+          />
+          <NavLink
+            href="/journals"
+            label="Journale"
+            icon={<BookOpen className="h-6 w-6" />}
+          />
+          <NavLink
+            href="/admin"
+            label="Admin"
+            icon={<Shield className="h-6 w-6" />}
+          />
+        </div>
+      </nav>
         </div>
 
         <main className="mt-6 space-y-6 rounded-[22px] bg-white/95 p-6 shadow-card">
@@ -79,20 +93,21 @@ export function MobileShell({
 
 function NavLink({
   href,
-  children,
-  icon
+  icon,
+  label
 }: {
   href: string;
-  children: React.ReactNode;
   icon: React.ReactNode;
+  label: string;
 }) {
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 rounded-[16px] bg-white/10 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.4em] text-white"
+      className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+      aria-label={label}
+      title={label}
     >
       <span className="text-white">{icon}</span>
-      {children}
     </Link>
   );
 }

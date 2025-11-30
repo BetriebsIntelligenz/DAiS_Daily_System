@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getOrCreateDemoUser } from "@/lib/demo-user";
 import { prisma } from "@/lib/prisma";
 
 function formatDate(date: Date) {
@@ -10,34 +11,55 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = Number(searchParams.get("limit")) || 30;
   const maxLimit = Math.min(limit, 100);
+  const email = searchParams.get("email") ?? undefined;
+  const user = await getOrCreateDemoUser({ email });
 
-  const [programRuns, journalEntries, rewardRedemptions] = await Promise.all([
-    prisma.programRun.findMany({
-      include: {
-        program: {
-          include: {
-            units: {
-              include: {
-                exercises: true
+  const [programRuns, journalEntries, rewardRedemptions, requirementXp] =
+    await Promise.all([
+      prisma.programRun.findMany({
+        where: { userId: user.id },
+        include: {
+          program: {
+            include: {
+              units: {
+                include: {
+                  exercises: true
+                }
               }
             }
           }
-        }
-      },
-      orderBy: { createdAt: "desc" },
-      take: maxLimit
-    }),
-    prisma.journalEntry.findMany({
-      include: { journal: true },
-      orderBy: { createdAt: "desc" },
-      take: maxLimit
-    }),
-    prisma.rewardRedemption.findMany({
-      include: { reward: true },
-      orderBy: { requestedAt: "desc" },
-      take: maxLimit
-    })
-  ]);
+        },
+        orderBy: { createdAt: "desc" },
+        take: maxLimit
+      }),
+      prisma.journalEntry.findMany({
+        where: { userId: user.id },
+        include: { journal: true },
+        orderBy: { createdAt: "desc" },
+        take: maxLimit
+      }),
+      prisma.rewardRedemption.findMany({
+        where: { userId: user.id },
+        include: { reward: true },
+        orderBy: { requestedAt: "desc" },
+        take: maxLimit
+      }),
+      prisma.xpTransaction.findMany({
+        where: { userId: user.id, source: { startsWith: "requirement:" } },
+        orderBy: { createdAt: "desc" },
+        take: maxLimit
+      })
+    ]);
+
+  const requirementIds = requirementXp
+    .map((tx) => tx.source?.split(":")[1])
+    .filter(Boolean) as string[];
+
+  const requirements = await prisma.requirement.findMany({
+    where: { id: { in: requirementIds } }
+  });
+
+  const requirementMap = new Map(requirements.map((req) => [req.id, req]));
 
   const entries = [
     ...programRuns.map((run) => {
@@ -124,7 +146,36 @@ export async function GET(request: Request) {
         `Status: ${redemption.status.toUpperCase()}`,
         redemption.notes ?? "Einlösung gestartet"
       ]
-    }))
+    })),
+    ...requirementXp
+      .map((tx) => {
+        const requirementId = tx.source?.split(":")[1];
+        const requirement = requirementId
+          ? requirementMap.get(requirementId)
+          : undefined;
+        if (!requirement) return null;
+        return {
+          id: `requirement-${tx.id}`,
+          timestamp: formatDate(tx.createdAt),
+          title: requirement.title,
+          category: requirement.area,
+          type: "requirement",
+          xp: `+${tx.amount} XP`,
+          details: [
+            `Bereich: ${requirement.area.toUpperCase()}`,
+            `Status: ${requirement.status.toUpperCase()}`
+          ]
+        };
+      })
+      .filter(Boolean) as Array<{
+        id: string;
+        timestamp: string;
+        title: string;
+        category: string;
+        type: string;
+        xp: string;
+        details: string[];
+      }>
   ]
     .sort(
       (a, b) =>

@@ -29,7 +29,11 @@ export function ScoreCards() {
   useEffect(() => {
     const load = async () => {
       const [timelineResponse, statsResponse] = await Promise.all([
-        fetch("/api/timeline?limit=100"),
+        fetch(
+          `/api/timeline?limit=100${
+            user?.email ? `&email=${encodeURIComponent(user.email)}` : ""
+          }`
+        ),
         fetch(
           `/api/xp/summary${
             user?.email ? `?email=${encodeURIComponent(user.email)}` : ""
