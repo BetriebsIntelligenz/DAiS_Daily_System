@@ -1,0 +1,593 @@
+    1  sudo apt get update
+    2  sudo apt-get update
+    3  ls
+    4  mkdir BIOS
+    5  cd B
+    6  cd BIOS
+    7  mkdir BetriebsIntelligenz
+    8  mkdir Human Architecture System
+    9  ls
+   10  rmdir Human Architecture System
+   11  ls
+   12  mkdir HumanArchitectureSystem
+   13  sudo snap remove drawio
+   14  sudo apt remove drawio
+   15  sudo snap remove drawio
+   16  snap list
+   17  rm -r ~/.config/drawio
+   18  flatpak list
+   19  [200~dpkg -l | grep drawio
+   20  ~
+   21  dpkg -l | grep drawio
+   22  ls
+   23  cd Downloads/
+   24  ls
+   25  dpkg -l | grep drawio
+   26  wich drawio
+   27  which drawio
+   28  dpkg -S /usr/bin/drawio
+   29  ls -l /usr/bin/drawio
+   30  ls -l /etc/alternatives/drawio
+   31  sudo rm /usr/bin/drawio
+   32  sudo rm /etc/alternatives/drawio
+   33  sudo rm -r /opt/drawio
+   34  sudo rm /usr/bin/drawio && sudo rm /etc/alternatives/drawio && sudo rm -r /opt/drawio
+   35  ls /usr/share/applications | grep -i drawio
+   36  ls ~/.local/share/applications | grep -i drawio
+   37  sudo rm /usr/share/applications/drawio.desktop
+   38  rm ~/.local/share/applications/drawio.desktop
+   39  sudo apt install ./drawio-amd64-27.0.9.deb
+   40  ls
+   41  cd Downloads/
+   42  sudo apt install ./drawio-amd64-27.0.9.deb
+   43  ls
+   44  sudo apt install ./drawio-amd64-26.2.15.deb
+   45  sudo apt remove drawio
+   46  dpkg -l | grep drawio
+   47  sudo rm /usr/bin/drawio
+   48  sudo rm /etc/alternatives/drawio
+   49  sudo rm -r /opt/drawio
+   50  sudo rm /etc/alternatives/drawio
+   51  sudo rm /usr/bin/drawio && sudo rm /etc/alternatives/drawio && sudo rm -r /opt/drawio
+   52  ls ~/.local/share/applications | grep -i drawio
+   53  sudo rm /usr/share/applications/drawio.desktop
+   54  ls ~/.local/share/applications | grep -i drawio
+   55  sudo rm /usr/bin/drawio
+   56  cd Downloads/
+   57  ls
+   58  sudo apt install ./drawio-amd64-23.1.5.deb
+   59  sudo apt update 
+   60  sudo apt upgrade 
+   61  sudo snap install curl 
+   62  sudo apt install nano
+   63  sudo snap install curl 
+   64  sudo apt-get install docker-compose-plugin
+   65  docker compose version
+   66  clear
+   67  git clone https://github.com/opf/openproject-docker-compose.git --depth=1 --branch=stable/16 openproject
+   68  cp .env.example .env
+   69  ls
+   70  sudo mkdir -p /var/openproject/assets
+   71  sudo chown 1000:1000 -R /var/openproject/assets
+   72  OPENPROJECT_HTTPS=false docker compose up -d --build --pull always
+   73  cd openproject/
+   74  OPENPROJECT_HTTPS=false docker compose up -d --build --pull always
+   75  sudo mkdir -p /var/openproject/assets
+   76  sudo chown 1000:1000 -R /var/openproject/assets
+   77  OPENPROJECT_HTTPS=false docker compose up -d --build --pull always
+   78  sudo OPENPROJECT_HTTPS=false docker compose up -d --build --pull always
+   79  cd
+   80  cd BIOS/
+   81  mkdir System
+   82  cd System/
+   83  sudo docker volume create portainer_data
+   84  sudo docker run -d -p 55000:8000 -p 55001:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+   85  sudo docker-compose up -d
+   86  cd WikiJS/
+   87  sudo docker-compose up -d
+   88  sudo docker compose up -d
+   89  cd Ai\ Automation\ System/
+   90  sudo docker compose up -d
+   91  ls
+   92  cd AI\ Autom\ Sys/
+   93  sudo docker compose up -d
+   94  sudo docker compose down
+   95  docker compose --profile cpu up
+   96  sudo docker compose --profile cpu up
+   97  sudo apt install keepassxc
+   98  sudo docker compose up -d
+   99  sudo docker network create   --subnet=10.19.91.0/24   officeserver
+  100  sudo docker network create   --subnet=10.19.91.0/24   officeserver
+  101  docker network ls
+  102  sudo docker network ls
+  103  sudo docker inspect officeserver
+  104  networks:
+  105  sudo docker-compose up -d
+  106  sudo docker compose up -d
+  107  sudo docker network create officeserver
+  108  sudo docker compose up -d
+  109  sudo docker rm network create officeserver
+  110  sudo docker compose up -d
+  111  ls
+  112  Schreibtisch/
+  113  cd sc
+  114  cd Schreibtisch/
+  115  ls
+  116  cd ..
+  117  cd Öffentlich/
+  118  ls
+  119  cd ..
+  120  cd /home/conceptarchitecture/BIOS/System/Postgres & PGAdmin/.env
+  121  cd /home/conceptarchitecture/BIOS/System/Postgres & PGAdmin/
+  122  cd /home/conceptarchitecture/BIOS/System
+  123  ls
+  124  cd Postgres\ \&\ PGAdmin/
+  125  sudo docker-compose up -d
+  126  sudo docker compose up -d
+  127  # network create \
+  128  sudo docker network create   --driver bridge   --subnet 10.0.0.0/24   --gateway 10.0.0.1   equitybase
+  129  sudo docker compose up -d
+  130  sudo apt update
+  131  sudo apt upgrade
+  132  sudo apt install sane-utils libusb-dev usbutils build-essential libieee1284-3 gphoto2 autoconf automake libtool gettext git autopoint pkg-config libjpeg-dev
+  133  lsusb | grep '04a9'
+  134  sane-find-scanner
+  135  scanimage -L
+  136  lsusb
+  137  getfacl /dev/bus/usb/BBB/DDD
+  138  lsusb
+  139  getfacl /dev/bus/usb/04a9/DDD
+  140  getfacl /dev/bus/usb/04a9/1912
+  141  getfacl /dev/bus/usb/04a9:1912
+  142  sudo usermod -aG saned,lp $USER
+  143  scanimage -L
+  144  sudo apt-get install xsane 
+  145  sudo apt update
+  146  sudo apt install scanbd
+  147  sudo cp /etc/sane.d/dll.conf /etc/scanbd/sane.d/dll.conf
+  148  /etc/sane.d/dll.conf 
+  149  sudo /etc/sane.d/dll.conf 
+  150  sudo cp /etc/sane.d/dll.conf 
+  151  sudo cp /etc/sane.d/dll.conf
+  152  ls
+  153  cd Schreibtisch/
+  154  ls
+  155  cd ..
+  156  cd BIOS/
+  157  cls
+  158  ls
+  159  cd System/
+  160  ls
+  161  mkdir Grafana
+  162  sudo docker network connect aiautomsys_demo wikijs-wiki-1
+  163  sudo docker network connect aiautomsys_demo wikijs-db-1
+  164  sudo docker network connect wikijs_default n8n
+  165  docker exec -it n8n bash
+  166  curl http://ollama:11434
+  167  sudo docker exec -it n8n bash
+  168  curl http://ollama:11434
+  169  sudo docker exec -it n8n /bin/sh
+  170  docker network ls
+  171  docker network inspect ai-net
+  172  sudo docker network ls
+  173  docker network inspect ai-net
+  174  cd Grafana/
+  175  sudo docker compose up -d
+  176  cd ProcessBase/
+  177  sudo docker compose up -d
+  178  ls
+  179  sudo docker-compose up -d
+  180  sudo docker compose up -d
+  181  ls
+  182  cd BIOS
+  183  ls
+  184  cd Desktop\ Shortcuts/
+  185  ls
+  186  chmod +x ~/BIOS/Desktop\ Shortcuts/ConceptBase.desktop
+  187  cd
+  188  sudo apt update
+  189  sudo apt upgrade -y
+  190  python3 --version
+  191  sudo apt install -y python3 python3-pip
+  192  sudo apt install -y python3-venv
+  193  cd Do
+  194  ls
+  195  cd BIOS/
+  196  ls 
+  197  cd Desktop\ Shortcuts/
+  198  ls 
+  199  mkdir CONCEPTBASE
+  200  cd CONCEPTBASE/
+  201  ls
+  202  python 3 open_drawio_and_links.py 
+  203  python3 open_drawio_and_links.py 
+  204  chmod +x open_drawio_and_links.py 
+  205  cd
+  206  mkdir -p ~/.local/share/applications
+  207  nano ~/.local/share/applications/open_drawio_and_links.desktop
+  208  cd CONCEPTBASE/
+  209  python open_drawio_and_links.py 
+  210  python3 open_drawio_and_links.py 
+  211  /usr/bin/python3 "/home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py"
+  212  python3 open_drawio_and_links.py
+  213  /home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py
+  214  python3 /home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py
+  215  cd /home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py
+  216  cd /BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py
+  217  cd conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py
+  218  cd /home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py
+  219  cd /home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/
+  220  cd /home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE
+  221  cd "/home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE"
+  222  cd /home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py
+  223  python3 "/home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py"
+  224  [200~python3 "/home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py"~
+  225  python3 "/home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py"
+  226  cd System/
+  227  cd ArchiMate/
+  228  sudo docker compose up -d
+  229  mkdir -p /home/conceptarchitecture/BIOS/System/ArchiMate/{models,reports}
+  230  sudo docker compose up -d
+  231  mkdir -p ./models ./reports ./settings
+  232  sudo docker compose up -d
+  233  python3 "/home/conceptarchitecture/BIOS/Desktop Shortcuts/CONCEPTBASE/open_drawio_and_links.py"
+  234  libinput list-devices
+  235  sudo apt install libinput-tools
+  236  libinput list-devices
+  237  sudo libinput list-devices
+  238  ls
+  239  cd Down
+  240  cd Downloads/
+  241  clea
+  242  claer
+  243  clear
+  244  ls
+  245  ls -ltr
+  246  chmod a+x Cursor-1.4.2-x86_64.AppImage 
+  247  sudo apt update
+  248  sudo apt install libfuse2
+  249  sudo mv Cursor-1.4.2-x86_64.AppImage /opt/cursor.AppImage
+  250  sudo vi /usr/share/applications/cursor.dektop
+  251  sudo chmod +x /usr/local/bin/cursor
+  252  cd opt/cursor.AppImage
+  253  ls
+  254  mkdir Programme
+  255  cd Downloads/
+  256  ls
+  257  cd /usr/local/bin
+  258  ls
+  259  cd ..
+  260  ls
+  261  cd local/
+  262  ls
+  263  cd bin
+  264  ls
+  265  cd ..
+  266  ls
+  267  Claude
+  268  claude
+  269  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+  270  sudo apt install -y nodejs
+  271  node -v
+  272  npm -v
+  273  npm install -g @antropic-ai/claude-code
+  274  mkdir ~/.npm-global
+  275  npm config set prefix ’~/.npm-global’
+  276  echo ’export PATH=~/.npm-global/bin:$PATH’ >> ~/.zshrc
+  277  source ~/.zshrc
+  278  echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.zshrc
+  279  source ~/.zshrc
+  280  echo "export PATH=~/.npm-global/bin:$PATH" >> ~/.zshrc
+  281  source ~/.zshrc
+  282  npm config get registry
+  283  npm config set registry https://registry.npmjs.org/
+  284  npm install -g @anthropic-ai/claude-code
+  285  claude doctor
+  286  cat -A ~/.zshrc | nl | sed -n '1,200p'
+  287  sed -i "s/’/'/g" ~/.zshrc
+  288  sed -i 's/\r$//' ~/.zshrc
+  289  sed -i '/\.npm-global\/bin/d' ~/.zshrc
+  290  echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.zshrc
+  291  source ~/.zshrc
+  292  claude doctor
+  293  npm prefix -g
+  294  npm bin -g
+  295  ls -l "$(npm bin -g)"
+  296  ls -l ~/.npm-global/bin
+  297  npm list -g --depth=0
+  298  curl -fsSL https://claude.ai/install.sh | bash
+  299  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+  300  source ~/.zshrc
+  301  command -v claude
+  302  claude doctor
+  303  Claude
+  304  claude doctor
+  305  find "$HOME" -maxdepth 2 -type d -name "*npm-global*" -print0 | xargs -0 -I{} bash -lc 'printf "FOUND: %q\n" "{}"'
+  306  find "$HOME" -maxdepth 2 -type d -name "*npm-global*" -print0 |   xargs -0 -I{} bash -lc '[[ "{}" == *"’~/.npm-global"* ]] && rm -rf "{}" && echo REMOVED: "{}"'
+  307  npm uninstall -g @anthropic-ai/claude-code || true
+  308  sed -i '/\.npm-global\/bin/d' ~/.zshrc
+  309  grep -q 'export PATH="$HOME/.local/bin:$PATH"' ~/.zshrc ||   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+  310  grep -q 'export PATH="$HOME/.npm-global/bin:$PATH"' ~/.zshrc ||   echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.zshrc
+  311  source ~/.zshrc
+  312  rehash 2>/dev/null || true
+  313  hash -r 2>/dev/null || true
+  314  which claude
+  315  claude --version
+  316  claude doctor
+  317  npx n8n-mcp
+  318  Claude
+  319  claude
+  320  cd Cursor/
+  321  chmod a+x Cursor-1.4.2-x86_64.AppImage 
+  322  cursor .
+  323  ccurl "http://localhost:8000/api/categories"
+  324  curl "http://localhost:8000/api/categories"
+  325  mkdir
+  326  k
+  327  ks
+  328  ksk#
+  329  ls
+  330  pwd
+  331  ls
+  332  cd Business\ DB/
+  333  ls
+  334  pwd
+  335  sudo chown -R conceptarchitecture:conceptarchitecture /home/conceptarchitecture/Business DB
+  336  sudo chown -R conceptarchitecture:conceptarchitecture "/home/conceptarchitecture/Business DB"
+  337  sudo chmod -R 755 /home/conceptarchitecture/Business DB
+  338  sudo chmod -R 755 "/home/conceptarchitecture/Business DB"
+  339  sudo apt-get install ffmpeg
+  340  sudo add-apt-repository ppa:obsproject/obs-studio
+  341  sudo apt update
+  342  sudo apt-get update && sudo apt-get install obs-studio
+  343  lspci | grep -E "VGA|3D"
+  344  sudo apt install vainfo intel-media-va-driver-non-free i965-va-driver
+  345  vainfo
+  346  sudo add-apt-respository ppa:obsproject/obs-studio
+  347  sudo add-apt-repository ppa:obsproject/obs-studio
+  348  sudo apt install obs-studio
+  349  ls -ld /home/conceptarchitecture/ScreenRecordings
+  350  chmod u+rwx /home/conceptarchitecture/ScreenRecordings
+  351  sudo chown conceptarchitecture:conceptarchitecture /home/conceptarchitecture/ScreenRecordings
+  352  sudo apt update
+  353  sudo apt install vlc -y
+  354  /claude
+  355  claude
+  356  sudo docker-compose up -d
+  357  sudo dockercompose up -d
+  358  docker-compose up -d
+  359  ls
+  360  cd BetriebsIntelligenz/
+  361  cd AI/
+  362  ls
+  363  cd AIS
+  364  cd AISessions\ DB/
+  365  ls
+  366  docker-compose up -d
+  367  sudo docker-compose up -d
+  368  sudo docker compose up -d
+  369  sudo docker network connect aiautomsys_demo db_ai_sessions
+  370  sudo docker network connect aiautomsys_demo aisessions_db
+  371  npx create-next-app -e with-supabasefffffffff
+  372  claude
+  373  Vcd VergabeForm/vergabeform
+  374  cd VergabeForm/vergabeform
+  375  clear
+  376  ls
+  377  cd SoftwareSystems/
+  378  ls
+  379  cd VergabeForm
+  380  cd VergabeSystemForm/
+  381  ls
+  382  clear
+  383  >cd VergabeForm/vergabeform
+  384  cd VergabeForm/vergabeform
+  385  ls
+  386  clear
+  387  npm run dev
+  388  cd SoftwareSystems/
+  389  cd VergabeSystem
+  390  ls
+  391  cd ..
+  392  cd VergabeSystemForm/
+  393  ls
+  394  npm run dev
+  395  ls
+  396  cd VergabeForm/
+  397  ls
+  398  cd vergabeform/
+  399  npm run dev
+  400  git log --oneline --graph --all --decorate
+  401  cd SoftwareSystems/
+  402  cd VergabeSystemForm/
+  403  ls
+  404  cd VergabeForm/
+  405  ls
+  406  cd vergabeform/
+  407  git log --oneline --graph --all --decorate
+  408  clear
+  409  git log --oneline --graph --all --decorate
+  410  gitk --all
+  411  sudo gitk --all
+  412  sudo apt install gitk
+  413  sudo gitk --all
+  414  claude
+  415  sudo apt-get update && sudo apt-get install tree -y
+  416  cd SoftwareSystems/
+  417  ls
+  418  cd VergabeSystemForm/
+  419  tree
+  420  cd SoftwareSystems/
+  421  cd VergabeSystemForm/
+  422  tree > verzeichnisstruktur.txt
+  423  ls
+  424  cd vergabeform/
+  425  cd Sy
+  426  ls
+  427  cd SoftwareSystems/
+  428  ls
+  429  cd VergabeSystemForm/
+  430  ls
+  431  cd VergabeForm/
+  432  ls
+  433  cd vergabeform/
+  434  ls
+  435  npm run dev
+  436  git a
+  437  ls
+  438  cd SoftwareSystems/
+  439  ls
+  440  cd VergabeSystemForm/
+  441  ls
+  442  cd VergabeForm/
+  443  ls
+  444  cd vergabeform/
+  445  ls
+  446  sudo   docker compose up -d --build
+  447  cd SoftwareSystems/
+  448  cd VergabeForm/
+  449  cd VergabeSystemForm/
+  450  cd VergabeForm/
+  451  npm run dev
+  452  ls
+  453  cd vergabeform/
+  454  ls
+  455  npm run dev
+  456  cd SoftwareSystems/
+  457  ls
+  458  cd VergabeSystemForm/
+  459  ls
+  460  cd VergabeForm/
+  461  ls
+  462  cd vergabeform/
+  463  ls
+  464  npm run dev
+  465  sudo docker compose up -d
+  466  docker compose down
+  467  sudo docker compose down
+  468  sudo docker compose up -d
+  469  sudo docker compose down
+  470  sudo docker compose up -d
+  471  mv /path/to/config /path/to/config.bak-$(date +%F-%H%M)
+  472  sudo mv /path/to/config /path/to/config.bak-$(date +%F-%H%M)
+  473  mkdir -p /path/to/config
+  474  sudo mkdir -p /path/to/config
+  475  docker compose up -d
+  476  sudo docker compose up -d
+  477  sudo docker compose down
+  478  sudo docker compose up -d
+  479  cd SoftwareSystems/
+  480  cd vergabeform/
+  481  ls
+  482  cd VergabeSystemForm/
+  483  ls
+  484  cd VergabeForm/
+  485  ls
+  486  cd vergabeform/
+  487  npm run dev
+  488  sudo docker compose pull
+  489  sudo docker compose down
+  490  sudo docker compose up -d
+  491  cd SoftwareSystems/
+  492  cd vergabeform/
+  493  cd VergabeForm/
+  494  ls
+  495  cd VergabeSystemForm/
+  496  ls
+  497  cd VergabeSystemForm/
+  498  cd VergabeForm/
+  499  cd VergabeSystemForm/
+  500  ls
+  501  cd vergabeform/
+  502  ls
+  503  npm run dev
+  504  clear
+  505  npm run dev
+  506  claude
+  507  clear
+  508  claude
+  509  claude
+  510  ich kann aus Service provider sicht immer noch die Angebote von anderen anbietern sehen (screenshot: /VergabeSystemForm/Documentation/Bilder/Bildschirmfoto vom 2025-10-27 17-30-40.png) korrigiere das.clausc
+  511  claude
+  512  Prompts/Debugging/Problem⛔️8.md
+  513  claude
+  514  pwd
+  515  cd
+  516  cd SoftwareSystems/
+  517  ls
+  518  cd VergabeSystemForm/
+  519  ls
+  520  pwd
+  521  ssh -i .ssh/hostinger_key root@72.61.81.221
+  522  ssh -i .ssh/hostinger_key root@72.61.81.221
+  523  claude
+  524  ssh -i .ssh/hostinger_key root@72.61.81.221
+  525  ssh-keygen -t ed25519 -C "management@betriebsintelligenz.de"
+  526  ls
+  527  cd VPS
+  528  ssh-keygen -t ed25519 -C "management@betriebsintelligenz.de"
+  529  ssh-add .ssh/hostinger_key
+  530  cd ..
+  531  cd .ssh
+  532  ls
+  533  ssh-add .ssh/hostinger_key
+  534  cd ..
+  535  ssh-add .ssh/hostinger_key
+  536  ssh -i .ssh/hostinger_key root@72.61.81.221
+  537  sudo  docker compose build vergabeform
+  538  sudo docker compose up -d vergabeform
+  539  sudo docker compose down
+  540  claude
+  541  cd /home/conceptarchitecture/SoftwareSystems/VergabeSystemForm
+  542  rsync -av --dry-run . root@72.61.81.221:/opt/vergabe
+  543  rsync -av . user@vps:/opt/vergabe
+  544  rsync -av . root@72.61.81.221:/opt/vergabe
+  545  cd SoftwareSystems/
+  546  cd vergabeform/
+  547  ld
+  548  ls
+  549  cd VergabeSystemForm/
+  550  ls
+  551  cd VergabeForm/
+  552  ls
+  553  cd vergabeform/
+  554  ls
+  555  npm run dev
+  556  codey
+  557  codex
+  558  CLAUDE
+  559  claude
+  560  celar
+  561  clear
+  562  claude
+  563  codex
+  564  npm run lint
+  565  codex
+  566  codex
+  567  which codex
+  568  npm prefix -g
+  569  ls
+  570  cd SoftwareSystems/
+  571  ls
+  572  sudo npm install -g @openai/codex
+  573  codex
+  574  pwd
+  575  ps aux | grep wiki
+  576  sudo chown -R conceptarchitecture:conceptarchitecture /home/conceptarchitecture/BIOS/System/WikiJS/wiki-persist/wiki
+  577  sudo chmod -R 755 /home/conceptarchitecture/BIOS/System/WikiJS/wiki-persist/wiki
+  578  cd .
+  579  cd ..
+  580  sudo chown -R 1000:1000 ./wiki-persist
+  581  docker compose up -d
+  582  codex
+  583  [200~ssh -i .ssh/hostinger_key root@72.61.81.221
+  584  ~
+  585  ssh -i .ssh/hostinger_key root@72.61.81.221
+  586  cd ..
+  587  ls
+  588  cd home/
+  589  ls
+  590  cd conceptarchitecture/
+  591  ls
+  592  cd DAiS/
+  593  history > alles.txt

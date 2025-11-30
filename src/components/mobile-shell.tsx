@@ -31,7 +31,7 @@ export function MobileShell({
               <SuccessToast message={successMessage} />
             </div>
           )}
-          <div className="rounded-[36px] bg-gradient-to-b from-daisy-400 via-daisy-300 to-daisy-200 p-6 text-white shadow-soft">
+          <div className="rounded-[26px] bg-gradient-to-b from-daisy-400 via-daisy-300 to-daisy-200 p-6 text-white shadow-soft">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-white/80">
@@ -45,7 +45,7 @@ export function MobileShell({
               <UserMenu />
             </div>
           </div>
-          <nav className="rounded-[30px] bg-black/80 p-5 shadow-soft">
+          <nav className="rounded-[24px] bg-black/85 p-5 shadow-soft">
             <div className="flex flex-wrap items-center justify-around gap-3 text-sm font-semibold text-white">
               <NavLink href="/" icon={<Home className="h-4 w-4" />}>
                 Menu
@@ -69,7 +69,7 @@ export function MobileShell({
           </nav>
         </div>
 
-        <main className="mt-6 space-y-6 rounded-[34px] bg-white/95 p-6 shadow-card">
+        <main className="mt-6 space-y-6 rounded-[22px] bg-white/95 p-6 shadow-card">
           {children}
         </main>
       </div>
@@ -89,7 +89,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 rounded-[24px] bg-white/5 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.4em] text-white"
+      className="flex flex-col items-center gap-2 rounded-[16px] bg-white/10 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.4em] text-white"
     >
       <span className="text-white">{icon}</span>
       {children}

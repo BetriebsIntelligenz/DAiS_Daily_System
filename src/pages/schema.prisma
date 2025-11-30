@@ -70,6 +70,10 @@ model User {
   rewards     RewardRedemption[]
   journals    Journal[]
   journalLogs JournalEntry[]
+  goalCheckins MindGoalCheckin[]
+  brainSessions BrainExerciseSession[]
+  milestoneProgress LearningMilestoneProgress[]
+  emotionLogs EmotionLog[]
 }
 
 model Program {
@@ -123,6 +127,16 @@ model ProgramRun {
   program Program @relation(fields: [programId], references: [id])
   user    User    @relation(fields: [userId], references: [id])
   xp      XpTransaction[]
+}
+
+model ProgramStack {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  title        String
+  summary      String
+  programSlugs String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model XpTransaction {
@@ -184,4 +198,126 @@ model JournalEntry {
 
   journal Journal @relation(fields: [journalId], references: [id])
   user    User?   @relation(fields: [userId], references: [id])
+}
+
+model MindVisualizationAsset {
+  id        String   @id @default(cuid())
+  title     String
+  imageData String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model MindGoal {
+  id           String   @id @default(cuid())
+  title        String
+  specific     String
+  measurable   String
+  achievable   String
+  relevant     String
+  timeBound    String
+  metricName   String?
+  targetValue  Int?
+  unit         String?
+  targetDate   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  checkins MindGoalCheckin[]
+}
+
+model MindGoalCheckin {
+  id              String   @id @default(cuid())
+  goalId          String
+  userId          String?
+  progressPercent Int
+  selfAssessment  String?
+  readThrough     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  goal MindGoal @relation(fields: [goalId], references: [id])
+  user User?    @relation(fields: [userId], references: [id])
+}
+
+model BrainExercise {
+  id              String   @id @default(cuid())
+  title           String
+  focusArea       String
+  description     String
+  difficulty      Int
+  durationMinutes Int
+  rating          Int?
+  createdAt       DateTime @default(now())
+
+  sessions BrainExerciseSession[]
+}
+
+model BrainExerciseSession {
+  id          String   @id @default(cuid())
+  exerciseId  String
+  userId      String?
+  rating      Int?
+  notes       String?
+  completedAt DateTime @default(now())
+
+  exercise BrainExercise @relation(fields: [exerciseId], references: [id])
+  user     User?         @relation(fields: [userId], references: [id])
+}
+
+model LearningPath {
+  id          String   @id @default(cuid())
+  title       String
+  theme       String
+  description String
+  createdAt   DateTime @default(now())
+
+  milestones LearningMilestone[]
+}
+
+model LearningMilestone {
+  id          String   @id @default(cuid())
+  pathId      String
+  title       String
+  description String
+  order       Int
+
+  path     LearningPath @relation(fields: [pathId], references: [id])
+  progress LearningMilestoneProgress[]
+}
+
+model LearningMilestoneProgress {
+  id          String   @id @default(cuid())
+  milestoneId String
+  userId      String?
+  completed   Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  milestone LearningMilestone @relation(fields: [milestoneId], references: [id])
+  user      User?             @relation(fields: [userId], references: [id])
+
+  @@unique([milestoneId, userId])
+}
+
+model EmotionPractice {
+  id              String   @id @default(cuid())
+  emotion         String
+  summary         String
+  regulationSteps Json
+  groundingPrompt String?
+  createdAt       DateTime @default(now())
+
+  logs EmotionLog[]
+}
+
+model EmotionLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  practiceId String?
+  emotionLabel String
+  intensity  Int
+  note       String?
+  createdAt  DateTime @default(now())
+
+  practice EmotionPractice? @relation(fields: [practiceId], references: [id])
+  user     User?            @relation(fields: [userId], references: [id])
 }

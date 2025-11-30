@@ -9,6 +9,7 @@ import { z } from "zod";
 import type { ProgramDefinition, ProgramExercise } from "@/lib/types";
 import { Button } from "./ui/button";
 import { useAuth } from "./auth-gate";
+import { useProgramCompletionContext } from "@/contexts/program-completion-context";
 
 const buildSchema = (exercises: ProgramExercise[]) => {
   const shape: Record<string, z.ZodTypeAny> = {};
@@ -46,6 +47,13 @@ export function ProgramForm({ program }: { program: ProgramDefinition }) {
   const schema = useMemo(() => buildSchema(exercises), [exercises]);
   const router = useRouter();
   const { user } = useAuth();
+  const completionOverrides = useProgramCompletionContext();
+  const successRedirect =
+    completionOverrides?.redirectTo === null
+      ? null
+      :
+        completionOverrides?.redirectTo ??
+        `/?programCompleted=${encodeURIComponent(program.name)}`;
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {}
@@ -68,8 +76,13 @@ export function ProgramForm({ program }: { program: ProgramDefinition }) {
     }
     const result = await response.json();
     console.info("Programmlauf gespeichert", result);
+    if (completionOverrides?.onProgramCompleted) {
+      await completionOverrides.onProgramCompleted(program);
+    }
     form.reset();
-    router.push(`/?programCompleted=${encodeURIComponent(program.name)}`);
+    if (successRedirect) {
+      router.push(successRedirect);
+    }
   });
 
   return (

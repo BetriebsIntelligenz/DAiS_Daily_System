@@ -18,6 +18,176 @@ export const categories = [
 
 export const programDefinitions: ProgramDefinition[] = [
   {
+    id: "mind-visualisierung",
+    slug: "visualisierungstraining",
+    code: "MV1",
+    name: "Visualisierungstraining",
+    summary:
+      "Visual Library mit Fotos, Checkboxes und täglicher State-Priming Reflexion.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 10,
+    xpReward: 400,
+    mode: "flow",
+    units: [
+      {
+        id: "mv1-gallery",
+        title: "Visual Cards",
+        order: 1,
+        exercises: [
+          {
+            id: "mv1-gallery-check",
+            label: "Visual Cards bestätigt",
+            type: "checkbox",
+            xpValue: 200
+          },
+          {
+            id: "mv1-reflection",
+            label: "Gefühl nach dem Priming beschreiben",
+            type: "text",
+            xpValue: 200
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "mind-smart-goals",
+    slug: "ziele-smart",
+    code: "MG1",
+    name: "SMART Ziele",
+    summary:
+      "Alle Mind-Ziele anzeigen, täglich abhaken, Fortschritt aktualisieren und Selbst-Check hinterlegen.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 12,
+    xpReward: 500,
+    mode: "flow",
+    units: [
+      {
+        id: "mg1-review",
+        title: "Ziel Review",
+        order: 1,
+        exercises: [
+          {
+            id: "mg1-goal-progress",
+            label: "Fortschritt dokumentiert",
+            type: "checkbox",
+            xpValue: 250
+          },
+          {
+            id: "mg1-self-check",
+            label: "Selbsteinschätzung notiert",
+            type: "text",
+            xpValue: 250
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "mind-brain-training",
+    slug: "brain-training",
+    code: "MBT",
+    name: "Brain Training Gym",
+    summary:
+      "Kurze Mind-Gym Übungen, Difficulty Ratings und täglicher Durchführungs-Tracker.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 15,
+    xpReward: 450,
+    mode: "flow",
+    units: [
+      {
+        id: "mbt-session",
+        title: "Cognitive Sprints",
+        order: 1,
+        exercises: [
+          {
+            id: "mbt-exercises-done",
+            label: "Mind Gym absolviert",
+            type: "checkbox",
+            xpValue: 200
+          },
+          {
+            id: "mbt-rating",
+            label: "Session Rating",
+            type: "text",
+            xpValue: 250
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "mind-higher-thinking",
+    slug: "higher-thinking",
+    code: "MHT",
+    name: "Higher Thinking",
+    summary:
+      "Lernpfade, Philosophie & Konzepte mit Milestones abhaken bis der Pfad abgeschlossen ist.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 20,
+    xpReward: 600,
+    mode: "flow",
+    units: [
+      {
+        id: "mht-paths",
+        title: "Learning Paths",
+        order: 1,
+        exercises: [
+          {
+            id: "mht-milestones",
+            label: "Milestones aktualisiert",
+            type: "checkbox",
+            xpValue: 300
+          },
+          {
+            id: "mht-reflection",
+            label: "Konzept-Notiz",
+            type: "text",
+            xpValue: 300
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "mind-emotion-training",
+    slug: "emotion-training",
+    code: "MET",
+    name: "Emotion Training",
+    summary:
+      "Emotion loggen, Intensität tracken und passende Regulation Techniken anwenden.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 8,
+    xpReward: 420,
+    mode: "flow",
+    units: [
+      {
+        id: "met-logs",
+        title: "Emotion Logs",
+        order: 1,
+        exercises: [
+          {
+            id: "met-log-entry",
+            label: "Eintrag erstellt",
+            type: "checkbox",
+            xpValue: 200
+          },
+          {
+            id: "met-plan",
+            label: "Nächste Regulation",
+            type: "text",
+            xpValue: 220
+          }
+        ]
+      }
+    ]
+  },
+  {
     id: "mm1-incantations",
     slug: "mm1-incantations",
     code: "MM1",

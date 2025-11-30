@@ -5,6 +5,13 @@ import {
   programDefinitions,
   rewardDefinitions
 } from "../src/lib/data";
+import {
+  visualizationSeeds,
+  mindGoalSeeds,
+  brainExerciseSeeds,
+  learningPathSeeds,
+  emotionPracticeSeeds
+} from "../src/lib/mind-data";
 
 const prisma = new PrismaClient();
 
@@ -74,6 +81,106 @@ async function main() {
         userId: demoUser.id
       },
       update: {}
+    });
+  }
+
+  for (const asset of visualizationSeeds) {
+    await prisma.mindVisualizationAsset.upsert({
+      where: { id: asset.id },
+      create: {
+        id: asset.id,
+        title: asset.title,
+        imageData: asset.imageData,
+        order: typeof asset.order === "number" ? asset.order : 0
+      },
+      update: {
+        title: asset.title,
+        imageData: asset.imageData,
+        order: typeof asset.order === "number" ? asset.order : 0
+      }
+    });
+  }
+
+  for (const goal of mindGoalSeeds) {
+    await prisma.mindGoal.upsert({
+      where: { id: goal.id },
+      create: {
+        id: goal.id,
+        title: goal.title,
+        specific: goal.specific,
+        measurable: goal.measurable,
+        achievable: goal.achievable,
+        relevant: goal.relevant,
+        timeBound: goal.timeBound,
+        metricName: goal.metricName,
+        targetValue: goal.targetValue ?? null,
+        unit: goal.unit,
+        targetDate: goal.targetDate ? new Date(goal.targetDate) : null
+      },
+      update: {
+        title: goal.title,
+        specific: goal.specific,
+        measurable: goal.measurable,
+        achievable: goal.achievable,
+        relevant: goal.relevant,
+        timeBound: goal.timeBound,
+        metricName: goal.metricName,
+        targetValue: goal.targetValue ?? null,
+        unit: goal.unit,
+        targetDate: goal.targetDate ? new Date(goal.targetDate) : null
+      }
+    });
+  }
+
+  for (const exercise of brainExerciseSeeds) {
+    await prisma.brainExercise.upsert({
+      where: { id: exercise.id },
+      create: exercise,
+      update: exercise
+    });
+  }
+
+  for (const path of learningPathSeeds) {
+    await prisma.learningPath.upsert({
+      where: { id: path.id },
+      create: {
+        id: path.id,
+        title: path.title,
+        theme: path.theme,
+        description: path.description
+      },
+      update: {
+        title: path.title,
+        theme: path.theme,
+        description: path.description
+      }
+    });
+
+    for (const milestone of path.milestones) {
+      await prisma.learningMilestone.upsert({
+        where: { id: milestone.id },
+        create: {
+          id: milestone.id,
+          pathId: path.id,
+          title: milestone.title,
+          description: milestone.description,
+          order: milestone.order
+        },
+        update: {
+          pathId: path.id,
+          title: milestone.title,
+          description: milestone.description,
+          order: milestone.order
+        }
+      });
+    }
+  }
+
+  for (const practice of emotionPracticeSeeds) {
+    await prisma.emotionPractice.upsert({
+      where: { id: practice.id },
+      create: practice,
+      update: practice
     });
   }
 }

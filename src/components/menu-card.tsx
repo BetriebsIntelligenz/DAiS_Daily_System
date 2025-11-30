@@ -47,16 +47,16 @@ export function MenuCard({
           accent
         )}
       >
-        <div className="card-gradient flex h-28 w-full items-center justify-between rounded-t-[28px] px-5 text-white">
+        <div className="card-gradient flex h-28 w-full items-center justify-between rounded-t-[22px] px-5 text-white">
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-white/80">
-              Kategorie
+              Programm
             </p>
             <h3 className="text-2xl font-semibold">{title}</h3>
           </div>
           <div className="rounded-2xl bg-white/15 p-3 text-white">{icon}</div>
         </div>
-        <div className="-mt-5 space-y-4 rounded-[28px] bg-white p-5">
+        <div className="-mt-6 space-y-4 rounded-[22px] bg-white p-5 shadow-[0_12px_30px_rgba(234,196,94,0.2)]">
           <p className="text-sm text-gray-600">{description}</p>
           <div className="flex flex-wrap gap-2">
             {chips.slice(0, 3).map((chip) => (

@@ -1,7 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { programDefinitions, rewardDefinitions } from "@/lib/data";
+import type {
+  BrainExerciseWithState,
+  EmotionPracticeWithLogs,
+  LearningPathWithProgress,
+  MindGoalWithProgress,
+  MindVisualizationAsset,
+  ProgramStackDefinition
+} from "@/lib/types";
 import { Button } from "./ui/button";
 
 export function AdminPanels() {
@@ -9,6 +18,124 @@ export function AdminPanels() {
   const [category, setCategory] = useState("mind");
   const [rewardName, setRewardName] = useState("");
   const [rewardCost, setRewardCost] = useState(1000);
+
+  const [visualAssets, setVisualAssets] = useState<MindVisualizationAsset[]>([]);
+  const [visualTitle, setVisualTitle] = useState("");
+  const [visualDataUrl, setVisualDataUrl] = useState<string | null>(null);
+
+  const [programStacks, setProgramStacks] = useState<ProgramStackDefinition[]>([]);
+  const [stackTitle, setStackTitle] = useState("");
+  const [stackSummary, setStackSummary] = useState("");
+  const [stackPrograms, setStackPrograms] = useState<string[]>([]);
+  const [stackSelection, setStackSelection] = useState(
+    programDefinitions[0]?.slug ?? ""
+  );
+  const [editingStack, setEditingStack] = useState<ProgramStackDefinition | null>(
+    null
+  );
+  const [editTitle, setEditTitle] = useState("");
+  const [editSummary, setEditSummary] = useState("");
+  const [editPrograms, setEditPrograms] = useState<string[]>([]);
+  const [editSelection, setEditSelection] = useState(
+    programDefinitions[0]?.slug ?? ""
+  );
+
+  const [goals, setGoals] = useState<MindGoalWithProgress[]>([]);
+  const [goalForm, setGoalForm] = useState({
+    title: "",
+    specific: "",
+    measurable: "",
+    achievable: "",
+    relevant: "",
+    timeBound: "",
+    metricName: "",
+    targetValue: "",
+    unit: "",
+    targetDate: ""
+  });
+  const [editingGoal, setEditingGoal] = useState<MindGoalWithProgress | null>(null);
+  const [goalProgress, setGoalProgress] = useState(50);
+  const [goalLogText, setGoalLogText] = useState("");
+  const [logsModalGoal, setLogsModalGoal] = useState<MindGoalWithProgress | null>(null);
+
+  const [brainExercises, setBrainExercises] = useState<BrainExerciseWithState[]>([]);
+  const [brainForm, setBrainForm] = useState({
+    title: "",
+    focusArea: "",
+    description: "",
+    difficulty: 3,
+    durationMinutes: 5,
+    rating: 4
+  });
+
+  const [learningPaths, setLearningPaths] = useState<LearningPathWithProgress[]>([]);
+  const [pathForm, setPathForm] = useState({
+    title: "",
+    theme: "",
+    description: "",
+    milestones: ""
+  });
+
+  const [emotionPractices, setEmotionPractices] = useState<EmotionPracticeWithLogs[]>([]);
+  const [emotionForm, setEmotionForm] = useState({
+    emotion: "",
+    summary: "",
+    regulationSteps: "",
+    groundingPrompt: ""
+  });
+
+  const mindStats = useMemo(
+    () => ({
+      visuals: visualAssets.length,
+      goals: goals.length,
+      brainExercises: brainExercises.length,
+      learningPaths: learningPaths.length,
+      emotionPractices: emotionPractices.length
+    }),
+    [visualAssets, goals, brainExercises, learningPaths, emotionPractices]
+  );
+
+  useEffect(() => {
+    void refreshMindData();
+  }, []);
+
+  const refreshMindData = async () => {
+    const loadJson = async (path: string) => {
+      try {
+        const response = await fetch(path);
+        if (!response.ok) {
+          console.error(`Request to ${path} failed`, response.status);
+          return [];
+        }
+        return await response.json();
+      } catch (error) {
+        console.error(`Request to ${path} failed`, error);
+        return [];
+      }
+    };
+
+    const [
+      visuals,
+      goalsPayload,
+      brainPayload,
+      pathsPayload,
+      emotionPayload,
+      stackPayload
+    ] = await Promise.all([
+      loadJson("/api/mind/visuals"),
+      loadJson("/api/mind/goals"),
+      loadJson("/api/mind/brain-exercises"),
+      loadJson("/api/mind/learning-paths"),
+      loadJson("/api/mind/emotions"),
+      loadJson("/api/program-stacks")
+    ]);
+    setVisualAssets(Array.isArray(visuals) ? visuals : []);
+    setGoals(Array.isArray(goalsPayload) ? goalsPayload : []);
+    setBrainExercises(Array.isArray(brainPayload) ? brainPayload : []);
+    setLearningPaths(Array.isArray(pathsPayload) ? pathsPayload : []);
+    setEmotionPractices(Array.isArray(emotionPayload) ? emotionPayload : []);
+    setProgramStacks(Array.isArray(stackPayload) ? stackPayload : []);
+  };
 
   const createProgram = async () => {
     await fetch("/api/programs", {
@@ -31,36 +158,339 @@ export function AdminPanels() {
     alert("Belohnung gespeichert.");
   };
 
+  const handleVisualUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!visualTitle || !visualDataUrl) {
+      alert("Bitte Titel und Bild wählen.");
+      return;
+    }
+    await fetch("/api/mind/visuals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: visualTitle, imageData: visualDataUrl })
+    });
+    setVisualTitle("");
+    setVisualDataUrl(null);
+    await refreshMindData();
+  };
+
+  const handleVisualDelete = async (id: string) => {
+    await fetch("/api/mind/visuals", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id })
+    });
+    await refreshMindData();
+  };
+
+  const saveVisualOrder = async (assets: MindVisualizationAsset[]) => {
+    setVisualAssets(assets);
+    await fetch("/api/mind/visuals", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: assets.map((asset) => asset.id) })
+    });
+    await refreshMindData();
+  };
+
+  const moveVisual = (id: string, direction: "up" | "down") => {
+    setVisualAssets((prev) => {
+      const index = prev.findIndex((asset) => asset.id === id);
+      if (index === -1) return prev;
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.splice(target, 0, item);
+      void saveVisualOrder(next);
+      return next;
+    });
+  };
+
+  const handleStackSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!stackTitle || stackPrograms.length === 0) {
+      alert("Bitte Titel und mindestens ein Programm wählen.");
+      return;
+    }
+    await fetch("/api/program-stacks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: stackTitle,
+        summary: stackSummary,
+        programSlugs: stackPrograms
+      })
+    });
+    setStackTitle("");
+    setStackSummary("");
+    setStackPrograms([]);
+    await refreshMindData();
+  };
+
+  const addStackProgram = () => {
+    if (!stackSelection) return;
+    setStackPrograms((prev) =>
+      prev.includes(stackSelection) ? prev : [...prev, stackSelection]
+    );
+  };
+
+  const removeStackProgram = (slug: string) => {
+    setStackPrograms((prev) => prev.filter((entry) => entry !== slug));
+  };
+
+  const openEditStack = (stack: ProgramStackDefinition) => {
+    setEditingStack(stack);
+    setEditTitle(stack.title);
+    setEditSummary(stack.summary);
+    setEditPrograms(stack.programSlugs);
+    setEditSelection(stack.programSlugs[0] ?? programDefinitions[0]?.slug ?? "");
+  };
+
+  const addEditProgram = () => {
+    if (!editSelection) return;
+    setEditPrograms((prev) =>
+      prev.includes(editSelection) ? prev : [...prev, editSelection]
+    );
+  };
+
+  const removeEditProgram = (slug: string) => {
+    setEditPrograms((prev) => prev.filter((entry) => entry !== slug));
+  };
+
+  const handleStackUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingStack || !editTitle || editPrograms.length === 0) return;
+
+    await fetch("/api/program-stacks", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingStack.id,
+        title: editTitle,
+        summary: editSummary,
+        programSlugs: editPrograms
+      })
+    });
+
+    setEditingStack(null);
+    await refreshMindData();
+  };
+
+  const handleGoalSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await fetch("/api/mind/goals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...goalForm,
+        targetValue: goalForm.targetValue ? Number(goalForm.targetValue) : undefined
+      })
+    });
+    setGoalForm({
+      title: "",
+      specific: "",
+      measurable: "",
+      achievable: "",
+      relevant: "",
+      timeBound: "",
+      metricName: "",
+      targetValue: "",
+      unit: "",
+      targetDate: ""
+    });
+    await refreshMindData();
+  };
+
+  const openGoalEdit = (goal: MindGoalWithProgress) => {
+    setEditingGoal(goal);
+    setGoalForm({
+      title: goal.title,
+      specific: goal.specific,
+      measurable: goal.measurable,
+      achievable: goal.achievable,
+      relevant: goal.relevant,
+      timeBound: goal.timeBound,
+      metricName: goal.metricName ?? "",
+      targetValue: goal.targetValue?.toString() ?? "",
+      unit: goal.unit ?? "",
+      targetDate: goal.targetDate ? goal.targetDate.slice(0, 10) : ""
+    });
+    setGoalProgress(goal.latestProgress ?? 50);
+    setGoalLogText("");
+  };
+
+  const handleGoalUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingGoal) return;
+
+    await fetch("/api/mind/goals", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingGoal.id,
+        ...goalForm,
+        targetValue: goalForm.targetValue ? Number(goalForm.targetValue) : null,
+        latestProgress: goalProgress
+        ,
+        selfAssessment: goalLogText
+      })
+    });
+    setEditingGoal(null);
+    setGoalForm({
+      title: "",
+      specific: "",
+      measurable: "",
+      achievable: "",
+      relevant: "",
+      timeBound: "",
+      metricName: "",
+      targetValue: "",
+      unit: "",
+      targetDate: ""
+    });
+    setGoalProgress(50);
+    setGoalLogText("");
+    await refreshMindData();
+  };
+
+  const handleBrainSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await fetch("/api/mind/brain-exercises", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...brainForm,
+        difficulty: Number(brainForm.difficulty),
+        durationMinutes: Number(brainForm.durationMinutes),
+        rating: Number(brainForm.rating)
+      })
+    });
+    setBrainForm({
+      title: "",
+      focusArea: "",
+      description: "",
+      difficulty: 3,
+      durationMinutes: 5,
+      rating: 4
+    });
+    await refreshMindData();
+  };
+
+  const handlePathSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await fetch("/api/mind/learning-paths", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pathForm)
+    });
+    setPathForm({
+      title: "",
+      theme: "",
+      description: "",
+      milestones: ""
+    });
+    await refreshMindData();
+  };
+
+  const handleEmotionSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await fetch("/api/mind/emotions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(emotionForm)
+    });
+    setEmotionForm({
+      emotion: "",
+      summary: "",
+      regulationSteps: "",
+      groundingPrompt: ""
+    });
+    await refreshMindData();
+  };
+
   return (
     <div className="space-y-10">
       <section className="rounded-3xl bg-white/80 p-6">
-        <header>
-          <h2 className="text-xl font-semibold">Programme verwalten</h2>
+        <header className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold">Programms zusammenstellen</h2>
           <p className="text-sm text-gray-500">
-            Bestehende Programme ({programDefinitions.length}) aus der Seed-Liste.
+            Verbinde bestehende Einzelprogramme zu einem Flow-Modus (z.B. Morgenroutine).
           </p>
         </header>
-
-        <div className="mt-4 grid gap-3">
+        <form className="mt-4 grid gap-3" onSubmit={handleStackSubmit}>
           <input
-            value={programName}
-            onChange={(event) => setProgramName(event.target.value)}
-            placeholder="Programmname"
+            value={stackTitle}
+            onChange={(event) => setStackTitle(event.target.value)}
+            placeholder="Programmtitel"
             className="rounded-2xl border border-daisy-200 px-4 py-3"
           />
-          <select
-            value={category}
-            onChange={(event) => setCategory(event.target.value)}
+          <textarea
+            value={stackSummary}
+            onChange={(event) => setStackSummary(event.target.value)}
+            placeholder="Beschreibung"
             className="rounded-2xl border border-daisy-200 px-4 py-3"
-          >
-            <option value="mind">Mind</option>
-            <option value="body">Body</option>
-            <option value="human">Human</option>
-            <option value="environment">Environment</option>
-            <option value="business">Business</option>
-          </select>
-          <Button onClick={createProgram}>Programm anlegen</Button>
-        </div>
+          />
+          <div className="grid gap-3 md:grid-cols-[2fr,auto]">
+            <select
+              value={stackSelection}
+              onChange={(event) => setStackSelection(event.target.value)}
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            >
+              <option value="">Programm wählen…</option>
+              {programDefinitions.map((program) => (
+                <option key={program.id} value={program.slug}>
+                  {program.code} — {program.name}
+                </option>
+              ))}
+            </select>
+            <Button type="button" onClick={addStackProgram}>
+              Modul hinzufügen
+            </Button>
+          </div>
+          {stackPrograms.length > 0 && (
+            <ol className="space-y-2 rounded-2xl border border-daisy-100 bg-white/70 p-4 text-sm text-gray-700">
+              {stackPrograms.map((slug, index) => {
+                const program = programDefinitions.find((entry) => entry.slug === slug);
+                return (
+                  <li key={slug} className="flex items-center justify-between gap-4">
+                    <span>
+                      {index + 1}. {program?.name ?? slug}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => removeStackProgram(slug)}
+                    >
+                      Entfernen
+                    </Button>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+          <Button type="submit">Programm speichern</Button>
+        </form>
+        {programStacks.length > 0 && (
+          <ul className="mt-4 space-y-2 text-sm text-gray-600">
+            {programStacks.map((stack) => (
+              <li
+                key={stack.id}
+                className="flex items-center justify-between rounded-2xl border border-daisy-100 px-4 py-3"
+              >
+                <div>
+                  <p className="font-semibold">{stack.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {stack.programSlugs.length} Module – {stack.summary}
+                  </p>
+                </div>
+                <Button type="button" variant="ghost" onClick={() => openEditStack(stack)}>
+                  Bearbeiten
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="rounded-3xl bg-white/80 p-6">
@@ -86,6 +516,533 @@ export function AdminPanels() {
           />
           <Button onClick={createReward}>Belohnung speichern</Button>
         </div>
+      </section>
+
+      {editingStack && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
+            <header className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                  Programm bearbeiten
+                </p>
+                <h3 className="text-xl font-semibold">{editingStack.title}</h3>
+              </div>
+              <Button variant="ghost" type="button" onClick={() => setEditingStack(null)}>
+                Schließen
+              </Button>
+            </header>
+
+            <form className="mt-4 space-y-3" onSubmit={handleStackUpdate}>
+              <input
+                value={editTitle}
+                onChange={(event) => setEditTitle(event.target.value)}
+                placeholder="Titel"
+                className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+              />
+              <textarea
+                value={editSummary}
+                onChange={(event) => setEditSummary(event.target.value)}
+                placeholder="Beschreibung"
+                className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+              />
+              <div className="grid gap-3 md:grid-cols-[2fr,auto]">
+                <select
+                  value={editSelection}
+                  onChange={(event) => setEditSelection(event.target.value)}
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                >
+                  <option value="">Programm wählen…</option>
+                  {programDefinitions.map((program) => (
+                    <option key={program.id} value={program.slug}>
+                      {program.code} — {program.name}
+                    </option>
+                  ))}
+                </select>
+                <Button type="button" onClick={addEditProgram}>
+                  Modul hinzufügen
+                </Button>
+              </div>
+              {editPrograms.length > 0 && (
+                <ol className="space-y-2 rounded-2xl border border-daisy-100 bg-white/70 p-4 text-sm text-gray-700">
+                  {editPrograms.map((slug, index) => {
+                    const program = programDefinitions.find(
+                      (entry) => entry.slug === slug
+                    );
+                    return (
+                      <li key={slug} className="flex items-center justify-between gap-4">
+                        <span>
+                          {index + 1}. {program?.name ?? slug}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => removeEditProgram(slug)}
+                        >
+                          Entfernen
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <Button variant="ghost" type="button" onClick={() => setEditingStack(null)}>
+                  Abbrechen
+                </Button>
+                <Button type="submit">Änderungen speichern</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <section className="rounded-3xl bg-white/80 p-6">
+        <header className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold">Visualisierungstraining Assets</h2>
+          <p className="text-sm text-gray-500">
+            {mindStats.visuals} aktive Visual Cards — Checkbox-Gallerie im Mind Programm.
+          </p>
+        </header>
+        <form className="mt-4 grid gap-3" onSubmit={handleVisualUpload}>
+          <input
+            value={visualTitle}
+            onChange={(event) => setVisualTitle(event.target.value)}
+            placeholder="Titel / Szene"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                setVisualDataUrl(typeof reader.result === "string" ? reader.result : null);
+              };
+              reader.readAsDataURL(file);
+            }}
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <Button type="submit">Visual hochladen</Button>
+        </form>
+        {visualAssets.length > 0 && (
+          <ul className="mt-4 grid gap-2 text-sm text-gray-600">
+            {visualAssets.map((asset, index) => (
+              <li
+                key={asset.id}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-daisy-100 px-4 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={index === 0}
+                    onClick={() => moveVisual(asset.id, "up")}
+                  >
+                    ↑
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={index === visualAssets.length - 1}
+                    onClick={() => moveVisual(asset.id, "down")}
+                  >
+                    ↓
+                  </Button>
+                  <span className="truncate">{asset.title}</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => handleVisualDelete(asset.id)}
+                >
+                  Löschen
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="rounded-3xl bg-white/80 p-6">
+        <header className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold">SMART Ziele</h2>
+          <p className="text-sm text-gray-500">
+            {mindStats.goals} Ziele mit täglichem Check-in und Progress Balken.
+          </p>
+        </header>
+        <form className="mt-4 grid gap-3" onSubmit={handleGoalSubmit}>
+          {(["title", "specific", "measurable", "achievable", "relevant", "timeBound"] as const).map(
+            (field) => (
+              <textarea
+                key={field}
+                value={goalForm[field]}
+                onChange={(event) =>
+                  setGoalForm((prev) => ({ ...prev, [field]: event.target.value }))
+                }
+                placeholder={field.toUpperCase()}
+                className="rounded-2xl border border-daisy-200 px-4 py-3"
+              />
+            )
+          )}
+          <div className="grid gap-3 md:grid-cols-3">
+            <input
+              value={goalForm.metricName}
+              onChange={(event) =>
+                setGoalForm((prev) => ({ ...prev, metricName: event.target.value }))
+              }
+              placeholder="Metrik"
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            />
+            <input
+              value={goalForm.targetValue}
+              onChange={(event) =>
+                setGoalForm((prev) => ({ ...prev, targetValue: event.target.value }))
+              }
+              placeholder="Zielwert"
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            />
+            <input
+              value={goalForm.unit}
+              onChange={(event) => setGoalForm((prev) => ({ ...prev, unit: event.target.value }))}
+              placeholder="Einheit"
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            />
+          </div>
+          <input
+            type="date"
+            value={goalForm.targetDate}
+            onChange={(event) =>
+              setGoalForm((prev) => ({ ...prev, targetDate: event.target.value }))
+            }
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <Button type="submit">Ziel speichern</Button>
+        </form>
+        {goals.length > 0 && (
+          <ul className="mt-4 space-y-2 text-sm text-gray-700">
+            {goals.map((goal) => (
+              <li
+                key={goal.id}
+                className="flex items-center justify-between rounded-2xl border border-daisy-100 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{goal.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {goal.latestProgress ?? 0}% erreicht
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="secondary" type="button" onClick={() => setLogsModalGoal(goal)}>
+                    Logs
+                  </Button>
+                  <Button variant="ghost" type="button" onClick={() => openGoalEdit(goal)}>
+                    Bearbeiten
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {editingGoal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
+            <header className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Ziel bearbeiten</p>
+                <h3 className="text-xl font-semibold">{editingGoal.title}</h3>
+              </div>
+              <Button variant="ghost" type="button" onClick={() => setEditingGoal(null)}>
+                Schließen
+              </Button>
+            </header>
+
+            <form className="mt-4 space-y-3" onSubmit={handleGoalUpdate}>
+              {(["title", "specific", "measurable", "achievable", "relevant", "timeBound"] as const).map(
+                (field) => (
+                  <textarea
+                    key={field}
+                    value={goalForm[field]}
+                    onChange={(event) =>
+                      setGoalForm((prev) => ({ ...prev, [field]: event.target.value }))
+                    }
+                    placeholder={field.toUpperCase()}
+                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                )
+              )}
+              <div className="grid gap-3 md:grid-cols-3">
+                <input
+                  value={goalForm.metricName}
+                  onChange={(event) =>
+                    setGoalForm((prev) => ({ ...prev, metricName: event.target.value }))
+                  }
+                  placeholder="Metrik"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <input
+                  value={goalForm.targetValue}
+                  onChange={(event) =>
+                    setGoalForm((prev) => ({ ...prev, targetValue: event.target.value }))
+                  }
+                  placeholder="Zielwert"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <input
+                  value={goalForm.unit}
+                  onChange={(event) => setGoalForm((prev) => ({ ...prev, unit: event.target.value }))}
+                  placeholder="Einheit"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+              </div>
+              <input
+                type="date"
+                value={goalForm.targetDate}
+                onChange={(event) =>
+                  setGoalForm((prev) => ({ ...prev, targetDate: event.target.value }))
+                }
+                className="rounded-2xl border border-daisy-200 px-4 py-3"
+              />
+
+              <div className="flex flex-col gap-2 rounded-2xl border border-daisy-200 bg-white p-4 text-sm font-semibold text-gray-700">
+                <div className="flex items-center justify-between">
+                  <span>Aktuelle Erreichung</span>
+                  <span className="text-base font-bold text-daisy-600">{goalProgress}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={goalProgress}
+                  onChange={(event) => setGoalProgress(Number(event.target.value))}
+                  className="accent-daisy-500"
+                />
+              </div>
+
+              <label className="flex flex-col gap-2 text-sm font-semibold text-gray-700">
+                Erfolgslog
+                <textarea
+                  value={goalLogText}
+                  onChange={(event) => setGoalLogText(event.target.value)}
+                  placeholder="Was lief besonders gut?"
+                  className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+              </label>
+
+              <div className="flex justify-end gap-3">
+                <Button variant="ghost" type="button" onClick={() => setEditingGoal(null)}>
+                  Abbrechen
+                </Button>
+                <Button type="submit">Änderungen speichern</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {logsModalGoal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+            <header className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Erfolgslog</p>
+                <h3 className="text-xl font-semibold">{logsModalGoal.title}</h3>
+              </div>
+              <Button variant="ghost" type="button" onClick={() => setLogsModalGoal(null)}>
+                Schließen
+              </Button>
+            </header>
+            <div className="mt-4 max-h-[360px] overflow-y-auto space-y-3 text-sm text-gray-700">
+              {logsModalGoal.logs && logsModalGoal.logs.length > 0 ? (
+                logsModalGoal.logs.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="rounded-2xl border border-daisy-100 bg-white p-3 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{new Date(entry.createdAt).toLocaleString()}</span>
+                      <span className="font-semibold text-daisy-600">
+                        {entry.progressPercent}%
+                      </span>
+                    </div>
+                    {entry.selfAssessment && (
+                      <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
+                        {entry.selfAssessment}
+                      </p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">Noch keine Einträge.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <section className="rounded-3xl bg-white/80 p-6">
+        <header className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold">Brain Training Übungen</h2>
+          <p className="text-sm text-gray-500">
+            {mindStats.brainExercises} Brain Gym Items mit Bewertung.
+          </p>
+        </header>
+        <form className="mt-4 grid gap-3" onSubmit={handleBrainSubmit}>
+          <input
+            value={brainForm.title}
+            onChange={(event) =>
+              setBrainForm((prev) => ({ ...prev, title: event.target.value }))
+            }
+            placeholder="Titel"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <input
+            value={brainForm.focusArea}
+            onChange={(event) =>
+              setBrainForm((prev) => ({ ...prev, focusArea: event.target.value }))
+            }
+            placeholder="Fokusbereich"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <textarea
+            value={brainForm.description}
+            onChange={(event) =>
+              setBrainForm((prev) => ({ ...prev, description: event.target.value }))
+            }
+            placeholder="Beschreibung"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <div className="grid gap-3 md:grid-cols-3">
+            <label className="text-sm font-medium text-gray-700">
+              Difficulty ({brainForm.difficulty})
+              <input
+                type="range"
+                min={1}
+                max={5}
+                value={brainForm.difficulty}
+                onChange={(event) =>
+                  setBrainForm((prev) => ({
+                    ...prev,
+                    difficulty: Number(event.target.value)
+                  }))
+                }
+                className="mt-2 w-full"
+              />
+            </label>
+            <input
+              type="number"
+              value={brainForm.durationMinutes}
+              onChange={(event) =>
+                setBrainForm((prev) => ({
+                  ...prev,
+                  durationMinutes: Number(event.target.value)
+                }))
+              }
+              placeholder="Minuten"
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            />
+            <input
+              type="number"
+              value={brainForm.rating}
+              onChange={(event) =>
+                setBrainForm((prev) => ({ ...prev, rating: Number(event.target.value) }))
+              }
+              placeholder="Rating"
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            />
+          </div>
+          <Button type="submit">Übung hinzufügen</Button>
+        </form>
+      </section>
+
+      <section className="rounded-3xl bg-white/80 p-6">
+        <header className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold">Higher Thinking Pfade</h2>
+          <p className="text-sm text-gray-500">
+            {mindStats.learningPaths} Lernpfade & {learningPaths.reduce((sum, path) => sum + path.milestones.length, 0)} Milestones.
+          </p>
+        </header>
+        <form className="mt-4 grid gap-3" onSubmit={handlePathSubmit}>
+          <input
+            value={pathForm.title}
+            onChange={(event) => setPathForm((prev) => ({ ...prev, title: event.target.value }))}
+            placeholder="Titel"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <input
+            value={pathForm.theme}
+            onChange={(event) => setPathForm((prev) => ({ ...prev, theme: event.target.value }))}
+            placeholder="Thema"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <textarea
+            value={pathForm.description}
+            onChange={(event) =>
+              setPathForm((prev) => ({ ...prev, description: event.target.value }))
+            }
+            placeholder="Beschreibung"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <textarea
+            value={pathForm.milestones}
+            onChange={(event) =>
+              setPathForm((prev) => ({ ...prev, milestones: event.target.value }))
+            }
+            placeholder="Milestones (jede Zeile = Meilenstein)"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <Button type="submit">Lernpfad speichern</Button>
+        </form>
+      </section>
+
+      <section className="rounded-3xl bg-white/80 p-6">
+        <header className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold">Emotion Training</h2>
+          <p className="text-sm text-gray-500">
+            {mindStats.emotionPractices} Regulation Guides inkl. Grounding-Prompt.
+          </p>
+        </header>
+        <form className="mt-4 grid gap-3" onSubmit={handleEmotionSubmit}>
+          <input
+            value={emotionForm.emotion}
+            onChange={(event) =>
+              setEmotionForm((prev) => ({ ...prev, emotion: event.target.value }))
+            }
+            placeholder="Emotion"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <textarea
+            value={emotionForm.summary}
+            onChange={(event) =>
+              setEmotionForm((prev) => ({ ...prev, summary: event.target.value }))
+            }
+            placeholder="Kurze Beschreibung"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <textarea
+            value={emotionForm.regulationSteps}
+            onChange={(event) =>
+              setEmotionForm((prev) => ({ ...prev, regulationSteps: event.target.value }))
+            }
+            placeholder="Regulation Steps (pro Zeile ein Step)"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <textarea
+            value={emotionForm.groundingPrompt}
+            onChange={(event) =>
+              setEmotionForm((prev) => ({ ...prev, groundingPrompt: event.target.value }))
+            }
+            placeholder="Grounding Prompt"
+            className="rounded-2xl border border-daisy-200 px-4 py-3"
+          />
+          <Button type="submit">Emotion Guide erstellen</Button>
+        </form>
       </section>
     </div>
   );
