@@ -5,6 +5,172 @@ export type ProgramCategoryName =
   | "environment"
   | "business";
 
+export type ProgramFrequencyName =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "adhoc"
+  | "block_only";
+
+export type ProgramTypeName =
+  | "routine"
+  | "training"
+  | "healing"
+  | "social"
+  | "business"
+  | "spiritual"
+  | "brain";
+
+export type ProgramPriorityName = "core" | "optional";
+
+export type ProgramStatusName = "active" | "archived" | "experimental";
+
+export type ProgramStateIntent =
+  | "love"
+  | "happiness"
+  | "pride"
+  | "power"
+  | "calm"
+  | "focus"
+  | "gratitude"
+  | "energy";
+
+export type ProgramTimeWindow =
+  | "morning_block"
+  | "midday_block"
+  | "evening_block"
+  | "business_block"
+  | "family_block"
+  | "focus_block";
+
+export type ProgramStepType =
+  | "read"
+  | "write"
+  | "meditate"
+  | "move"
+  | "speak"
+  | "plan"
+  | "timer"
+  | "check"
+  | "rating"
+  | "question";
+
+export type ProgramStepInputType =
+  | "text"
+  | "textarea"
+  | "checkbox"
+  | "slider"
+  | "timer"
+  | "rating"
+  | "options";
+
+export interface ProgramStepInputConfig {
+  type: ProgramStepInputType;
+  placeholder?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: string[];
+  suffix?: string;
+}
+
+export interface ProgramRitualStep {
+  id: string;
+  title: string;
+  description?: string;
+  durationMinutes: number;
+  stepType: ProgramStepType;
+  input?: ProgramStepInputConfig;
+  optional?: boolean;
+}
+
+export interface ProgramMetadata {
+  type: ProgramTypeName;
+  priority: ProgramPriorityName;
+  status: ProgramStatusName;
+  defaultTimeWindow?: ProgramTimeWindow;
+  version: number;
+}
+
+export interface ProgramGoalsConfig {
+  linkedGoalIds: string[];
+  expectedOutcome?: string;
+}
+
+export interface ProgramStateRoleConfig {
+  desiredState?: ProgramStateIntent;
+  roleTags: string[];
+  stateCheckBefore: boolean;
+  stateCheckAfter: boolean;
+}
+
+export interface ProgramQualityMetric {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+}
+
+export interface ProgramQualityConfig {
+  criteria: string[];
+  metrics: ProgramQualityMetric[];
+  requireFeasibilityCheck: boolean;
+}
+
+export interface ProgramResultQuestion {
+  id: string;
+  prompt: string;
+  type: "text" | "tags";
+  placeholder?: string;
+}
+
+export interface ProgramResultConfig {
+  questions: ProgramResultQuestion[];
+  enableLearningTags: boolean;
+}
+
+export interface ProgramXpDistribution {
+  area: ProgramCategoryName;
+  percentage: number;
+}
+
+export interface ProgramXpRulesConfig {
+  baseValue: number;
+  requireCompletion: boolean;
+  minQualityScore?: number;
+  customRuleLabel?: string;
+  distribution: ProgramXpDistribution[];
+}
+
+export interface ProgramScheduleRule {
+  block: ProgramTimeWindow;
+  recurrence: ProgramFrequencyName;
+  daysOfWeek?: number[];
+}
+
+export interface ProgramSchedulingConfig {
+  blocks: ProgramScheduleRule[];
+  ninetyDayTags: string[];
+}
+
+export interface ProgramRunnerConfig {
+  quickModeAvailable: boolean;
+  resumeEnabled: boolean;
+  showTimers: boolean;
+}
+
+export interface ProgramBlueprint {
+  metadata: ProgramMetadata;
+  goals: ProgramGoalsConfig;
+  stateRole: ProgramStateRoleConfig;
+  ritual: ProgramRitualStep[];
+  quality: ProgramQualityConfig;
+  result: ProgramResultConfig;
+  xp: ProgramXpRulesConfig;
+  scheduling: ProgramSchedulingConfig;
+  runner: ProgramRunnerConfig;
+}
+
 export type ExerciseType =
   | "checkbox"
   | "scale"
@@ -45,11 +211,12 @@ export interface ProgramDefinition {
   name: string;
   summary: string;
   category: ProgramCategoryName;
-  frequency: "daily" | "weekly" | "monthly" | "adhoc";
+  frequency: ProgramFrequencyName;
   durationMinutes: number;
   xpReward: number;
   mode: "single" | "flow";
   units: ProgramUnit[];
+  blueprint: ProgramBlueprint;
 }
 
 export interface RewardDefinition {

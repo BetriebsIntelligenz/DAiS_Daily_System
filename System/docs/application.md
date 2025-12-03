@@ -136,6 +136,7 @@ Seed-Dateien (`src/lib/data.ts`, `src/lib/mind-data.ts`) spiegeln dieses Modell,
 
 ## Erweiterungshinweise
 
+- **Program System Spec:** Siehe `System/docs/program-system.md` für das vollständige Datenmodell der Admin-Programme, Runner-Anforderungen und Scheduling-/XP-Logik.
 - **Neue Programme:** Seed in `src/lib/data.ts` ergänzen (inkl. Units/Exercises). `prisma/seed.ts` übernimmt automatische Persistierung. Custom Renderer? – Komponente in `src/components/mind/` erstellen und in `ProgramContent` registrieren.
 - **Program Stacks:** Über das Admin-Panel pflegen oder direkt `/api/program-stacks` POST mit `title`, `summary`, `programSlugs`.
 - **Mind-Daten:** Gleiches Muster – Seeds anpassen (`src/lib/mind-data.ts`) für Default Assets; Admin-Panel unterstützt laufende Pflege.

@@ -5,6 +5,7 @@ import {
   programDefinitions,
   rewardDefinitions
 } from "../src/lib/data";
+import { blueprintToPersistenceColumns } from "../src/lib/program-blueprint";
 import {
   visualizationSeeds,
   mindGoalSeeds,
@@ -49,6 +50,7 @@ async function main() {
         durationMinutes: program.durationMinutes,
         xpReward: program.xpReward,
         mode: program.mode,
+        ...blueprintToPersistenceColumns(program.blueprint),
         units: {
           create: program.units.map((unit) => ({
             id: unit.id,

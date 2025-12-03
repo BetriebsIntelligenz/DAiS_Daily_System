@@ -14,11 +14,53 @@ enum ProgramFrequency {
   weekly
   monthly
   adhoc
+  block_only
 }
 
 enum ProgramMode {
   single
   flow
+}
+
+enum ProgramType {
+  routine
+  training
+  healing
+  social
+  business
+  spiritual
+  brain
+}
+
+enum ProgramPriority {
+  core
+  optional
+}
+
+enum ProgramStatus {
+  active
+  archived
+  experimental
+}
+
+enum ProgramStateIntent {
+  love
+  happiness
+  pride
+  power
+  calm
+  focus
+  gratitude
+  energy
+}
+
+enum ProgramTimeWindow {
+  morning_block
+  midday_block
+  evening_block
+  business_block
+  family_block
+  focus_block
 }
 
 enum ProgramCategory {
@@ -102,6 +144,24 @@ model Program {
   durationMinutes Int
   xpReward        Int
   mode            ProgramMode
+  programType     ProgramType       @default(routine)
+  priority        ProgramPriority   @default(optional)
+  status          ProgramStatus     @default(active)
+  defaultTimeWindow ProgramTimeWindow?
+  version         Int               @default(1)
+  linkedGoalIds   String[]          @default([])
+  expectedOutcome String?
+  desiredState    ProgramStateIntent?
+  roleTags        String[]          @default([])
+  stateCheckBefore Boolean          @default(false)
+  stateCheckAfter Boolean           @default(false)
+  ritual          Json?
+  quality         Json?
+  result          Json?
+  xpRules         Json?
+  runnerConfig    Json?
+  scheduling      Json?
+  menuLogic       Json?
   createdAt       DateTime          @default(now())
 
   units ProgramUnit[]

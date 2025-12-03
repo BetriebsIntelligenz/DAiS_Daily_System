@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { programDefinitions, rewardDefinitions } from "@/lib/data";
+import { ProgramWizard } from "./program-wizard";
 import type {
   BrainExerciseWithState,
   EmotionPracticeWithLogs,
   LearningPathWithProgress,
   MindGoalWithProgress,
   MindVisualizationAsset,
+  ProgramDefinition,
   ProgramStackDefinition
 } from "@/lib/types";
 import { Button } from "./ui/button";
@@ -16,6 +18,7 @@ import { Button } from "./ui/button";
 export function AdminPanels() {
   const [programName, setProgramName] = useState("");
   const [category, setCategory] = useState("mind");
+  const [programs, setPrograms] = useState<ProgramDefinition[]>(programDefinitions);
   const [rewardName, setRewardName] = useState("");
   const [rewardCost, setRewardCost] = useState(1000);
 
@@ -99,6 +102,13 @@ export function AdminPanels() {
     void refreshMindData();
   }, []);
 
+  useEffect(() => {
+    if (programs.length === 0) return;
+    const firstSlug = programs[0]?.slug ?? "";
+    setStackSelection((current) => current || firstSlug);
+    setEditSelection((current) => current || firstSlug);
+  }, [programs]);
+
   const refreshMindData = async () => {
     const loadJson = async (path: string) => {
       try {
@@ -120,14 +130,16 @@ export function AdminPanels() {
       brainPayload,
       pathsPayload,
       emotionPayload,
-      stackPayload
+      stackPayload,
+      programPayload
     ] = await Promise.all([
       loadJson("/api/mind/visuals"),
       loadJson("/api/mind/goals"),
       loadJson("/api/mind/brain-exercises"),
       loadJson("/api/mind/learning-paths"),
       loadJson("/api/mind/emotions"),
-      loadJson("/api/program-stacks")
+      loadJson("/api/program-stacks"),
+      loadJson("/api/programs")
     ]);
     setVisualAssets(Array.isArray(visuals) ? visuals : []);
     setGoals(Array.isArray(goalsPayload) ? goalsPayload : []);
@@ -135,6 +147,11 @@ export function AdminPanels() {
     setLearningPaths(Array.isArray(pathsPayload) ? pathsPayload : []);
     setEmotionPractices(Array.isArray(emotionPayload) ? emotionPayload : []);
     setProgramStacks(Array.isArray(stackPayload) ? stackPayload : []);
+    setPrograms(
+      Array.isArray(programPayload) && programPayload.length > 0
+        ? (programPayload as ProgramDefinition[])
+        : programDefinitions
+    );
   };
 
   const createProgram = async () => {
@@ -144,6 +161,7 @@ export function AdminPanels() {
       body: JSON.stringify({ name: programName, category })
     });
     setProgramName("");
+    await refreshMindData();
     alert("Programm stub angelegt – erweitere anschließend Units & Exercises.");
   };
 
@@ -244,7 +262,7 @@ export function AdminPanels() {
     setEditTitle(stack.title);
     setEditSummary(stack.summary);
     setEditPrograms(stack.programSlugs);
-    setEditSelection(stack.programSlugs[0] ?? programDefinitions[0]?.slug ?? "");
+    setEditSelection(stack.programSlugs[0] ?? programs[0]?.slug ?? "");
   };
 
   const addEditProgram = () => {
@@ -411,6 +429,7 @@ export function AdminPanels() {
 
   return (
     <div className="space-y-10">
+      <ProgramWizard onCreated={refreshMindData} />
       <section className="rounded-3xl bg-white/80 p-6">
         <header className="flex flex-col gap-1">
           <h2 className="text-xl font-semibold">Programms zusammenstellen</h2>
@@ -438,7 +457,7 @@ export function AdminPanels() {
               className="rounded-2xl border border-daisy-200 px-4 py-3"
             >
               <option value="">Programm wählen…</option>
-              {programDefinitions.map((program) => (
+              {programs.map((program) => (
                 <option key={program.id} value={program.slug}>
                   {program.code} — {program.name}
                 </option>
@@ -451,7 +470,7 @@ export function AdminPanels() {
           {stackPrograms.length > 0 && (
             <ol className="space-y-2 rounded-2xl border border-daisy-100 bg-white/70 p-4 text-sm text-gray-700">
               {stackPrograms.map((slug, index) => {
-                const program = programDefinitions.find((entry) => entry.slug === slug);
+                const program = programs.find((entry) => entry.slug === slug);
                 return (
                   <li key={slug} className="flex items-center justify-between gap-4">
                     <span>
@@ -553,7 +572,7 @@ export function AdminPanels() {
                   className="rounded-2xl border border-daisy-200 px-4 py-3"
                 >
                   <option value="">Programm wählen…</option>
-                  {programDefinitions.map((program) => (
+                  {programs.map((program) => (
                     <option key={program.id} value={program.slug}>
                       {program.code} — {program.name}
                     </option>
@@ -566,9 +585,7 @@ export function AdminPanels() {
               {editPrograms.length > 0 && (
                 <ol className="space-y-2 rounded-2xl border border-daisy-100 bg-white/70 p-4 text-sm text-gray-700">
                   {editPrograms.map((slug, index) => {
-                    const program = programDefinitions.find(
-                      (entry) => entry.slug === slug
-                    );
+                    const program = programs.find((entry) => entry.slug === slug);
                     return (
                       <li key={slug} className="flex items-center justify-between gap-4">
                         <span>

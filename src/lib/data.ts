@@ -1,8 +1,14 @@
 import type {
   JournalDefinition,
+  ProgramBlueprint,
   ProgramDefinition,
   RewardDefinition
 } from "./types";
+import { createBlueprintFromSource } from "./program-blueprint";
+
+type ProgramSeed = Omit<ProgramDefinition, "blueprint"> & {
+  blueprint?: Partial<ProgramBlueprint>;
+};
 
 export const categories = [
   { id: "mind", title: "Mind", accent: "from-daisy-200 to-daisy-500" },
@@ -16,7 +22,7 @@ export const categories = [
   { id: "business", title: "Business", accent: "from-daisy-100 to-daisy-400" }
 ] as const;
 
-export const programDefinitions: ProgramDefinition[] = [
+const programSeeds: ProgramSeed[] = [
   {
     id: "mind-visualisierung",
     slug: "visualisierungstraining",
@@ -550,6 +556,21 @@ export const programDefinitions: ProgramDefinition[] = [
     ]
   }
 ];
+
+export const programDefinitions: ProgramDefinition[] = programSeeds.map((seed) => ({
+  ...seed,
+  blueprint: createBlueprintFromSource(
+    {
+      summary: seed.summary,
+      category: seed.category,
+      durationMinutes: seed.durationMinutes,
+      xpReward: seed.xpReward,
+      frequency: seed.frequency,
+      units: seed.units
+    },
+    seed.blueprint
+  )
+}));
 
 export const rewardDefinitions: RewardDefinition[] = [
   {

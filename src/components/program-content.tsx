@@ -2,6 +2,7 @@
 
 import type { ProgramDefinition } from "@/lib/types";
 import { ProgramForm } from "./program-form";
+import { ProgramRunner } from "./program-runner";
 import { VisualizationTrainingProgram } from "./mind/visualization-training";
 import { SmartGoalsProgram } from "./mind/smart-goals-program";
 import { BrainTrainingProgram } from "./mind/brain-training-program";
@@ -22,5 +23,11 @@ const customMindRenderers: Record<string, CustomRenderer> = {
 
 export function ProgramContent({ program }: { program: ProgramDefinition }) {
   const render = customMindRenderers[program.slug];
-  return render ? render(program) : <ProgramForm program={program} />;
+  if (render) {
+    return render(program);
+  }
+  if (program.blueprint?.ritual?.length) {
+    return <ProgramRunner program={program} />;
+  }
+  return <ProgramForm program={program} />;
 }

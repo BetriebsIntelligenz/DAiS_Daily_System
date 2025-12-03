@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 
 import { getOrCreateDemoUser } from "@/lib/demo-user";
 import { prisma } from "@/lib/prisma";
+import {
+  normalizeProgramRecord,
+  type ProgramRecordWithRelations
+} from "@/lib/programs";
+import type {
+  ProgramDefinition,
+  ProgramResultConfig,
+  ProgramRitualStep
+} from "@/lib/types";
 
 function formatDate(date: Date) {
   return date.toISOString();
@@ -63,52 +72,34 @@ export async function GET(request: Request) {
 
   const entries = [
     ...programRuns.map((run) => {
+      const normalizedProgram = normalizeProgramRecord(
+        run.program as ProgramRecordWithRelations
+      );
+      const blueprint = normalizedProgram.blueprint;
       const answers =
         typeof run.answers === "object" && run.answers !== null
           ? (run.answers as Record<string, unknown>)
           : {};
-
-      const exerciseMap = new Map<string, { label: string; type: string }>();
-      run.program.units.forEach((unit) => {
-        unit.exercises.forEach((exercise) => {
-          exerciseMap.set(exercise.id, {
-            label: exercise.label,
-            type: exercise.type
-          });
-        });
-      });
-
-      const formattedAnswers = Object.entries(answers)
-        .slice(0, 4)
-        .map(([key, value]) => {
-          const exercise = exerciseMap.get(key);
-          const label = exercise?.label ?? key;
-          let displayValue: string;
-
-          if (Array.isArray(value)) {
-            displayValue = value.join(", ");
-          } else if (typeof value === "boolean") {
-            displayValue = value ? "Ja" : "Nein";
-          } else if (typeof value === "number") {
-            displayValue = value.toString();
-          } else if (typeof value === "object" && value !== null) {
-            displayValue = JSON.stringify(value);
-          } else {
-            displayValue = String(value ?? "");
-          }
-
-          if (exercise?.type === "scale" && displayValue) {
-            displayValue = `${displayValue} Punkte`;
-          }
-
-          return `${label}: ${displayValue}`;
-        });
-
+      const blueprintDetails = buildBlueprintDetails(
+        answers,
+        blueprint.ritual
+      );
+      const fallbackDetails = buildExerciseDetails(answers, normalizedProgram);
+      const resultDetails = buildResultDetails(answers, blueprint.result);
+      const qualityDetails = buildQualityDetails(answers);
+      const formattedAnswers =
+        blueprintDetails.length > 0 ? blueprintDetails : fallbackDetails;
+      if (qualityDetails.length > 0) {
+        formattedAnswers.push(...qualityDetails);
+      }
+      if (resultDetails.length > 0) {
+        formattedAnswers.push(...resultDetails);
+      }
       return {
         id: `program-${run.id}`,
         timestamp: formatDate(run.createdAt),
-        title: `${run.program.code} — ${run.program.name}`,
-        category: run.program.category,
+        title: `${normalizedProgram.code} — ${normalizedProgram.name}`,
+        category: normalizedProgram.category,
         type: "program",
         xp: `+${run.xpEarned} XP`,
         details:
@@ -184,4 +175,95 @@ export async function GET(request: Request) {
     .slice(0, maxLimit);
 
   return NextResponse.json({ entries });
+}
+
+function buildBlueprintDetails(
+  answers: Record<string, unknown>,
+  ritual: ProgramRitualStep[]
+) {
+  const stepPayload = answers.steps;
+  if (!isRecord(stepPayload) || ritual.length === 0) return [];
+  return Object.entries(stepPayload)
+    .slice(0, 4)
+    .map(([stepId, value]) => {
+      const step = ritual.find((entry) => entry.id === stepId);
+      return `${step?.title ?? stepId}: ${formatValue(value)}`;
+    });
+}
+
+function buildExerciseDetails(
+  answers: Record<string, unknown>,
+  program: ProgramDefinition
+) {
+  const exerciseMap = new Map<string, { label: string; type: string }>();
+  program.units.forEach((unit) => {
+    unit.exercises.forEach((exercise) => {
+      exerciseMap.set(exercise.id, {
+        label: exercise.label,
+        type: exercise.type
+      });
+    });
+  });
+  return Object.entries(answers)
+    .filter(([key]) => !["steps", "quality", "results", "runner"].includes(key))
+    .slice(0, 4)
+    .map(([key, value]) => {
+      const exercise = exerciseMap.get(key);
+      const label = exercise?.label ?? key;
+      let formatted = formatValue(value);
+      if (exercise?.type === "scale" && formatted) {
+        formatted = `${formatted} Punkte`;
+      }
+      return `${label}: ${formatted}`;
+    });
+}
+
+function buildResultDetails(
+  answers: Record<string, unknown>,
+  resultConfig: ProgramResultConfig
+) {
+  const resultPayload = answers.results;
+  if (!isRecord(resultPayload)) return [];
+  return Object.entries(resultPayload)
+    .slice(0, 2)
+    .map(([questionId, value]) => {
+      const question = resultConfig.questions.find((entry) => entry.id === questionId);
+      const label = question?.prompt ?? questionId;
+      return `${label}: ${formatValue(value)}`;
+    });
+}
+
+function buildQualityDetails(answers: Record<string, unknown>) {
+  const qualityPayload = answers.quality;
+  if (!isRecord(qualityPayload)) return [];
+  const ratings = qualityPayload.ratings;
+  if (!isRecord(ratings)) return [];
+  const values = Object.values(ratings).filter((value): value is number => typeof value === "number");
+  if (values.length === 0) return [];
+  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const details = [`Quality Ø ${average.toFixed(1)}/10`];
+  if (typeof qualityPayload.stateCheckAfter === "number") {
+    details.push(`State nach: ${qualityPayload.stateCheckAfter}/10`);
+  }
+  return details;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function formatValue(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  }
+  if (typeof value === "boolean") {
+    return value ? "Ja" : "Nein";
+  }
+  if (typeof value === "number") {
+    return value.toString();
+  }
+  if (isRecord(value)) {
+    return JSON.stringify(value);
+  }
+  return String(value ?? "");
 }
