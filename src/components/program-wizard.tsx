@@ -260,9 +260,9 @@ export function ProgramWizard({ onCreated }: ProgramWizardProps) {
       const blocks = hasBlock
         ? prev.scheduling.blocks.filter((entry) => entry.block !== block)
         : [
-            ...prev.scheduling.blocks,
-            { block, recurrence: prev.info.frequency }
-          ];
+          ...prev.scheduling.blocks,
+          { block, recurrence: prev.info.frequency }
+        ];
       return { ...prev, scheduling: { ...prev.scheduling, blocks } };
     });
   };
@@ -789,6 +789,7 @@ export function ProgramWizard({ onCreated }: ProgramWizardProps) {
                 value={step.input?.type ?? "text"}
                 onChange={(event) =>
                   updateRitualInput(index, {
+                    ...step.input,
                     type: event.target.value as InputTypeOption
                   })
                 }
@@ -809,7 +810,7 @@ export function ProgramWizard({ onCreated }: ProgramWizardProps) {
                 <input
                   type="number"
                   value={step.input?.min ?? 1}
-                  onChange={(event) => updateRitualInput(index, { min: Number(event.target.value) })}
+                  onChange={(event) => updateRitualInput(index, { ...step.input, type: step.input?.type ?? "slider", min: Number(event.target.value) })}
                   className="mt-1 w-full rounded-2xl border border-daisy-200 px-3 py-2"
                 />
               </label>
@@ -818,7 +819,7 @@ export function ProgramWizard({ onCreated }: ProgramWizardProps) {
                 <input
                   type="number"
                   value={step.input?.max ?? 10}
-                  onChange={(event) => updateRitualInput(index, { max: Number(event.target.value) })}
+                  onChange={(event) => updateRitualInput(index, { ...step.input, type: step.input?.type ?? "slider", max: Number(event.target.value) })}
                   className="mt-1 w-full rounded-2xl border border-daisy-200 px-3 py-2"
                 />
               </label>
@@ -831,6 +832,8 @@ export function ProgramWizard({ onCreated }: ProgramWizardProps) {
                 value={(step.input.options ?? []).join(", ")}
                 onChange={(event) =>
                   updateRitualInput(index, {
+                    ...step.input,
+                    type: step.input?.type ?? "options",
                     options: event.target.value
                       .split(",")
                       .map((entry) => entry.trim())

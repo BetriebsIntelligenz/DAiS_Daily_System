@@ -103,34 +103,34 @@ export function SmartGoalsProgram({ program }: { program: ProgramDefinition }) {
   return (
     <div className="space-y-6">
       {goals.map((goal) => {
-      const state = goalInputs[goal.id] ?? {
-        progress: goal.latestProgress ?? 0,
-        assessment: "",
-        read: false
-      };
-      return (
-        <div key={goal.id} className="space-y-4 rounded-3xl border border-daisy-100 bg-white/90 p-5 shadow-sm">
-          <header className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">{goal.title}</h3>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  type="button"
-                  onClick={() => setLogsGoal(goal)}
-                >
-                  Logs
-                </Button>
-                <span className="text-sm font-semibold text-daisy-500">
-                  {Math.round(goal.latestProgress ?? 0)}%
-                </span>
+        const state = goalInputs[goal.id] ?? {
+          progress: goal.latestProgress ?? 0,
+          assessment: "",
+          read: false
+        };
+        return (
+          <div key={goal.id} className="space-y-4 rounded-3xl border border-daisy-100 bg-white/90 p-5 shadow-sm">
+            <header className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">{goal.title}</h3>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+
+                    type="button"
+                    onClick={() => setLogsGoal(goal)}
+                  >
+                    Logs
+                  </Button>
+                  <span className="text-sm font-semibold text-daisy-500">
+                    {Math.round(goal.latestProgress ?? 0)}%
+                  </span>
+                </div>
               </div>
-            </div>
-            <div className="h-2 w-full rounded-full bg-daisy-100">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-daisy-300 to-daisy-500"
-                style={{ width: `${Math.min(goal.latestProgress ?? 0, 100)}%` }}
+              <div className="h-2 w-full rounded-full bg-daisy-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-daisy-300 to-daisy-500"
+                  style={{ width: `${Math.min(goal.latestProgress ?? 0, 100)}%` }}
                 />
               </div>
               <p className="text-xs text-gray-500">

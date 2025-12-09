@@ -36,7 +36,7 @@ async function seedProgramsIfEmpty() {
         durationMinutes: definition.durationMinutes,
         xpReward: definition.xpReward,
         mode: definition.mode,
-        ...blueprintColumns,
+        ...(blueprintColumns as any),
         units: {
           create: definition.units.map((unit) => ({
             id: unit.id,
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
         durationMinutes,
         xpReward,
         mode,
-        ...blueprintColumns
+        ...(blueprintColumns as any),
       }
     });
 
@@ -164,31 +164,31 @@ export async function PATCH(request: Request) {
 
     const programRecord = id
       ? await prisma.program.findUnique({
-          where: { id },
-          select: {
-            id: true,
-            slug: true,
-            summary: true,
-            category: true,
-            durationMinutes: true,
-            frequency: true,
-            xpReward: true,
-            xpRules: true
-          }
-        })
+        where: { id },
+        select: {
+          id: true,
+          slug: true,
+          summary: true,
+          category: true,
+          durationMinutes: true,
+          frequency: true,
+          xpReward: true,
+          xpRules: true
+        }
+      })
       : await prisma.program.findUnique({
-          where: { slug: slug! },
-          select: {
-            id: true,
-            slug: true,
-            summary: true,
-            category: true,
-            durationMinutes: true,
-            frequency: true,
-            xpReward: true,
-            xpRules: true
-          }
-        });
+        where: { slug: slug! },
+        select: {
+          id: true,
+          slug: true,
+          summary: true,
+          category: true,
+          durationMinutes: true,
+          frequency: true,
+          xpReward: true,
+          xpRules: true
+        }
+      });
 
     if (!programRecord) {
       return NextResponse.json({ error: "Programm nicht gefunden." }, { status: 404 });
@@ -215,7 +215,7 @@ export async function PATCH(request: Request) {
           units: []
         }).xp;
 
-      data.xpRules = { ...xpRules, baseValue: xpReward };
+      data.xpRules = { ...xpRules, baseValue: xpReward } as any;
     }
 
     if (Object.keys(data).length === 0) {

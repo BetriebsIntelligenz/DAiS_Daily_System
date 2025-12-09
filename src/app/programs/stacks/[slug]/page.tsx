@@ -40,7 +40,14 @@ export default async function ProgramStackPage({ params }: ProgramStackPageProps
       title={`Programm ${stack.title}`}
       description={`${stack.summary} · ${programs.length} Module`}
     >
-      <ProgramStackRunner stack={stack} programs={programs} />
+      <ProgramStackRunner
+        stack={{
+          ...stack,
+          createdAt: stack.createdAt.toISOString(),
+          updatedAt: stack.updatedAt.toISOString()
+        }}
+        programs={programs}
+      />
     </MobileShell>
   );
 }

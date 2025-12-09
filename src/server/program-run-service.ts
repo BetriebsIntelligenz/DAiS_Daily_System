@@ -54,7 +54,7 @@ export async function createProgramRun({
         durationMinutes: definition.durationMinutes,
         xpReward: definition.xpReward,
         mode: definition.mode,
-        ...blueprintColumns,
+        ...(blueprintColumns as any),
         units: {
           create: definition.units.map((unit) => ({
             id: unit.id,
@@ -151,8 +151,8 @@ function evaluateXpEarned(
   const qualityPayload =
     typeof payload === "object" && payload !== null
       ? ((payload as {
-          quality?: { ratings?: Record<string, number>; customRulePassed?: boolean };
-        }).quality ?? {})
+        quality?: { ratings?: Record<string, number>; customRulePassed?: boolean };
+      }).quality ?? {})
       : {};
 
   if (xpRules.minQualityScore) {
@@ -182,7 +182,7 @@ function buildXpDistribution(
   fallbackArea: string
 ): ProgramXpDistribution[] {
   if (!entries || entries.length === 0) {
-    return [{ area: fallbackArea, percentage: 100 }];
+    return [{ area: fallbackArea as any, percentage: 100 }];
   }
   return entries;
 }

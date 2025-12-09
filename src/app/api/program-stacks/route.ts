@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const invalidSlugs = programSlugs.filter((slug) => !validProgramSlugs.has(slug));
+  const invalidSlugs = programSlugs.filter((slug: string) => !validProgramSlugs.has(slug));
   if (invalidSlugs.length > 0) {
     return NextResponse.json(
       {
@@ -88,7 +88,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  const invalidSlugs = programSlugs.filter((slug) => !validProgramSlugs.has(slug));
+  const invalidSlugs = programSlugs.filter((slug: string) => !validProgramSlugs.has(slug));
   if (invalidSlugs.length > 0) {
     return NextResponse.json(
       {

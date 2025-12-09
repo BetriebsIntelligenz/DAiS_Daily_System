@@ -50,7 +50,7 @@ async function main() {
         durationMinutes: program.durationMinutes,
         xpReward: program.xpReward,
         mode: program.mode,
-        ...blueprintToPersistenceColumns(program.blueprint),
+        ...(blueprintToPersistenceColumns(program.blueprint) as any),
         units: {
           create: program.units.map((unit) => ({
             id: unit.id,

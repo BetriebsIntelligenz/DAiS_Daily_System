@@ -837,7 +837,7 @@ export function AdminPanels() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="secondary" type="button" onClick={() => setLogsModalGoal(goal)}>
+                        <Button variant="outline" type="button" onClick={() => setLogsModalGoal(goal)}>
                           Logs
                         </Button>
                         <Button variant="ghost" type="button" onClick={() => openGoalEdit(goal)}>

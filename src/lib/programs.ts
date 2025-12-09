@@ -78,27 +78,27 @@ export function buildBlueprintFromRecord(
   });
 
   const ritual = Array.isArray(program.ritual)
-    ? (program.ritual as ProgramRitualStep[])
+    ? (program.ritual as unknown as ProgramRitualStep[])
     : defaults.ritual;
 
   const quality = isObject(program.quality)
-    ? (program.quality as ProgramQualityConfig)
+    ? (program.quality as unknown as ProgramQualityConfig)
     : defaults.quality;
 
   const result = isObject(program.result)
-    ? (program.result as ProgramResultConfig)
+    ? (program.result as unknown as ProgramResultConfig)
     : defaults.result;
 
   const xp = isObject(program.xpRules)
-    ? (program.xpRules as ProgramXpRulesConfig)
+    ? (program.xpRules as unknown as ProgramXpRulesConfig)
     : defaults.xp;
 
   const scheduling = isObject(program.scheduling)
-    ? (program.scheduling as ProgramSchedulingConfig)
+    ? (program.scheduling as unknown as ProgramSchedulingConfig)
     : defaults.scheduling;
 
   const runner = isObject(program.runnerConfig)
-    ? (program.runnerConfig as ProgramRunnerConfig)
+    ? (program.runnerConfig as unknown as ProgramRunnerConfig)
     : defaults.runner;
 
   return {
