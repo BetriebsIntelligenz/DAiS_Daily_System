@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,8 @@ import {
 import type {
   RequirementArea,
   RequirementRecord,
-  RequirementStatus
+  RequirementStatus,
+  RequirementLogEntry
 } from "@/lib/types";
 
 const statusOrder: RequirementStatus[] = [
@@ -67,6 +68,11 @@ export function RequirementsBoard({
   const [submitting, setSubmitting] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeLogs, setActiveLogs] = useState<RequirementLogEntry[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logDraft, setLogDraft] = useState("");
+  const [logSubmitting, setLogSubmitting] = useState(false);
+  const [logError, setLogError] = useState<string | null>(null);
 
   const groupedRequirements = useMemo(
     () =>
@@ -89,6 +95,30 @@ export function RequirementsBoard({
     value: RequirementFormState[K]
   ) => setFormState((prev) => ({ ...prev, [field]: value }));
 
+  const fetchRequirementLogs = useCallback(
+    async (requirementId: string) => {
+      setLogsLoading(true);
+      setLogError(null);
+      try {
+        const emailParam = user?.email ? `?email=${encodeURIComponent(user.email)}` : "";
+        const response = await fetch(
+          `/api/requirements/${requirementId}/logs${emailParam}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to load logs");
+        }
+        const data: RequirementLogEntry[] = await response.json();
+        setActiveLogs(data);
+      } catch (err) {
+        console.error("Anforderungs-Logs konnten nicht geladen werden", err);
+        setLogError("Logbuch konnte nicht geladen werden.");
+      } finally {
+        setLogsLoading(false);
+      }
+    },
+    [user?.email]
+  );
+
   useEffect(() => {
     const load = async () => {
       const emailParam = user?.email ? `?email=${encodeURIComponent(user.email)}` : "";
@@ -99,6 +129,16 @@ export function RequirementsBoard({
     };
     load();
   }, [user?.email]);
+
+  useEffect(() => {
+    if (!activeRequirement?.id) {
+      setActiveLogs([]);
+      setLogDraft("");
+      setLogError(null);
+      return;
+    }
+    fetchRequirementLogs(activeRequirement.id);
+  }, [activeRequirement?.id, fetchRequirementLogs]);
 
   const resetForm = () => {
     setFormState({ ...defaultForm });
@@ -192,10 +232,42 @@ export function RequirementsBoard({
     }
   };
 
+  const submitRequirementLog = async () => {
+    if (!activeRequirement || !logDraft.trim()) return;
+    setLogSubmitting(true);
+    setLogError(null);
+
+    try {
+      const response = await fetch(`/api/requirements/${activeRequirement.id}/logs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: logDraft,
+          email: user?.email
+        })
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create log");
+      }
+      setLogDraft("");
+      await fetchRequirementLogs(activeRequirement.id);
+    } catch (err) {
+      console.error("Anforderungs-Log konnte nicht gespeichert werden", err);
+      setLogError("Log konnte nicht gespeichert werden.");
+    } finally {
+      setLogSubmitting(false);
+    }
+  };
+
   const closeModals = () => {
     setShowCreate(false);
     setActiveRequirement(null);
     setEditingId(null);
+    setActiveLogs([]);
+    setLogDraft("");
+    setLogError(null);
+    setLogsLoading(false);
+    setLogSubmitting(false);
     resetForm();
   };
 
@@ -306,6 +378,13 @@ export function RequirementsBoard({
         onClose={closeModals}
         onChangeStatus={changeStatus}
         onEdit={() => activeRequirement && startEdit(activeRequirement)}
+        logs={activeRequirement ? activeLogs : []}
+        logsLoading={logsLoading}
+        logDraft={logDraft}
+        logSubmitting={logSubmitting}
+        logError={logError}
+        onLogDraftChange={setLogDraft}
+        onSubmitLog={submitRequirementLog}
       />
     </div>
   );

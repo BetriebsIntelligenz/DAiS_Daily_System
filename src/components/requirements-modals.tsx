@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import type {
   RequirementArea,
   RequirementRecord,
-  RequirementStatus
+  RequirementStatus,
+  RequirementLogEntry
 } from "@/lib/types";
 
 export interface RequirementFormState {
@@ -237,6 +238,13 @@ interface RequirementDetailModalProps {
   onClose: () => void;
   onChangeStatus: (status: RequirementStatus) => void;
   onEdit: () => void;
+  logs: RequirementLogEntry[];
+  logsLoading: boolean;
+  logDraft: string;
+  logSubmitting: boolean;
+  logError: string | null;
+  onLogDraftChange: (value: string) => void;
+  onSubmitLog: () => void;
 }
 
 export function RequirementDetailModal({
@@ -249,7 +257,14 @@ export function RequirementDetailModal({
   error,
   onClose,
   onChangeStatus,
-  onEdit
+  onEdit,
+  logs,
+  logsLoading,
+  logDraft,
+  logSubmitting,
+  logError,
+  onLogDraftChange,
+  onSubmitLog
 }: RequirementDetailModalProps) {
   if (!requirement) return null;
 
@@ -309,6 +324,59 @@ export function RequirementDetailModal({
               label="Zuletzt aktualisiert"
               value={formatDate(requirement.updatedAt)}
             />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
+            Aktivitätslog
+          </p>
+          <textarea
+            className="min-h-[120px] w-full rounded-2xl border border-daisy-200 bg-white/80 p-3 text-sm text-gray-900 focus:border-daisy-400 focus:outline-none"
+            placeholder="Notiz hinzufügen..."
+            value={logDraft}
+            onChange={(event) => onLogDraftChange(event.target.value)}
+          />
+          <div className="flex items-center justify-between">
+            {logError ? (
+              <p className="text-sm font-semibold text-red-500">{logError}</p>
+            ) : (
+              <span className="text-xs text-gray-500">
+                Datum wird automatisch ergänzt.
+              </span>
+            )}
+            <Button
+              onClick={onSubmitLog}
+              disabled={!logDraft.trim() || logSubmitting}
+            >
+              {logSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Eintrag sichern
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {logsLoading ? (
+              <p className="text-sm text-gray-500">Einträge werden geladen...</p>
+            ) : logs.length ? (
+              <div className="max-h-60 space-y-3 overflow-y-auto pr-1">
+                {logs.map((log) => (
+                  <article
+                    key={log.id}
+                    className="rounded-2xl border border-daisy-100 bg-white/85 p-3"
+                  >
+                    <p className="text-[11px] uppercase tracking-[0.25em] text-daisy-500">
+                      {formatDateTime(log.createdAt)}
+                    </p>
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                      {log.content}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Noch keine Log-Einträge vorhanden.
+              </p>
+            )}
           </div>
         </div>
 
@@ -385,5 +453,16 @@ function formatDate(input: string) {
     day: "2-digit",
     month: "2-digit",
     year: "numeric"
+  });
+}
+
+function formatDateTime(input: string) {
+  const date = new Date(input);
+  return date.toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
   });
 }

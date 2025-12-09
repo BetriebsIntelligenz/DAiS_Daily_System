@@ -126,6 +126,7 @@ model User {
   rewards     RewardRedemption[]
   journals    Journal[]
   journalLogs JournalEntry[]
+  requirementLogs RequirementLog[]
   goalCheckins MindGoalCheckin[]
   brainSessions BrainExerciseSession[]
   milestoneProgress LearningMilestoneProgress[]
@@ -270,6 +271,20 @@ model Requirement {
   updatedAt  DateTime           @updatedAt
 
   user User? @relation(fields: [userId], references: [id])
+  logs RequirementLog[]
+}
+
+model RequirementLog {
+  id             String      @id @default(cuid())
+  requirementId  String
+  userId         String?
+  content        String
+  createdAt      DateTime    @default(now())
+
+  requirement Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  user         User?       @relation(fields: [userId], references: [id])
+
+  @@index([requirementId], map: "RequirementLog_requirementId_idx")
 }
 
 model Journal {

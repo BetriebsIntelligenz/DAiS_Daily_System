@@ -366,3 +366,11 @@ export interface RequirementRecord {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface RequirementLogEntry {
+  id: string;
+  requirementId: string;
+  content: string;
+  createdAt: string;
+  userId?: string | null;
+}

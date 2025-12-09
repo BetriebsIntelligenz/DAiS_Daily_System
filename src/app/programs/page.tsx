@@ -27,17 +27,12 @@ export default function ProgramsPage() {
         {programs.map((program) => (
           <Link key={program.id} href={`/programs/${program.slug}`}>
             <Card className="transition hover:-translate-y-1 hover:shadow-xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Badge>{program.category}</Badge>
-                  <CardTitle className="mt-2 flex items-center gap-2">
-                    {program.code} — {program.name}
-                  </CardTitle>
-                  <CardDescription>{program.summary}</CardDescription>
-                </div>
-                <p className="text-2xl font-semibold text-daisy-500">
-                  +{program.xpReward} XP
-                </p>
+              <div>
+                <Badge>{program.category}</Badge>
+                <CardTitle className="mt-2 flex items-center gap-2">
+                  {program.code} — {program.name}
+                </CardTitle>
+                <CardDescription>{program.summary}</CardDescription>
               </div>
             </Card>
           </Link>

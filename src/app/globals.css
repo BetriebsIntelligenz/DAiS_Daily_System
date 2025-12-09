@@ -44,7 +44,6 @@ body::before {
     #ff9a0a 100%
   );
   background-size: 180% 180%;
-  animation: sunGlow 30s ease-in-out infinite;
 }
 
 @keyframes sunRay {
