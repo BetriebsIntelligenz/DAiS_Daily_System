@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { programDefinitions } from "@/lib/data";
@@ -10,7 +11,8 @@ import { loadProgramBySlug, loadPrograms } from "@/lib/programs";
 import type {
   ProgramBlueprint,
   ProgramDefinition,
-  ProgramUnit
+  ProgramUnit,
+  ProgramXpRulesConfig
 } from "@/lib/types";
 
 async function seedProgramsIfEmpty() {
@@ -142,6 +144,95 @@ export async function POST(request: Request) {
         hint:
           "Bitte Datenbankverbindung prüfen und Prisma-Migrationen ausführen (siehe README)."
       },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const id = typeof body.id === "string" ? body.id : undefined;
+    const slug = typeof body.slug === "string" ? body.slug : undefined;
+
+    if (!id && !slug) {
+      return NextResponse.json(
+        { error: "Program ID oder Slug muss angegeben werden." },
+        { status: 400 }
+      );
+    }
+
+    const programRecord = id
+      ? await prisma.program.findUnique({
+          where: { id },
+          select: {
+            id: true,
+            slug: true,
+            summary: true,
+            category: true,
+            durationMinutes: true,
+            frequency: true,
+            xpReward: true,
+            xpRules: true
+          }
+        })
+      : await prisma.program.findUnique({
+          where: { slug: slug! },
+          select: {
+            id: true,
+            slug: true,
+            summary: true,
+            category: true,
+            durationMinutes: true,
+            frequency: true,
+            xpReward: true,
+            xpRules: true
+          }
+        });
+
+    if (!programRecord) {
+      return NextResponse.json({ error: "Programm nicht gefunden." }, { status: 404 });
+    }
+
+    const data: Prisma.ProgramUpdateInput = {};
+
+    if (body.xpReward !== undefined) {
+      const parsed = Number(body.xpReward);
+      if (!Number.isFinite(parsed)) {
+        return NextResponse.json({ error: "Ungültiger XP-Wert." }, { status: 400 });
+      }
+      const xpReward = Math.max(0, Math.round(parsed));
+      data.xpReward = xpReward;
+
+      const xpRules: ProgramXpRulesConfig =
+        (programRecord.xpRules as ProgramXpRulesConfig | null) ??
+        createBlueprintFromSource({
+          summary: programRecord.summary ?? "",
+          category: programRecord.category as ProgramDefinition["category"],
+          durationMinutes: programRecord.durationMinutes,
+          xpReward,
+          frequency: programRecord.frequency as ProgramDefinition["frequency"],
+          units: []
+        }).xp;
+
+      data.xpRules = { ...xpRules, baseValue: xpReward };
+    }
+
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: "Keine Änderungen angegeben." }, { status: 400 });
+    }
+
+    const updated = await prisma.program.update({
+      where: { id: programRecord.id },
+      data
+    });
+
+    const payload = await loadProgramBySlug(updated.slug);
+    return NextResponse.json(payload ?? updated, { status: 200 });
+  } catch (error) {
+    console.error("Programs PATCH failed", error);
+    return NextResponse.json(
+      { error: "Programm konnte nicht aktualisiert werden." },
       { status: 500 }
     );
   }

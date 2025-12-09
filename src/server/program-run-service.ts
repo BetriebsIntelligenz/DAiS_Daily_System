@@ -148,31 +148,27 @@ function evaluateXpEarned(
     return 0;
   }
 
+  const qualityPayload =
+    typeof payload === "object" && payload !== null
+      ? ((payload as {
+          quality?: { ratings?: Record<string, number>; customRulePassed?: boolean };
+        }).quality ?? {})
+      : {};
+
   if (xpRules.minQualityScore) {
-    const qualityPayload =
-      typeof payload === "object" && payload !== null
-        ? ((payload as {
-            quality?: { ratings?: Record<string, number> };
-          }).quality ?? {})
-        : {};
     const ratings = qualityPayload.ratings;
     const values = ratings ? Object.values(ratings) : [];
-    if (values.length === 0) {
-      return 0;
-    }
-    const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-    if (average < xpRules.minQualityScore) {
-      return 0;
+    if (values.length > 0) {
+      const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+      if (average < xpRules.minQualityScore) {
+        return 0;
+      }
     }
   }
 
   if (xpRules.customRuleLabel) {
-    const customPassed = Boolean(
-      typeof payload === "object" && payload !== null
-        ? (payload as { quality?: { customRulePassed?: boolean } }).quality
-            ?.customRulePassed
-        : false
-    );
+    const hasCustomFlag = Object.prototype.hasOwnProperty.call(qualityPayload, "customRulePassed");
+    const customPassed = hasCustomFlag ? Boolean(qualityPayload.customRulePassed) : true;
     if (!customPassed) {
       return 0;
     }
