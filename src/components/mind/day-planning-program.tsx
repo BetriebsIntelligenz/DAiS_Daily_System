@@ -49,13 +49,10 @@ export function DayPlanningProgram({ program }: { program: ProgramDefinition }) 
   }, []);
 
   const defaultQualityRatings = useMemo(() => {
-    return program.blueprint.quality.metrics.reduce<Record<string, number>>(
-      (acc, metric) => {
-        acc[metric.id] = Math.round((metric.min + metric.max) / 2);
-        return acc;
-      },
-      {}
-    );
+    return program.blueprint.quality.metrics.reduce<Record<string, number>>((acc, metric) => {
+      acc[metric.id] = metric.max;
+      return acc;
+    }, {});
   }, [program.blueprint.quality.metrics]);
 
   const successRedirect =
@@ -486,13 +483,12 @@ function buildLogHtml(entry: {
     lines.push(`<p><strong>Vorbereitung:</strong> ${escapeHtml(entry.meetingPrep)}</p>`);
   }
   if (entry.tasks.length > 0) {
-    lines.push(
-      `<div><strong>Wichtige Aufgaben:</strong><ul>${entry.tasks
-        .map((task) => `<li>${escapeHtml(task)}</li>`)
-        .join("")}</ul></div>`
-    );
+    const taskItems = entry.tasks
+      .map((task) => `<span class="block">• ${escapeHtml(task)}</span>`)
+      .join("");
+    lines.push(`<p><strong>Wichtige Aufgaben:</strong><br />${taskItems}</p>`);
   }
-  return lines.join("");
+  return lines.join("\n");
 }
 
 function escapeHtml(value: string) {
