@@ -11,7 +11,8 @@ import {
   mindGoalSeeds,
   brainExerciseSeeds,
   learningPathSeeds,
-  emotionPracticeSeeds
+  emotionPracticeSeeds,
+  meditationFlowSeeds
 } from "../src/lib/mind-data";
 
 const prisma = new PrismaClient();
@@ -184,6 +185,44 @@ async function main() {
       create: practice,
       update: practice
     });
+  }
+
+  for (const flow of meditationFlowSeeds) {
+    await prisma.mindMeditationFlow.upsert({
+      where: { id: flow.id },
+      create: {
+        id: flow.id,
+        title: flow.title,
+        subtitle: flow.subtitle,
+        summary: flow.summary,
+        order: typeof flow.order === "number" ? flow.order : 0
+      },
+      update: {
+        title: flow.title,
+        subtitle: flow.subtitle,
+        summary: flow.summary,
+        order: typeof flow.order === "number" ? flow.order : 0
+      }
+    });
+
+    for (const step of flow.steps) {
+      await prisma.mindMeditationStep.upsert({
+        where: { id: step.id },
+        create: {
+          id: step.id,
+          flowId: flow.id,
+          title: step.title,
+          description: step.description ?? null,
+          order: typeof step.order === "number" ? step.order : 0
+        },
+        update: {
+          flowId: flow.id,
+          title: step.title,
+          description: step.description ?? null,
+          order: typeof step.order === "number" ? step.order : 0
+        }
+      });
+    }
   }
 }
 

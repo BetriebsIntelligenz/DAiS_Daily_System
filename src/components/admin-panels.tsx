@@ -11,6 +11,7 @@ import type {
   LearningPathWithProgress,
   MindGoalWithProgress,
   MindVisualizationAsset,
+  MindMeditationFlow,
   ProgramDefinition,
   ProgramStackDefinition
 } from "@/lib/types";
@@ -89,6 +90,19 @@ export function AdminPanels() {
     regulationSteps: "",
     groundingPrompt: ""
   });
+  const [meditations, setMeditations] = useState<MindMeditationFlow[]>([]);
+  const [meditationForm, setMeditationForm] = useState({
+    title: "",
+    subtitle: "",
+    summary: ""
+  });
+  const [editingMeditation, setEditingMeditation] = useState<MindMeditationFlow | null>(null);
+  const [meditationEditForm, setMeditationEditForm] = useState({
+    title: "",
+    subtitle: "",
+    summary: ""
+  });
+  const [stepDrafts, setStepDrafts] = useState<Record<string, { title: string; description: string }>>({});
   const [programXpDrafts, setProgramXpDrafts] = useState<Record<string, string>>({});
   const [savingProgramId, setSavingProgramId] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -101,9 +115,18 @@ export function AdminPanels() {
       goals: goals.length,
       brainExercises: brainExercises.length,
       learningPaths: learningPaths.length,
-      emotionPractices: emotionPractices.length
+      emotionPractices: emotionPractices.length,
+      meditations: meditations.length
     }),
-    [visualAssets, goals, brainExercises, learningPaths, emotionPractices]
+    [visualAssets, goals, brainExercises, learningPaths, emotionPractices, meditations]
+  );
+  const meditationStepCount = useMemo(
+    () => meditations.reduce((sum, flow) => sum + flow.steps.length, 0),
+    [meditations]
+  );
+  const orderedMeditations = useMemo(
+    () => [...meditations].sort((a, b) => a.order - b.order),
+    [meditations]
   );
   const sortedPrograms = useMemo(
     () => programs.slice().sort((left, right) => left.code.localeCompare(right.code)),
@@ -196,6 +219,7 @@ export function AdminPanels() {
       brainPayload,
       pathsPayload,
       emotionPayload,
+      meditationPayload,
       stackPayload,
       programPayload
     ] = await Promise.all([
@@ -204,6 +228,7 @@ export function AdminPanels() {
       loadJson("/api/mind/brain-exercises"),
       loadJson("/api/mind/learning-paths"),
       loadJson("/api/mind/emotions"),
+      loadJson("/api/mind/meditations"),
       loadJson("/api/program-stacks"),
       loadJson("/api/programs")
     ]);
@@ -212,6 +237,16 @@ export function AdminPanels() {
     setBrainExercises(Array.isArray(brainPayload) ? brainPayload : []);
     setLearningPaths(Array.isArray(pathsPayload) ? pathsPayload : []);
     setEmotionPractices(Array.isArray(emotionPayload) ? emotionPayload : []);
+    setMeditations(Array.isArray(meditationPayload) ? meditationPayload : []);
+    if (Array.isArray(meditationPayload)) {
+      setStepDrafts((prev) => {
+        const next: Record<string, { title: string; description: string }> = {};
+        meditationPayload.forEach((flow: MindMeditationFlow) => {
+          next[flow.id] = prev[flow.id] ?? { title: "", description: "" };
+        });
+        return next;
+      });
+    }
     setProgramStacks(Array.isArray(stackPayload) ? stackPayload : []);
     setPrograms(
       Array.isArray(programPayload) && programPayload.length > 0
@@ -491,6 +526,160 @@ export function AdminPanels() {
       groundingPrompt: ""
     });
     await refreshMindData();
+  };
+
+  const handleMeditationSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!meditationForm.title.trim()) {
+      alert("Bitte einen Meditationstitel angeben.");
+      return;
+    }
+    await fetch("/api/mind/meditations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(meditationForm)
+    });
+    setMeditationForm({ title: "", subtitle: "", summary: "" });
+    await refreshMindData();
+  };
+
+  const openMeditationEdit = (flow: MindMeditationFlow) => {
+    setEditingMeditation(flow);
+    setMeditationEditForm({
+      title: flow.title,
+      subtitle: flow.subtitle ?? "",
+      summary: flow.summary ?? ""
+    });
+  };
+
+  const handleMeditationUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingMeditation) return;
+    await fetch("/api/mind/meditations", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingMeditation.id,
+        ...meditationEditForm
+      })
+    });
+    setEditingMeditation(null);
+    setMeditationEditForm({ title: "", subtitle: "", summary: "" });
+    await refreshMindData();
+  };
+
+  const cancelMeditationEdit = () => {
+    setEditingMeditation(null);
+    setMeditationEditForm({ title: "", subtitle: "", summary: "" });
+  };
+
+  const handleMeditationDelete = async (flowId: string) => {
+    if (!window.confirm("Meditation wirklich löschen?")) return;
+    await fetch("/api/mind/meditations", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: flowId })
+    });
+    await refreshMindData();
+  };
+
+  const saveMeditationOrder = async (flowsList: MindMeditationFlow[]) => {
+    await fetch("/api/mind/meditations", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: flowsList.map((flow) => flow.id) })
+    });
+    await refreshMindData();
+  };
+
+  const moveMeditation = (flowId: string, direction: "up" | "down") => {
+    setMeditations((prev) => {
+      const index = prev.findIndex((flow) => flow.id === flowId);
+      if (index === -1) return prev;
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.splice(target, 0, item);
+      void saveMeditationOrder(next);
+      return next;
+    });
+  };
+
+  const updateStepDraft = (
+    flowId: string,
+    partial: { title?: string; description?: string }
+  ) => {
+    setStepDrafts((prev) => ({
+      ...prev,
+      [flowId]: {
+        title: partial.title ?? prev[flowId]?.title ?? "",
+        description: partial.description ?? prev[flowId]?.description ?? ""
+      }
+    }));
+  };
+
+  const handleStepSubmit = (flowId: string) => async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const draft = stepDrafts[flowId];
+    const title = draft?.title?.trim();
+    if (!title) {
+      alert("Step Titel eintragen.");
+      return;
+    }
+    await fetch(`/api/mind/meditations/${flowId}/steps`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        description: draft?.description ?? ""
+      })
+    });
+    setStepDrafts((prev) => ({
+      ...prev,
+      [flowId]: { title: "", description: "" }
+    }));
+    await refreshMindData();
+  };
+
+  const handleStepDelete = async (flowId: string, stepId: string) => {
+    if (!window.confirm("Step entfernen?")) return;
+    await fetch(`/api/mind/meditations/${flowId}/steps/${stepId}`, {
+      method: "DELETE"
+    });
+    await refreshMindData();
+  };
+
+  const persistStepOrder = async (flowId: string, steps: MindMeditationFlow["steps"]) => {
+    await fetch(`/api/mind/meditations/${flowId}/steps/reorder`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: steps.map((step) => step.id) })
+    });
+    await refreshMindData();
+  };
+
+  const moveMeditationStep = (
+    flowId: string,
+    stepId: string,
+    direction: "up" | "down"
+  ) => {
+    setMeditations((prev) => {
+      const flowIndex = prev.findIndex((flow) => flow.id === flowId);
+      if (flowIndex === -1) return prev;
+      const flow = prev[flowIndex];
+      const stepIndex = flow.steps.findIndex((step) => step.id === stepId);
+      if (stepIndex === -1) return prev;
+      const target = direction === "up" ? stepIndex - 1 : stepIndex + 1;
+      if (target < 0 || target >= flow.steps.length) return prev;
+      const updatedSteps = [...flow.steps];
+      const [item] = updatedSteps.splice(stepIndex, 1);
+      updatedSteps.splice(target, 0, item);
+      const next = [...prev];
+      next[flowIndex] = { ...flow, steps: updatedSteps };
+      void persistStepOrder(flowId, updatedSteps);
+      return next;
+    });
   };
 
   const updateProgramXpDraft = (programId: string, value: string, baseline: number) => {
@@ -1025,6 +1214,224 @@ export function AdminPanels() {
                 />
                 <Button type="submit">Emotion Guide erstellen</Button>
               </form>
+            </article>
+
+            <article
+              id="cards-meditation"
+              className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm"
+            >
+              <header className="flex flex-col gap-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                  Ändert: MED Meditation Card
+                </p>
+                <h3 className="text-xl font-semibold">MED Meditation</h3>
+                <p className="text-sm text-gray-500">
+                  {mindStats.meditations} Meditationen · {meditationStepCount} Steps im Dropdown Flow.
+                </p>
+              </header>
+              <form className="mt-4 grid gap-3" onSubmit={handleMeditationSubmit}>
+                <input
+                  value={meditationForm.title}
+                  onChange={(event) =>
+                    setMeditationForm((prev) => ({ ...prev, title: event.target.value }))
+                  }
+                  placeholder="Titel (z.B. Sayajin Meditation)"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <input
+                  value={meditationForm.subtitle}
+                  onChange={(event) =>
+                    setMeditationForm((prev) => ({ ...prev, subtitle: event.target.value }))
+                  }
+                  placeholder="Untertitel"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <textarea
+                  value={meditationForm.summary}
+                  onChange={(event) =>
+                    setMeditationForm((prev) => ({ ...prev, summary: event.target.value }))
+                  }
+                  placeholder="Kurzbeschreibung"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <Button type="submit">Meditation hinzufügen</Button>
+              </form>
+
+              {meditations.length > 0 && (
+                <div className="mt-5 space-y-4">
+                  {orderedMeditations.map((flow, index) => {
+                    const stepDraft = stepDrafts[flow.id] ?? { title: "", description: "" };
+                    const isEditing = editingMeditation?.id === flow.id;
+                    const isFirstFlow = index === 0;
+                    const isLastFlow = index === orderedMeditations.length - 1;
+                    return (
+                      <div
+                        key={flow.id}
+                        className="space-y-3 rounded-2xl border border-daisy-100 bg-white/90 p-4"
+                      >
+                          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.3em] text-daisy-400">
+                                {flow.subtitle ?? "Meditation"}
+                              </p>
+                              <h4 className="text-lg font-semibold text-gray-900">{flow.title}</h4>
+                              {flow.summary && (
+                                <p className="text-sm text-gray-600">{flow.summary}</p>
+                              )}
+                              <p className="text-xs text-gray-500">
+                                {flow.steps.length} Steps · Position {index + 1}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={isFirstFlow}
+                                onClick={() => moveMeditation(flow.id, "up")}
+                              >
+                                ↑
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={isLastFlow}
+                                onClick={() => moveMeditation(flow.id, "down")}
+                              >
+                                ↓
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => openMeditationEdit(flow)}
+                              >
+                                Bearbeiten
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => handleMeditationDelete(flow.id)}
+                              >
+                                Löschen
+                              </Button>
+                            </div>
+                          </div>
+
+                          {isEditing && (
+                            <form className="space-y-2 rounded-2xl border border-daisy-100 bg-white/80 p-3" onSubmit={handleMeditationUpdate}>
+                              <input
+                                value={meditationEditForm.title}
+                                onChange={(event) =>
+                                  setMeditationEditForm((prev) => ({
+                                    ...prev,
+                                    title: event.target.value
+                                  }))
+                                }
+                                placeholder="Titel"
+                                className="rounded-2xl border border-daisy-200 px-4 py-3"
+                              />
+                              <input
+                                value={meditationEditForm.subtitle}
+                                onChange={(event) =>
+                                  setMeditationEditForm((prev) => ({
+                                    ...prev,
+                                    subtitle: event.target.value
+                                  }))
+                                }
+                                placeholder="Untertitel"
+                                className="rounded-2xl border border-daisy-200 px-4 py-3"
+                              />
+                              <textarea
+                                value={meditationEditForm.summary}
+                                onChange={(event) =>
+                                  setMeditationEditForm((prev) => ({
+                                    ...prev,
+                                    summary: event.target.value
+                                  }))
+                                }
+                                placeholder="Beschreibung"
+                                className="rounded-2xl border border-daisy-200 px-4 py-3"
+                              />
+                              <div className="flex flex-wrap gap-2">
+                                <Button type="submit">Speichern</Button>
+                                <Button type="button" variant="ghost" onClick={cancelMeditationEdit}>
+                                  Abbrechen
+                                </Button>
+                              </div>
+                            </form>
+                          )}
+
+                          {flow.steps.length > 0 && (
+                            <ul className="space-y-2 rounded-2xl border border-daisy-100 bg-white/60 p-3 text-sm text-gray-700">
+                              {flow.steps
+                                .slice()
+                                .sort((a, b) => a.order - b.order)
+                                .map((step, stepIndex, stepList) => (
+                                  <li
+                                    key={step.id}
+                                    className="flex flex-col gap-2 rounded-2xl border border-daisy-50 bg-white/80 p-3 md:flex-row md:items-center md:justify-between"
+                                  >
+                                    <div>
+                                      <p className="font-semibold text-gray-900">
+                                        {stepIndex + 1}. {step.title}
+                                      </p>
+                                      {step.description && (
+                                        <p className="text-sm text-gray-600">{step.description}</p>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        disabled={stepIndex === 0}
+                                        onClick={() => moveMeditationStep(flow.id, step.id, "up")}
+                                      >
+                                        ↑
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        disabled={stepIndex === stepList.length - 1}
+                                        onClick={() => moveMeditationStep(flow.id, step.id, "down")}
+                                      >
+                                        ↓
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={() => handleStepDelete(flow.id, step.id)}
+                                      >
+                                        Entfernen
+                                      </Button>
+                                    </div>
+                                  </li>
+                                ))}
+                            </ul>
+                          )}
+
+                          <form className="grid gap-2 rounded-2xl border border-daisy-100 bg-white/80 p-3" onSubmit={handleStepSubmit(flow.id)}>
+                            <input
+                              value={stepDraft.title}
+                              onChange={(event) =>
+                                updateStepDraft(flow.id, { title: event.target.value })
+                              }
+                              placeholder="Neuer Step Titel"
+                              className="rounded-2xl border border-daisy-200 px-4 py-3"
+                            />
+                            <textarea
+                              value={stepDraft.description}
+                              onChange={(event) =>
+                                updateStepDraft(flow.id, { description: event.target.value })
+                              }
+                              placeholder="Beschreibung (optional)"
+                              className="rounded-2xl border border-daisy-200 px-4 py-3"
+                            />
+                            <Button type="submit">Step hinzufügen</Button>
+                          </form>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </article>
           </div>
         </>

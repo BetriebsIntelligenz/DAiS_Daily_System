@@ -6,7 +6,11 @@ import {
   normalizeProgramRecord,
   type ProgramRecordWithRelations
 } from "@/lib/programs";
-import type { ProgramBlueprint, ProgramXpDistribution } from "@/lib/types";
+import type {
+  ProgramBlueprint,
+  ProgramDefinition,
+  ProgramXpDistribution
+} from "@/lib/types";
 
 interface CreateProgramRunParams {
   programId: string;
@@ -90,7 +94,7 @@ export async function createProgramRun({
 
   const normalizedProgram = normalizeProgramRecord(program as ProgramRecordWithRelations);
   const blueprint = normalizedProgram.blueprint;
-  const xpEarned = evaluateXpEarned(blueprint, normalizedProgram.xpReward, payload);
+  const xpEarned = evaluateXpEarned(normalizedProgram, payload);
 
   const run = await prisma.programRun.create({
     data: {
@@ -132,13 +136,14 @@ export async function createProgramRun({
 }
 
 function evaluateXpEarned(
-  blueprint: ProgramBlueprint,
-  fallbackXp: number,
+  program: ProgramDefinition,
   payload: Record<string, unknown> | undefined
 ) {
+  const blueprint = program.blueprint;
   const xpRules = blueprint?.xp;
-  const base = xpRules?.baseValue ?? fallbackXp;
+  const base = xpRules?.baseValue ?? program.xpReward;
   if (!xpRules) return base;
+  const bypassQualityChecks = program.id === "daily-checklist-body";
 
   const runnerInfo =
     typeof payload === "object" && payload !== null
@@ -155,7 +160,7 @@ function evaluateXpEarned(
       }).quality ?? {})
       : {};
 
-  if (xpRules.minQualityScore) {
+  if (xpRules.minQualityScore && !bypassQualityChecks) {
     const ratings = qualityPayload.ratings;
     const values = ratings ? Object.values(ratings) : [];
     if (values.length > 0) {
@@ -166,7 +171,7 @@ function evaluateXpEarned(
     }
   }
 
-  if (xpRules.customRuleLabel) {
+  if (xpRules.customRuleLabel && !bypassQualityChecks) {
     const hasCustomFlag = Object.prototype.hasOwnProperty.call(qualityPayload, "customRulePassed");
     const customPassed = hasCustomFlag ? Boolean(qualityPayload.customRulePassed) : true;
     if (!customPassed) {

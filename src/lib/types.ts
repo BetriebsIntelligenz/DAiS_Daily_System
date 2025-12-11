@@ -349,6 +349,26 @@ export interface EmotionLogEntry {
   createdAt: string;
 }
 
+export interface MindMeditationStep {
+  id: string;
+  flowId: string;
+  title: string;
+  description?: string | null;
+  order: number;
+  createdAt: string;
+}
+
+export interface MindMeditationFlow {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  summary?: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  steps: MindMeditationStep[];
+}
+
 export type RequirementStatus = "open" | "in_progress" | "problem" | "done";
 export type RequirementArea = "privat" | "finanzen" | "arbeit" | "staat";
 

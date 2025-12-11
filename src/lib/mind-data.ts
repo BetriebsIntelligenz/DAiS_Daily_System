@@ -186,3 +186,54 @@ export const emotionPracticeSeeds = [
     groundingPrompt: "Welche Emotion will ich jetzt kultivieren?"
   }
 ] as const;
+
+export const meditationFlowSeeds = [
+  {
+    id: "med-sayajin",
+    title: "Sayajin Meditation",
+    subtitle: "Energie + Fokus",
+    summary: "State-Ritual über Visualisierung und Energieball-Steuerung.",
+    order: 0,
+    steps: [
+      {
+        id: "med-sayajin-1",
+        title: "Durch Vibration und Visualisation Energieball um Körper erzeugen.",
+        order: 1
+      },
+      {
+        id: "med-sayajin-2",
+        title: "Energieball um Wachsen lassen.",
+        order: 2
+      },
+      {
+        id: "med-sayajin-3",
+        title: "Energieball in Stratosphäre bewegen.",
+        order: 3
+      },
+      {
+        id: "med-sayajin-4",
+        title: "Energieball auf Erde splitten und an Energiebedürftige verteilen.",
+        order: 4
+      }
+    ]
+  },
+  {
+    id: "med-earth-love",
+    title: "Earth Love Meditation",
+    subtitle: "Liebe + Dankbarkeit",
+    summary: "Verbinde dich mit der Erde und sende positive Frequenzen.",
+    order: 1,
+    steps: [
+      {
+        id: "med-earth-love-1",
+        title: "Liebe an Erde senden",
+        order: 1
+      },
+      {
+        id: "med-earth-love-2",
+        title: "Dankbarkeit an Erde senden",
+        order: 2
+      }
+    ]
+  }
+] as const;
