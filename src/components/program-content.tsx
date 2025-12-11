@@ -8,6 +8,9 @@ import { SmartGoalsProgram } from "./mind/smart-goals-program";
 import { BrainTrainingProgram } from "./mind/brain-training-program";
 import { HigherThinkingProgram } from "./mind/higher-thinking-program";
 import { EmotionTrainingProgram } from "./mind/emotion-training-program";
+import { IncantationsProgram } from "./mind/incantations-program";
+import { MeditationProgram } from "./mind/meditation-program";
+import { DayPlanningProgram } from "./mind/day-planning-program";
 
 type CustomRenderer = (program: ProgramDefinition) => JSX.Element;
 
@@ -18,7 +21,10 @@ const customMindRenderers: Record<string, CustomRenderer> = {
   "ziele-smart": (program) => <SmartGoalsProgram program={program} />,
   "brain-training": (program) => <BrainTrainingProgram program={program} />,
   "higher-thinking": (program) => <HigherThinkingProgram program={program} />,
-  "emotion-training": (program) => <EmotionTrainingProgram program={program} />
+  "emotion-training": (program) => <EmotionTrainingProgram program={program} />,
+  "mm1-incantations": (program) => <IncantationsProgram program={program} />,
+  meditation: (program) => <MeditationProgram program={program} />,
+  "mm5-day-planning": (program) => <DayPlanningProgram program={program} />
 };
 
 export function ProgramContent({ program }: { program: ProgramDefinition }) {

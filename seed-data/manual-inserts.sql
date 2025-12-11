@@ -16,8 +16,7 @@ SET "summary" = EXCLUDED."summary",
 -- Units
 INSERT INTO "ProgramUnit" ("id","programId","title","order")
 VALUES
-('mm1-state','mm1-incantations','State & Role',1),
-('mm1-rituals','mm1-incantations','Ritual',2),
+('mm1-state','mm1-incantations','Incantations',1),
 ('mm5-core','mm5-day-planning','Fokus',1),
 ('sc-state','state-controll','State-Level',1),
 ('rc-checks','rules-checklist','Disziplinen',1),
@@ -25,18 +24,35 @@ VALUES
 ('dh1-family','daily-checklist-human','Connections',1),
 ('en1-cleaning','environment-program','Cleaning & Garden',1),
 ('bu1-sales','business-development-program','Sales & Development',1)
-ON CONFLICT ("id") DO NOTHING;
+ON CONFLICT ("id") DO UPDATE
+SET "programId" = EXCLUDED."programId",
+    "title" = EXCLUDED."title",
+    "order" = EXCLUDED."order";
+
+-- Entferne veraltete MM1-Units und Exercises
+DELETE FROM "ProgramUnit" WHERE "id" = 'mm1-rituals';
+DELETE FROM "Exercise" WHERE "id" IN (
+  'mm1-energy-scale',
+  'mm1-role',
+  'mm1-ritual-checkbox',
+  'mm1-result'
+);
 
 -- Exercises (Auszug, restliche Felder analog erweitern)
 INSERT INTO "Exercise" ("id","unitId","label","type","config","xpValue")
 VALUES
-('mm1-energy-scale','mm1-state','Energie-Level','scale','{"scaleMin":1,"scaleMax":5,"scaleLabels":["Low","Boosted","On Fire"]}',100),
-('mm1-role','mm1-state','Coach / Spirit Role','scale','{"scaleMin":1,"scaleMax":5,"scaleLabels":["Warming up","In Flow","Legendary"]}',100),
-('mm1-ritual-checkbox','mm1-rituals','Alle Incantations absolviert','checkbox','{}',200),
-('mm1-result','mm1-rituals','Quality & Result','multiselect','{"options":["Fokus >= 70%","Neue Gehirnstruktur verankert","Visualisierung vivid","Coach Stimme stark"]}',200),
-('mm5-why','mm5-core','Was ist das Wichtigste heute?','text','{}',150),
-('mm5-meetings','mm5-core','Termine','text','{}',100),
-('mm5-emails','mm5-core','E-Mails / Briefe geprüft','checkbox','{}',100),
+('mm1-affirmation-wealth','mm1-state','Reichtum ist mein natürlicher Zustand','checkbox','{}',100),
+('mm1-affirmation-magnet','mm1-state','Ich bin ein Magnet für Geld und Erfolg.','checkbox','{}',100),
+('mm1-affirmation-energy','mm1-state','Ich bin Energie.','checkbox','{}',100),
+('mm1-affirmation-health','mm1-state','Ich bin gesund.','checkbox','{}',100),
+('mm1-affirmation-gratitude','mm1-state','Ich bin dankbar für meine Gesundheit.','checkbox','{}',100),
+('mm1-intensity','mm1-state','Intensivität','scale','{"scaleMin":1,"scaleMax":10}',100),
+('mm5-why','mm5-core','Was ist das Wichtigste heute?','text','{"placeholder":"Fokus Aufgabe..."}',150),
+('mm5-emails','mm5-core','E-Mails geprüft','checkbox','{}',80),
+('mm5-email-note','mm5-core','Notiz zu einer E-Mail','text','{"placeholder":"Welche Nachricht braucht Follow-up?"}',70),
+('mm5-important-tasks','mm5-core','Wichtige Aufgaben','text','{"placeholder":"Aufgabe 1, Aufgabe 2 ..."}',120),
+('mm5-meetings','mm5-core','Termine geprüft','checkbox','{}',80),
+('mm5-meeting-prep','mm5-core','Vorbereitungen für heutige Termine','text','{"placeholder":"Was muss vor dem nächsten Termin passieren?"}',70),
 ('sc-love','sc-state','LOVE','scale','{"scaleMin":1,"scaleMax":10}',70),
 ('sc-light','sc-state','LIGHT','scale','{"scaleMin":1,"scaleMax":10}',70),
 ('sc-hero','sc-state','HERO','scale','{"scaleMin":1,"scaleMax":10}',70),
@@ -63,7 +79,23 @@ VALUES
 ('en1-garden','en1-cleaning','Garden / Shaggy Program','text','{}',150),
 ('bu1-pipeline','bu1-sales','Pipeline gepflegt','checkbox','{}',200),
 ('bu1-innovation','bu1-sales','Innovationseintrag','text','{}',200)
-ON CONFLICT ("id") DO UPDATE SET "xpValue" = EXCLUDED."xpValue";
+ON CONFLICT ("id") DO UPDATE
+SET "unitId" = EXCLUDED."unitId",
+    "label" = EXCLUDED."label",
+    "type" = EXCLUDED."type",
+    "config" = EXCLUDED."config",
+    "xpValue" = EXCLUDED."xpValue";
+
+-- XP Regeln für Morgensport lockern (immer XP trotz niedriger Quality Scores)
+UPDATE "Program"
+SET "xpRules" = jsonb_build_object(
+  'baseValue', "xpReward",
+  'requireCompletion', true,
+  'minQualityScore', 1,
+  'customRuleLabel', 'Regel-Check erfüllt',
+  'distribution', jsonb_build_array(jsonb_build_object('area','body','percentage',100))
+)
+WHERE "id" = 'daily-checklist-body';
 
 -- Rewards
 INSERT INTO "Reward" ("id","name","description","cost","active")

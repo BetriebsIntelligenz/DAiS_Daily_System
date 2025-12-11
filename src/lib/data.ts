@@ -208,60 +208,86 @@ const programSeeds: ProgramSeed[] = [
     units: [
       {
         id: "mm1-state",
-        title: "State & Role",
+        title: "Incantations",
         order: 1,
         exercises: [
           {
-            id: "mm1-energy-scale",
-            label: "Energie-Level",
-            description:
-              "Bewerte Begeisterung, Energy und Selbstsicherheit nach dem Ritual.",
-            type: "scale",
-            xpValue: 100,
-            config: {
-              scaleMin: 1,
-              scaleMax: 5,
-              scaleLabels: ["Low", "Boosted", "On Fire"]
-            }
+            id: "mm1-affirmation-wealth",
+            label: "Reichtum ist mein natürlicher Zustand",
+            type: "checkbox",
+            xpValue: 100
           },
           {
-            id: "mm1-role",
-            label: "Coach / Spirit Role",
+            id: "mm1-affirmation-magnet",
+            label: "Ich bin ein Magnet für Geld und Erfolg.",
+            type: "checkbox",
+            xpValue: 100
+          },
+          {
+            id: "mm1-affirmation-energy",
+            label: "Ich bin Energie.",
+            type: "checkbox",
+            xpValue: 100
+          },
+          {
+            id: "mm1-affirmation-health",
+            label: "Ich bin gesund.",
+            type: "checkbox",
+            xpValue: 100
+          },
+          {
+            id: "mm1-affirmation-gratitude",
+            label: "Ich bin dankbar für meine Gesundheit.",
+            type: "checkbox",
+            xpValue: 100
+          },
+          {
+            id: "mm1-intensity",
+            label: "Intensivität",
+            description: "Skala von 1-10, orientiert an der Body Morgentrainings-Skala.",
             type: "scale",
             xpValue: 100,
             config: {
               scaleMin: 1,
-              scaleMax: 5,
-              scaleLabels: ["Warming up", "In Flow", "Legendary"]
+              scaleMax: 10
             }
           }
         ]
-      },
+      }
+    ],
+    blueprint: {
+      ritual: []
+    }
+  },
+  {
+    id: "mind-meditation",
+    slug: "meditation",
+    code: "MED",
+    name: "Meditation",
+    summary:
+      "Dropdown-Ritual mit Sayajin- und Earth Love-Meditation inkl. horizontalem Flow.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 10,
+    xpReward: 380,
+    mode: "flow",
+    units: [
       {
-        id: "mm1-rituals",
-        title: "Ritual",
-        order: 2,
+        id: "meditation-flow",
+        title: "Meditationen",
+        order: 1,
         exercises: [
           {
-            id: "mm1-ritual-checkbox",
-            label: "Alle Incantations absolviert",
-            description: "5x Wiederholen jeder Formel.",
+            id: "meditation-selection",
+            label: "Meditations-Flow gewählt",
             type: "checkbox",
-            xpValue: 200
+            xpValue: 180
           },
           {
-            id: "mm1-result",
-            label: "Quality & Result",
-            type: "multiselect",
-            xpValue: 200,
-            config: {
-              options: [
-                "Fokus >= 70%",
-                "Neue Gehirnstruktur verankert",
-                "Visualisierung vivid",
-                "Coach Stimme stark"
-              ]
-            }
+            id: "meditation-note",
+            label: "Reflexionsnotiz",
+            type: "text",
+            xpValue: 200
           }
         ]
       }
@@ -292,16 +318,43 @@ const programSeeds: ProgramSeed[] = [
             config: { placeholder: "Fokus Aufgabe..." }
           },
           {
-            id: "mm5-meetings",
-            label: "Termine",
-            type: "text",
-            xpValue: 100
+            id: "mm5-emails",
+            label: "E-Mails geprüft",
+            type: "checkbox",
+            xpValue: 80
           },
           {
-            id: "mm5-emails",
-            label: "E-Mails / Briefe geprüft",
+            id: "mm5-email-note",
+            label: "Notiz zu einer E-Mail",
+            type: "text",
+            xpValue: 70,
+            config: {
+              placeholder: "Welche Nachricht braucht Follow-up?"
+            }
+          },
+          {
+            id: "mm5-important-tasks",
+            label: "Wichtige Aufgaben",
+            type: "text",
+            xpValue: 120,
+            config: {
+              placeholder: "Aufgabe 1, Aufgabe 2 ..."
+            }
+          },
+          {
+            id: "mm5-meetings",
+            label: "Termine geprüft",
             type: "checkbox",
-            xpValue: 100
+            xpValue: 80
+          },
+          {
+            id: "mm5-meeting-prep",
+            label: "Vorbereitungen für heutige Termine",
+            type: "text",
+            xpValue: 70,
+            config: {
+              placeholder: "Was muss vor dem nächsten Termin passieren?"
+            }
           }
         ]
       }
@@ -453,7 +506,16 @@ const programSeeds: ProgramSeed[] = [
           }
         ]
       }
-    ]
+    ],
+    blueprint: {
+      xp: {
+        baseValue: 550,
+        requireCompletion: true,
+        minQualityScore: 1,
+        customRuleLabel: "Regel-Check erfüllt",
+        distribution: [{ area: "body", percentage: 100 }]
+      }
+    }
   },
   {
     id: "daily-checklist-human",
