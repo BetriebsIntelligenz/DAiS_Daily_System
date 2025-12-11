@@ -70,13 +70,12 @@ The wizard enforces required fields (name, area, duration, at least one ritual s
 
 ## 3. Program Runner (Execution Mode)
 - Launched via a clear "Program starten" button from menu or schedule entry.
-- Renders full-screen with a sticky progress indicator ("3/7 Steps erledigt"), timer, and upcoming step preview.
+- Renders full-screen with a sticky progress indicator ("3/7 Steps erledigt"), per-step timer controls (Start/Pause/Stop), and upcoming step preview.
 - Each step displays title, description, optional media/notes, and interactive controls (checkboxes, text, ratings) as defined in `inputSchema`.
 - Runner can pause/resume; partial state persists locally (IndexedDB/localStorage fallback) and server-side via `/api/program-runs/:id/draft`.
 - Completion screen summarises ritual status, collects quality ratings, result questions, and shows XP earned + distribution.
 
-### Quick / Resume Modes
-- **Quick Mode** reduces optional steps and trimmed timers for on-the-go execution; flagged per Program or selected at runtime.
+### Resume Mode
 - **Resume** re-enters a paused run, rehydrates timers, and updates progress.
 
 ## 4. Scheduling & Embedding

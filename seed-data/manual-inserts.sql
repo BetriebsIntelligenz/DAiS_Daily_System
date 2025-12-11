@@ -5,7 +5,7 @@ VALUES
 ('mm5-day-planning','mm5-day-planning','MM5','Day Planning','Fokussiertes Planungs-Canvas für das DAiS Day Management.','mind','daily',15,450,'single'),
 ('state-controll','state-controll','SC','State Controll','LOVE, LIGHT, HERO, LEADER, INNOVATOR, POWER HUMAN, IQ SOURCE Trackings.','mind','daily',10,500,'flow'),
 ('rules-checklist','rules-checklist','RC','Rules Checklist','12 Disziplinen als Ja/Nein-Tracker.','mind','daily',8,300,'single'),
-('daily-checklist-body','daily-checklist-body','DB1','Daily Body Checklist','Sport, Ernährung, Kältebad und Sleep Tracking.','body','daily',20,550,'flow'),
+('daily-checklist-body','daily-checklist-body','MS1','Morgensport','Morgen Sport Routine','body','daily',20,550,'flow'),
 ('daily-checklist-human','daily-checklist-human','DH1','Daily Human Checklist','Family, Chat und Meet Programme an einem Ort.','human','daily',10,400,'flow'),
 ('environment-program','environment-program','EN1','Environment Program','Haushalt, Cleaning, Garden, Shaggy Program.','environment','daily',25,500,'flow'),
 ('business-development-program','business-development-program','BU1','Business Development','Virtuelles Kundencenter, Immobilienentwicklungen, Research und KPIs.','business','daily',30,650,'flow')
@@ -21,7 +21,7 @@ VALUES
 ('mm5-core','mm5-day-planning','Fokus',1),
 ('sc-state','state-controll','State-Level',1),
 ('rc-checks','rules-checklist','Disziplinen',1),
-('db1-activity','daily-checklist-body','Aktivität',1),
+('db1-activity','daily-checklist-body','Morgensport',1),
 ('dh1-family','daily-checklist-human','Connections',1),
 ('en1-cleaning','environment-program','Cleaning & Garden',1),
 ('bu1-sales','business-development-program','Sales & Development',1)
@@ -56,9 +56,7 @@ VALUES
 ('rc-9','rc-checks','Social Value','checkbox','{}',20),
 ('rc-10','rc-checks','Family Value','checkbox','{}',20),
 ('rc-11','rc-checks','Daily Body Workout','checkbox','{}',20),
-('db1-sport','db1-activity','Morning Sport absolviert','checkbox','{}',150),
-('db1-cold','db1-activity','Kältebad','checkbox','{}',150),
-('db1-sleep','db1-activity','Sleep Tracker Wert','number','{}',100),
+('db1-sport','db1-activity','Morning Sport absolviert','multiselect','{"options":["Calistenics","Freeletics","Schattenboxen","Laufen","Schwimmen","Boxsack","Fitness"],"optionsRequireMinutes":true}',550),
 ('dh1-family-call','dh1-family','Family Kontakt gepflegt','checkbox','{}',120),
 ('dh1-chat','dh1-family','Menschenwert geschaffen','text','{}',120),
 ('en1-clean','en1-cleaning','Haushalt erledigt','checkbox','{}',150),

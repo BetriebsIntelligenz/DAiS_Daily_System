@@ -71,6 +71,7 @@ export interface ProgramStepInputConfig {
   max?: number;
   step?: number;
   options?: string[];
+  optionsRequireMinutes?: boolean;
   suffix?: string;
 }
 
@@ -154,7 +155,6 @@ export interface ProgramSchedulingConfig {
 }
 
 export interface ProgramRunnerConfig {
-  quickModeAvailable: boolean;
   resumeEnabled: boolean;
   showTimers: boolean;
 }
@@ -184,6 +184,7 @@ export interface ExerciseConfig {
   scaleMax?: number;
   scaleLabels?: string[];
   options?: string[];
+  optionsRequireMinutes?: boolean;
   placeholder?: string;
   richText?: boolean;
 }

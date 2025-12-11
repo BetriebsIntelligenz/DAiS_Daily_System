@@ -419,9 +419,9 @@ const programSeeds: ProgramSeed[] = [
   {
     id: "daily-checklist-body",
     slug: "daily-checklist-body",
-    code: "DB1",
-    name: "Daily Body Checklist",
-    summary: "Sport, Ernährung, Kältebad und Sleep Tracking.",
+    code: "MS1",
+    name: "Morgensport",
+    summary: "Morgen Sport Routine",
     category: "body",
     frequency: "daily",
     durationMinutes: 20,
@@ -430,26 +430,26 @@ const programSeeds: ProgramSeed[] = [
     units: [
       {
         id: "db1-activity",
-        title: "Aktivität",
+        title: "Morgensport",
         order: 1,
         exercises: [
           {
             id: "db1-sport",
             label: "Morning Sport absolviert",
-            type: "checkbox",
-            xpValue: 150
-          },
-          {
-            id: "db1-cold",
-            label: "Kältebad",
-            type: "checkbox",
-            xpValue: 150
-          },
-          {
-            id: "db1-sleep",
-            label: "Sleep Tracker Wert",
-            type: "number",
-            xpValue: 100
+            type: "multiselect",
+            config: {
+              options: [
+                "Calistenics",
+                "Freeletics",
+                "Schattenboxen",
+                "Laufen",
+                "Schwimmen",
+                "Boxsack",
+                "Fitness"
+              ],
+              optionsRequireMinutes: true
+            },
+            xpValue: 550
           }
         ]
       }

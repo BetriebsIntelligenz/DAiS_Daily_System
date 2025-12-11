@@ -81,7 +81,6 @@ const DEFAULT_SCHEDULING: ProgramSchedulingConfig = {
 };
 
 const DEFAULT_RUNNER = {
-  quickModeAvailable: true,
   resumeEnabled: true,
   showTimers: true
 } satisfies ProgramBlueprint["runner"];
@@ -158,7 +157,8 @@ function mapExerciseInput(
       const options = Array.isArray(config?.options) ? config?.options : [];
       return {
         type: "options",
-        options
+        options,
+        optionsRequireMinutes: Boolean(config?.optionsRequireMinutes)
       } satisfies ProgramRitualStep["input"];
     }
     case "number":

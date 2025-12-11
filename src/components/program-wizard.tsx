@@ -1053,14 +1053,6 @@ export function ProgramWizard({ onCreated }: ProgramWizardProps) {
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
-            checked={state.runner.quickModeAvailable}
-            onChange={(event) => updateRunner({ quickModeAvailable: event.target.checked })}
-          />
-          Quick Mode anbieten
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
             checked={state.runner.resumeEnabled}
             onChange={(event) => updateRunner({ resumeEnabled: event.target.checked })}
           />

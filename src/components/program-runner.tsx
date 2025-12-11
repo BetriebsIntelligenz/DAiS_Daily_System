@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type {
   ProgramDefinition,
+  ProgramQualityMetric,
   ProgramResultConfig,
   ProgramRitualStep
 } from "@/lib/types";
@@ -29,8 +30,8 @@ interface RunnerDraft {
   resultAnswers: Record<string, string>;
   stateChecks: { before: number | null; after: number | null };
   feasibility: boolean | null;
-  isQuickMode: boolean;
   customRulePassed: boolean;
+  timerStates: TimerStateMap;
 }
 
 function formatSeconds(seconds: number) {
@@ -68,6 +69,19 @@ function stepHasValue(step: ProgramRitualStep, value: unknown) {
     case "rating":
       return typeof value === "number";
     case "options":
+      if (step.input?.optionsRequireMinutes) {
+        if (!isOptionsWithMinutesValue(value)) {
+          return false;
+        }
+        if (value.selections.length === 0) {
+          return false;
+        }
+        return value.selections.every((selection) => {
+          const minutesValue = value.minutes[selection];
+          const parsed = typeof minutesValue === "string" ? Number(minutesValue) : Number(minutesValue ?? 0);
+          return Number.isFinite(parsed) && parsed > 0;
+        });
+      }
       return Array.isArray(value) && value.length > 0;
     case "timer":
       return true;
@@ -78,10 +92,62 @@ function stepHasValue(step: ProgramRitualStep, value: unknown) {
   }
 }
 
-function getStepDuration(step: ProgramRitualStep, quickMode: boolean) {
-  const minutes = step.durationMinutes || 5;
-  const effective = quickMode ? Math.max(1, Math.round(minutes / 2)) : minutes;
-  return Math.max(30, effective * 60);
+interface TimerState {
+  seconds: number;
+  running: boolean;
+}
+
+type TimerStateMap = Record<string, TimerState>;
+
+interface OptionsWithMinutesValue {
+  selections: string[];
+  minutes: Record<string, string>;
+}
+
+interface MorgensportLogEntry {
+  id: string;
+  contentHtml: string;
+  createdAt: string;
+}
+
+function isOptionsWithMinutesValue(value: unknown): value is OptionsWithMinutesValue {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as Partial<OptionsWithMinutesValue> & { minutes?: unknown };
+  return Array.isArray(candidate.selections) && typeof candidate.minutes === "object" && candidate.minutes !== null;
+}
+
+function buildInitialTimerStates(steps: ProgramRitualStep[]): TimerStateMap {
+  return steps.reduce<TimerStateMap>((acc, step) => {
+    acc[step.id] = { seconds: 0, running: false };
+    return acc;
+  }, {});
+}
+
+function mergeTimerStates(source: TimerStateMap | undefined, steps: ProgramRitualStep[]): TimerStateMap {
+  const baseline = buildInitialTimerStates(steps);
+  if (!source) {
+    return baseline;
+  }
+  let changed = false;
+  const next: TimerStateMap = {};
+  for (const step of steps) {
+    const existing = source[step.id];
+    if (existing && typeof existing.seconds === "number") {
+      next[step.id] = {
+        seconds: existing.seconds,
+        running: Boolean(existing.running)
+      };
+    } else {
+      next[step.id] = baseline[step.id];
+      changed = true;
+    }
+  }
+  if (Object.keys(source).length !== steps.length) {
+    changed = true;
+  }
+  return changed ? next : source;
 }
 
 function formatResultValue(question: ProgramResultConfig["questions"][number], value: string) {
@@ -94,6 +160,33 @@ function formatResultValue(question: ProgramResultConfig["questions"][number], v
   return value;
 }
 
+function buildMorgensportSummary(
+  value: unknown,
+  metrics: ProgramQualityMetric[],
+  ratings: QualityRatings,
+  stateCheckAfter: number | null
+) {
+  if (!isOptionsWithMinutesValue(value) || value.selections.length === 0) {
+    return null;
+  }
+  const items = value.selections.map((selection) => {
+    const raw = Number(value.minutes[selection]);
+    return {
+      label: selection,
+      minutes: Number.isFinite(raw) && raw > 0 ? Math.round(raw) : 0
+    };
+  });
+  const workoutsHtml = `<ul>${items
+    .map((item) => `<li><strong>${item.label}</strong>: ${item.minutes} Min</li>`)
+    .join("")}</ul>`;
+  const qualityHtml = `<ul>${metrics
+    .map((metric) => `<li>${metric.label}: ${ratings[metric.id] ?? metric.min}</li>`)
+    .join("")}</ul>`;
+  const stateAfter = typeof stateCheckAfter === "number" ? stateCheckAfter : "-";
+  const html = `${workoutsHtml}<div class="mt-2"><p class="font-semibold">Quality</p>${qualityHtml}</div><p class="mt-2"><strong>State Check nach dem Programm:</strong> ${stateAfter}</p>`;
+  return { html, items };
+}
+
 export function ProgramRunner({ program }: { program: ProgramDefinition }) {
   const router = useRouter();
   const auth = useAuth();
@@ -104,6 +197,9 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
   const xpRules = program.blueprint.xp;
   const scheduling = program.blueprint.scheduling;
   const runnerConfig = program.blueprint.runner;
+  const MORGENSPORT_PROGRAM_ID = "daily-checklist-body";
+  const MORGENSPORT_STEP_ID = "db1-sport-step";
+  const isMorgensport = program.id === MORGENSPORT_PROGRAM_ID;
 
   const [stepIndex, setStepIndex] = useState(0);
   const [phase, setPhase] = useState<"steps" | "quality">("steps");
@@ -119,19 +215,60 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
     { before: null, after: null }
   );
   const [feasibility, setFeasibility] = useState<boolean | null>(
-    qualityDefinition.requireFeasibilityCheck ? null : true
+    qualityDefinition.requireFeasibilityCheck && !isMorgensport ? null : true
   );
   const [customRulePassed, setCustomRulePassed] = useState(false);
-  const [isQuickMode, setIsQuickMode] = useState(false);
-  const [timerSeconds, setTimerSeconds] = useState(() =>
-    steps[0] ? getStepDuration(steps[0], false) : 0
+  const [timerStates, setTimerStates] = useState<TimerStateMap>(() =>
+    buildInitialTimerStates(steps)
   );
-  const [timerRunning, setTimerRunning] = useState(false);
   const [draftFound, setDraftFound] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [morgensportLogs, setMorgensportLogs] = useState<MorgensportLogEntry[]>([]);
+  const [morgensportLogsLoading, setMorgensportLogsLoading] = useState(false);
 
   const draftKey = useMemo(() => `program-runner-${program.id}` as const, [program.id]);
+  const stepVisible = phase === "steps" || isMorgensport;
+  const currentStepIndex = steps.length === 0 ? -1 : Math.min(stepIndex, steps.length - 1);
+  const currentStep = stepVisible && currentStepIndex >= 0 ? steps[currentStepIndex] : undefined;
+  const currentStepId = currentStep?.id ?? null;
+  const currentTimer = currentStepId ? timerStates[currentStepId] : undefined;
+  const requireFeasibility = qualityDefinition.requireFeasibilityCheck && !isMorgensport;
+  const showCriteria = qualityDefinition.criteria.length > 0 && !isMorgensport;
+  const showResultSection = !isMorgensport && resultDefinition.questions.length > 0;
+  const showXpSection = !isMorgensport;
+  const qualitySectionVisible = phase === "quality" || isMorgensport;
+  const showCustomRule = Boolean(xpRules.customRuleLabel) && !isMorgensport;
+
+  const qualityMetrics = useMemo(() => {
+    if (!isMorgensport) {
+      return qualityDefinition.metrics;
+    }
+    return qualityDefinition.metrics.map((metric) => {
+      if (metric.id === "focus") {
+        return { ...metric, label: "Kraft" };
+      }
+      if (metric.id === "depth") {
+        return { ...metric, label: "Motivation" };
+      }
+      return metric;
+    });
+  }, [qualityDefinition.metrics, isMorgensport]);
+
+  const refreshMorgensportLogs = useCallback(async () => {
+    if (!isMorgensport) return;
+    setMorgensportLogsLoading(true);
+    try {
+      const response = await fetch("/api/programs/morgensport/logs");
+      if (!response.ok) return;
+      const data = (await response.json()) as MorgensportLogEntry[];
+      setMorgensportLogs(data);
+    } catch (logsError) {
+      console.error("Morgensport Logs konnten nicht geladen werden", logsError);
+    } finally {
+      setMorgensportLogsLoading(false);
+    }
+  }, [isMorgensport]);
 
   useEffect(() => {
     try {
@@ -145,22 +282,39 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
   }, [draftKey]);
 
   useEffect(() => {
-    if (phase !== "steps") return;
-    const step = steps[stepIndex];
-    if (!step) return;
-    setTimerSeconds(getStepDuration(step, isQuickMode));
-    setTimerRunning(false);
-  }, [steps, stepIndex, isQuickMode, phase]);
+    if (!isMorgensport) return;
+    refreshMorgensportLogs();
+  }, [isMorgensport, refreshMorgensportLogs]);
+
+  useEffect(() => {
+    setTimerStates((prev) => {
+      const merged = mergeTimerStates(prev, steps);
+      return merged === prev ? prev : merged;
+    });
+  }, [steps]);
 
   useEffect(() => {
     if (!runnerConfig.showTimers) return;
-    if (!timerRunning) return;
     if (phase !== "steps") return;
+    if (!currentStepId || !currentTimer?.running) return;
+    const stepId = currentStepId;
     const interval = window.setInterval(() => {
-      setTimerSeconds((prev) => Math.max(0, prev - 1));
+      setTimerStates((prev) => {
+        const target = prev[stepId];
+        if (!target || !target.running) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [stepId]: {
+            ...target,
+            seconds: target.seconds + 1
+          }
+        };
+      });
     }, 1000);
     return () => window.clearInterval(interval);
-  }, [timerRunning, runnerConfig.showTimers, phase]);
+  }, [runnerConfig.showTimers, phase, currentStepId, currentTimer?.running]);
 
   useEffect(() => {
     try {
@@ -173,16 +327,14 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
         resultAnswers,
         stateChecks,
         feasibility,
-        isQuickMode,
-        customRulePassed
+        customRulePassed,
+        timerStates
       };
       window.localStorage.setItem(draftKey, JSON.stringify(draft));
     } catch (storageError) {
       console.warn("Runner draft konnte nicht gespeichert werden", storageError);
     }
-  }, [draftKey, stepIndex, phase, responses, qualityRatings, criteria, resultAnswers, stateChecks, feasibility, isQuickMode, customRulePassed]);
-
-  const currentStep = phase === "steps" ? steps[stepIndex] : undefined;
+  }, [draftKey, stepIndex, phase, responses, qualityRatings, criteria, resultAnswers, stateChecks, feasibility, customRulePassed, timerStates]);
   const progress = steps.length > 0 ? (Math.min(stepIndex, steps.length) / steps.length) * 100 : 0;
 
   const qualityAverage = useMemo(() => {
@@ -210,9 +362,9 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
       setCriteria(parsed.criteria ?? {});
       setResultAnswers(parsed.resultAnswers ?? deriveInitialResults(program));
       setStateChecks(parsed.stateChecks ?? { before: null, after: null });
-      setFeasibility(parsed.feasibility ?? (qualityDefinition.requireFeasibilityCheck ? null : true));
-      setIsQuickMode(parsed.isQuickMode ?? false);
+      setFeasibility(parsed.feasibility ?? (requireFeasibility ? null : true));
       setCustomRulePassed(parsed.customRulePassed ?? false);
+      setTimerStates(mergeTimerStates(parsed.timerStates, steps));
       setDraftFound(false);
     } catch (storageError) {
       console.warn(storageError);
@@ -246,11 +398,24 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
 
   const handleNextStep = () => {
     if (phase !== "steps") return;
+    if (currentStep) {
+      setTimerStates((prev) => {
+        const state = prev[currentStep.id];
+        if (!state?.running) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [currentStep.id]: { ...state, running: false }
+        };
+      });
+    }
     if (stepIndex + 1 < steps.length) {
       setStepIndex((prev) => prev + 1);
     } else {
-      setPhase("quality");
-      setTimerRunning(false);
+      if (!isMorgensport) {
+        setPhase("quality");
+      }
     }
   };
 
@@ -259,13 +424,72 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
     setStepIndex((prev) => Math.max(0, prev - 1));
   };
 
+  const startTimer = (step: ProgramRitualStep) => {
+    setTimerStates((prev) => {
+      const current = prev[step.id] ?? { seconds: 0, running: false };
+      if (current.running) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [step.id]: { ...current, running: true }
+      };
+    });
+  };
+
+  const pauseTimer = (step: ProgramRitualStep) => {
+    setTimerStates((prev) => {
+      const current = prev[step.id];
+      if (!current?.running) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [step.id]: { ...current, running: false }
+      };
+    });
+  };
+
+  const stopTimer = (step: ProgramRitualStep) => {
+    setTimerStates((prev) => {
+      const current = prev[step.id];
+      if (!current) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [step.id]: {
+          ...current,
+          running: false
+        }
+      };
+    });
+  };
+
+  useEffect(() => {
+    if (phase === "steps") return;
+    setTimerStates((prev) => {
+      let changed = false;
+      const next: TimerStateMap = {};
+      for (const [key, value] of Object.entries(prev)) {
+        if (value.running) {
+          next[key] = { ...value, running: false };
+          changed = true;
+        } else {
+          next[key] = value;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [phase]);
+
   const handleSubmit = async () => {
-    if (phase !== "quality") return;
-    if (qualityDefinition.requireFeasibilityCheck && feasibility === null) {
+    if (phase !== "quality" && !isMorgensport) return;
+    if (requireFeasibility && feasibility === null) {
       setError("Bitte Feasibility angeben.");
       return;
     }
-    if (resultDefinition.questions.some((question) => question.type === "text" && !resultAnswers[question.id])) {
+    if (showResultSection && resultDefinition.questions.some((question) => question.type === "text" && !resultAnswers[question.id])) {
       setError("Bitte die Result-Fragen ausfüllen.");
       return;
     }
@@ -278,30 +502,31 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
         criteriaMet: Object.entries(criteria)
           .filter(([, value]) => value)
           .map(([key]) => key),
-        feasibility,
+        feasibility: requireFeasibility ? feasibility : true,
         stateCheckBefore: stateChecks.before,
         stateCheckAfter: stateChecks.after,
-        customRulePassed
+        customRulePassed: isMorgensport ? true : customRulePassed
       };
-      const resultPayload = Object.entries(resultAnswers).reduce<Record<string, unknown>>(
-        (acc, [questionId, value]) => {
-          const question = resultDefinition.questions.find((entry) => entry.id === questionId);
-          if (!question) {
-            acc[questionId] = value;
-          } else {
-            acc[questionId] = formatResultValue(question, value);
-          }
-          return acc;
-        },
-        {}
-      );
+      const resultPayload = showResultSection
+        ? Object.entries(resultAnswers).reduce<Record<string, unknown>>(
+            (acc, [questionId, value]) => {
+              const question = resultDefinition.questions.find((entry) => entry.id === questionId);
+              if (!question) {
+                acc[questionId] = value;
+              } else {
+                acc[questionId] = formatResultValue(question, value);
+              }
+              return acc;
+            },
+            {}
+          )
+        : {};
 
       const payload = {
         steps: stepPayload,
         quality: qualityPayload,
         results: resultPayload,
         runner: {
-          quickMode: isQuickMode,
           completed: true,
           totalSteps: steps.length,
           scheduleHint: scheduling.blocks?.[0]?.block,
@@ -322,6 +547,30 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
       if (!response.ok) {
         const body = await response.json();
         throw new Error(body?.error ?? "Programmlauf fehlgeschlagen");
+      }
+      if (isMorgensport) {
+        const summary = buildMorgensportSummary(
+          responses[MORGENSPORT_STEP_ID],
+          qualityMetrics,
+          qualityRatings,
+          stateChecks.after
+        );
+        if (summary) {
+          try {
+            await fetch("/api/programs/morgensport/logs", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contentHtml: summary.html,
+                userEmail: auth.user?.email,
+                userName: auth.user?.name
+              })
+            });
+            await refreshMorgensportLogs();
+          } catch (logError) {
+            console.error("Morgensport Log konnte nicht gespeichert werden", logError);
+          }
+        }
       }
       clearDraft();
       setSaving(false);
@@ -358,16 +607,6 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
             <h2 className="text-2xl font-semibold text-gray-900">{program.name}</h2>
             <p className="text-sm text-gray-600">{program.summary}</p>
           </div>
-          {runnerConfig.quickModeAvailable && (
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <input
-                type="checkbox"
-                checked={isQuickMode}
-                onChange={(event) => setIsQuickMode(event.target.checked)}
-              />
-              Quick Mode
-            </label>
-          )}
         </div>
         {program.blueprint.stateRole.desiredState && (
           <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
@@ -419,18 +658,6 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
           <span>
             Fortschritt: {Math.min(stepIndex + 1, steps.length)}/{steps.length}
           </span>
-          {runnerConfig.showTimers && phase === "steps" && (
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-lg text-daisy-600">{formatSeconds(timerSeconds)}</span>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setTimerRunning((prev) => !prev)}
-              >
-                {timerRunning ? "Pause" : "Timer starten"}
-              </Button>
-            </div>
-          )}
         </div>
         <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-daisy-100">
           <div className="h-full rounded-full bg-daisy-500" style={{ width: `${progress}%` }} />
@@ -467,6 +694,34 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
         <div className="rounded-3xl border border-daisy-200 bg-white/95 p-6">
           <h3 className="text-xl font-semibold text-gray-900">{currentStep.title}</h3>
           <p className="mt-1 text-sm text-gray-600">{currentStep.description}</p>
+          {runnerConfig.showTimers && (
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-daisy-50 px-4 py-3">
+              <span className="font-mono text-2xl font-semibold text-daisy-600">
+                {formatSeconds(currentTimer?.seconds ?? 0)}
+              </span>
+              <div className="flex flex-wrap gap-2 text-sm font-medium text-gray-700">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => startTimer(currentStep)}
+                  disabled={currentTimer?.running}
+                >
+                  Start
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => pauseTimer(currentStep)}
+                  disabled={!currentTimer?.running}
+                >
+                  Pause
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => stopTimer(currentStep)}>
+                  Stop
+                </Button>
+              </div>
+            </div>
+          )}
           <div className="mt-4">
             <StepInput
               step={currentStep}
@@ -474,6 +729,30 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
               onChange={(value) => updateResponse(currentStep.id, value)}
             />
           </div>
+          {isMorgensport && currentStep.id === MORGENSPORT_STEP_ID && (
+            <details className="mt-4 rounded-2xl border border-daisy-200 bg-white/90 p-4">
+              <summary className="cursor-pointer text-sm font-semibold text-gray-900">
+                Verlauf anzeigen ({morgensportLogs.length})
+              </summary>
+              <div className="mt-3 space-y-3 text-sm text-gray-700">
+                {morgensportLogsLoading && <p>Einträge werden geladen…</p>}
+                {!morgensportLogsLoading && morgensportLogs.length === 0 && (
+                  <p>Noch keine Morgensport-Einträge gespeichert.</p>
+                )}
+                {morgensportLogs.map((log) => (
+                  <article key={log.id} className="rounded-2xl border border-daisy-100 bg-daisy-50/60 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-daisy-600">
+                      {new Date(log.createdAt).toLocaleString("de-DE")}
+                    </p>
+                    <div
+                      className="prose prose-sm max-w-none text-gray-800"
+                      dangerouslySetInnerHTML={{ __html: log.contentHtml }}
+                    />
+                  </article>
+                ))}
+              </div>
+            </details>
+          )}
           <div className="mt-6 flex flex-wrap gap-3">
             <Button type="button" variant="outline" onClick={handlePrevStep} disabled={stepIndex === 0}>
               Zurück
@@ -483,23 +762,25 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
                 Schritt überspringen
               </Button>
             )}
-            <Button
-              type="button"
-              onClick={handleNextStep}
-              disabled={!(currentStep.optional || stepHasValue(currentStep, responses[currentStep.id]))}
-            >
-              Weiter
-            </Button>
+            {!isMorgensport && (
+              <Button
+                type="button"
+                onClick={handleNextStep}
+                disabled={!(currentStep.optional || stepHasValue(currentStep, responses[currentStep.id]))}
+              >
+                Weiter
+              </Button>
+            )}
           </div>
         </div>
       )}
 
-      {phase === "quality" && (
+      {qualitySectionVisible && (
         <div className="space-y-6">
           <section className="rounded-3xl border border-daisy-200 bg-white/95 p-6">
             <h3 className="text-lg font-semibold text-gray-900">Quality Ratings</h3>
             <div className="mt-4 grid gap-3">
-              {qualityDefinition.metrics.map((metric) => (
+              {qualityMetrics.map((metric) => (
                 <label key={metric.id} className="text-sm font-medium text-gray-700">
                   {metric.label}: {qualityRatings[metric.id] ?? metric.min}
                   <input
@@ -513,20 +794,22 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
                 </label>
               ))}
             </div>
-            <div className="mt-4 space-y-2 text-sm text-gray-700">
-              <p className="font-semibold">Kriterien</p>
-              {qualityDefinition.criteria.map((criterion) => (
-                <label key={criterion} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={criteria[criterion] ?? false}
-                    onChange={() => toggleCriterion(criterion)}
-                  />
-                  {criterion}
-                </label>
-              ))}
-            </div>
-            {qualityDefinition.requireFeasibilityCheck && (
+            {showCriteria && (
+              <div className="mt-4 space-y-2 text-sm text-gray-700">
+                <p className="font-semibold">Kriterien</p>
+                {qualityDefinition.criteria.map((criterion) => (
+                  <label key={criterion} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={criteria[criterion] ?? false}
+                      onChange={() => toggleCriterion(criterion)}
+                    />
+                    {criterion}
+                  </label>
+                ))}
+              </div>
+            )}
+            {requireFeasibility && (
               <div className="mt-4 flex gap-4 text-sm text-gray-700">
                 <label className="flex items-center gap-2">
                   <input
@@ -563,7 +846,7 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
                 />
               </label>
             )}
-            {xpRules.customRuleLabel && (
+            {showCustomRule && (
               <label className="mt-4 flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
@@ -575,52 +858,69 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
             )}
           </section>
 
-          <section className="rounded-3xl border border-daisy-200 bg-white/95 p-6">
-            <h3 className="text-lg font-semibold text-gray-900">Result & Reflektion</h3>
-            <div className="mt-4 grid gap-4">
-              {resultDefinition.questions.map((question) => (
-                <label key={question.id} className="text-sm font-semibold text-gray-700">
-                  {question.prompt}
-                  {question.type === "tags" ? (
-                    <input
-                      value={resultAnswers[question.id] ?? ""}
-                      onChange={(event) => updateResult(question.id, event.target.value)}
-                      placeholder="Tag1, Tag2"
-                      className="mt-1 w-full rounded-2xl border border-daisy-200 px-3 py-2"
-                    />
-                  ) : (
-                    <textarea
-                      value={resultAnswers[question.id] ?? ""}
-                      onChange={(event) => updateResult(question.id, event.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-daisy-200 px-3 py-2"
-                    />
-                  )}
-                </label>
-              ))}
-            </div>
-          </section>
+          {showResultSection && (
+            <section className="rounded-3xl border border-daisy-200 bg-white/95 p-6">
+              <h3 className="text-lg font-semibold text-gray-900">Result & Reflektion</h3>
+              <div className="mt-4 grid gap-4">
+                {resultDefinition.questions.map((question) => (
+                  <label key={question.id} className="text-sm font-semibold text-gray-700">
+                    {question.prompt}
+                    {question.type === "tags" ? (
+                      <input
+                        value={resultAnswers[question.id] ?? ""}
+                        onChange={(event) => updateResult(question.id, event.target.value)}
+                        placeholder="Tag1, Tag2"
+                        className="mt-1 w-full rounded-2xl border border-daisy-200 px-3 py-2"
+                      />
+                    ) : (
+                      <textarea
+                        value={resultAnswers[question.id] ?? ""}
+                        onChange={(event) => updateResult(question.id, event.target.value)}
+                        className="mt-1 w-full rounded-2xl border border-daisy-200 px-3 py-2"
+                      />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </section>
+          )}
 
-          <section className="rounded-3xl border border-daisy-200 bg-white/95 p-6">
-            <h3 className="text-lg font-semibold text-gray-900">XP Vorschau</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Basis XP: {xpRules.baseValue} · Durchschnittsqualität: {qualityAverage?.toFixed(1) ?? "-"}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-600">
-              {xpRules.distribution.map((entry) => (
-                <span key={`${entry.area}-${entry.percentage}`} className="rounded-full bg-daisy-50 px-3 py-1">
-                  {entry.area}: {entry.percentage}%
-                </span>
-              ))}
-            </div>
+          {showXpSection && (
+            <section className="rounded-3xl border border-daisy-200 bg-white/95 p-6">
+              <h3 className="text-lg font-semibold text-gray-900">XP Vorschau</h3>
+              <p className="mt-2 text-sm text-gray-600">
+                Basis XP: {xpRules.baseValue} · Durchschnittsqualität: {qualityAverage?.toFixed(1) ?? "-"}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-600">
+                {xpRules.distribution.map((entry) => (
+                  <span key={`${entry.area}-${entry.percentage}`} className="rounded-full bg-daisy-50 px-3 py-1">
+                    {entry.area}: {entry.percentage}%
+                  </span>
+                ))}
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button type="button" variant="outline" onClick={() => setPhase("steps")}>
+                  Zurück zu den Schritten
+                </Button>
+                <Button type="button" onClick={handleSubmit} disabled={saving}>
+                  {saving ? "Speichert…" : "Programm abschließen"}
+                </Button>
+              </div>
+            </section>
+          )}
+
+          {!showXpSection && (
             <div className="mt-6 flex flex-wrap gap-3">
-              <Button type="button" variant="outline" onClick={() => setPhase("steps")}>
-                Zurück zu den Schritten
-              </Button>
+              {!isMorgensport && (
+                <Button type="button" variant="outline" onClick={() => setPhase("steps")}>
+                  Zurück zu den Schritten
+                </Button>
+              )}
               <Button type="button" onClick={handleSubmit} disabled={saving}>
                 {saving ? "Speichert…" : "Programm abschließen"}
               </Button>
             </div>
-          </section>
+          )}
         </div>
       )}
     </div>
@@ -677,6 +977,66 @@ function StepInput({
     }
     case "options": {
       const options = step.input.options ?? [];
+      if (step.input.optionsRequireMinutes) {
+        const structuredValue = isOptionsWithMinutesValue(value)
+          ? value
+          : {
+              selections: Array.isArray(value) ? (value as string[]) : [],
+              minutes: {}
+            };
+        const { selections, minutes } = structuredValue;
+        return (
+          <div className="space-y-3 text-sm text-gray-700">
+            {options.map((option) => {
+              const selected = selections.includes(option);
+              const minuteValue = minutes[option] ?? "";
+              return (
+                <div
+                  key={option}
+                  className="flex flex-wrap items-center gap-3 rounded-2xl border border-daisy-200 bg-white px-4 py-3"
+                >
+                  <label className="flex items-center gap-2 font-medium">
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={(event) => {
+                        if (event.target.checked) {
+                          onChange({
+                            selections: selected ? selections : [...selections, option],
+                            minutes
+                          });
+                        } else {
+                          const { [option]: _removed, ...restMinutes } = minutes;
+                          onChange({
+                            selections: selections.filter((entry) => entry !== option),
+                            minutes: restMinutes
+                          });
+                        }
+                      }}
+                    />
+                    {option}
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Minuten"
+                    value={minuteValue}
+                    disabled={!selected}
+                    onChange={(event) => {
+                      const nextMinutes = { ...minutes, [option]: event.target.value };
+                      onChange({
+                        selections: selected ? selections : [...selections, option],
+                        minutes: nextMinutes
+                      });
+                    }}
+                    className="w-24 rounded-xl border border-daisy-200 px-3 py-1 text-sm"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
       const selected = Array.isArray(value) ? (value as string[]) : [];
       return (
         <div className="space-y-2 text-sm text-gray-700">
