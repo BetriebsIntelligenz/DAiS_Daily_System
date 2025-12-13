@@ -7,6 +7,7 @@ import type { ProgramDefinition } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-gate";
 import { useProgramCompletionContext } from "@/contexts/program-completion-context";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 interface DayPlanningLogEntry {
   id: string;
@@ -17,6 +18,12 @@ interface DayPlanningLogEntry {
 interface DayPlanningTask {
   id: string;
   label: string;
+}
+
+interface FocusHistoryEntry {
+  id: string;
+  focus: string;
+  createdAt: string;
 }
 
 const TASK_STORAGE_KEY = "mm5-day-planning-tasks";
@@ -36,9 +43,17 @@ export function DayPlanningProgram({ program }: { program: ProgramDefinition }) 
   const [editingTaskValue, setEditingTaskValue] = useState("");
   const [tasksHydrated, setTasksHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [logs, setLogs] = useState<DayPlanningLogEntry[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const focusHistory = useMemo<FocusHistoryEntry[]>(() => {
+    return logs
+      .map((entry) => ({
+        id: entry.id,
+        createdAt: entry.createdAt,
+        focus: extractFocusText(entry.contentHtml)
+      }))
+      .filter((entry) => entry.focus.length > 0);
+  }, [logs]);
 
   const dateLabel = useMemo(() => {
     return new Intl.DateTimeFormat("de-DE", {
@@ -156,14 +171,8 @@ export function DayPlanningProgram({ program }: { program: ProgramDefinition }) 
     setMeetingPrep("");
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!focus.trim()) {
-      setError("Bitte den heutigen Fokus ausfüllen.");
-      return;
-    }
+  const submitProgram = async () => {
     setSaving(true);
-    setError(null);
     try {
       const importantTasks = tasks.map((task) => task.label.trim()).filter((task) => task.length > 0);
       const stepsPayload = {
@@ -227,15 +236,16 @@ export function DayPlanningProgram({ program }: { program: ProgramDefinition }) 
         router.push(successRedirect);
       }
     } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Programm konnte nicht gespeichert werden"
-      );
+      console.error("Day Planning konnte nicht gespeichert werden", requestError);
     } finally {
       setSaving(false);
     }
   };
+  const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    await submitProgram();
+  };
+  const autoSubmitEnabled = useAutoProgramSubmit(submitProgram);
 
   const logDayPlanningEntry = async (entry: {
     focus: string;
@@ -273,12 +283,6 @@ export function DayPlanningProgram({ program }: { program: ProgramDefinition }) 
         </div>
       </section>
 
-      {error && (
-        <div className="rounded-3xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      )}
-
       <section className="space-y-5 rounded-3xl border border-daisy-200 bg-white/90 p-5">
         <header>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
@@ -294,6 +298,7 @@ export function DayPlanningProgram({ program }: { program: ProgramDefinition }) 
           placeholder="Fokus Aufgabe..."
           className="h-28 w-full rounded-2xl border border-daisy-200 bg-white/95 px-4 py-3 text-sm text-gray-900"
         />
+        <FocusLogs entries={focusHistory} loading={logsLoading} />
       </section>
 
       <section className="space-y-4 rounded-3xl border border-daisy-200 bg-white/90 p-5">
@@ -420,9 +425,11 @@ export function DayPlanningProgram({ program }: { program: ProgramDefinition }) 
         </article>
       </section>
 
-      <Button type="submit" className="w-full" disabled={saving}>
-        {saving ? "Speichert…" : "Programm abschließen & XP buchen"}
-      </Button>
+      {!autoSubmitEnabled && (
+        <Button type="submit" className="w-full" disabled={saving}>
+          {saving ? "Speichert…" : "Programm abschließen & XP buchen"}
+        </Button>
+      )}
 
       <section className="rounded-3xl border border-daisy-200 bg-white/90 p-5">
         <header className="flex items-center justify-between">
@@ -506,4 +513,67 @@ function createTaskId() {
     return crypto.randomUUID();
   }
   return `task-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function FocusLogs({ entries, loading }: { entries: FocusHistoryEntry[]; loading: boolean }) {
+  return (
+    <details className="rounded-2xl border border-daisy-200 bg-white/90 p-4">
+      <summary className="cursor-pointer text-sm font-semibold text-gray-900">
+        Fokus Verlauf ({entries.length})
+      </summary>
+      <div className="mt-3 space-y-3 text-sm text-gray-700">
+        {loading && <p>Einträge werden geladen…</p>}
+        {!loading && entries.length === 0 && <p>Noch keine Fokus-Einträge gespeichert.</p>}
+        {!loading &&
+          entries.map((entry) => (
+            <article key={entry.id} className="rounded-2xl border border-daisy-100 bg-daisy-50/60 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-daisy-600">
+                {new Date(entry.createdAt).toLocaleString("de-DE")}
+              </p>
+              <p className="mt-2 whitespace-pre-wrap text-sm text-gray-800">{entry.focus}</p>
+            </article>
+          ))}
+      </div>
+    </details>
+  );
+}
+
+function extractFocusText(contentHtml: string) {
+  try {
+    if (typeof window !== "undefined" && typeof window.DOMParser !== "undefined") {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(contentHtml, "text/html");
+      const paragraphs = Array.from(doc.querySelectorAll("p"));
+      for (const paragraph of paragraphs) {
+        const text = paragraph.textContent ?? "";
+        if (text.trim().toLowerCase().startsWith("fokus:")) {
+          return text.replace(/^Fokus:\s*/i, "").trim();
+        }
+      }
+    }
+  } catch (parseError) {
+    console.warn("Fokus konnte nicht aus dem Log extrahiert werden", parseError);
+  }
+
+  const fallbackMatch = contentHtml.match(/<p><strong>Fokus:<\/strong>\s*([\s\S]*?)<\/p>/i);
+  if (fallbackMatch) {
+    return decodeHtml(fallbackMatch[1]);
+  }
+  return "";
+}
+
+function decodeHtml(value: string) {
+  if (typeof document !== "undefined") {
+    const div = document.createElement("div");
+    div.innerHTML = value.replace(/<br\s*\/?>/gi, "\n");
+    return (div.textContent ?? "").replace(/\u00a0/g, " ").trim();
+  }
+  return value
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .trim();
 }

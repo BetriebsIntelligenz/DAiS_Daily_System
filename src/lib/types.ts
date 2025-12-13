@@ -249,8 +249,17 @@ export interface MindVisualizationAsset {
   id: string;
   title: string;
   imageData: string;
-   order: number;
+  order: number;
   createdAt: string;
+}
+
+export interface PerformanceChecklistItem {
+  id: string;
+  label: string;
+  summary?: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface MindGoal {

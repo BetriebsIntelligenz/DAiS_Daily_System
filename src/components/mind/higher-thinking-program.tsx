@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/auth-gate";
 import { useProgramCompletion } from "@/hooks/use-program-completion";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 export function HigherThinkingProgram({ program }: { program: ProgramDefinition }) {
   const [paths, setPaths] = useState<LearningPathWithProgress[]>([]);
@@ -60,16 +61,13 @@ export function HigherThinkingProgram({ program }: { program: ProgramDefinition 
   };
 
   const handleComplete = async () => {
-    if (toggledMilestones.length === 0) {
-      alert("Bitte mindestens einen Milestone abhaken.");
-      return;
-    }
     await completeProgram({
       type: "higher-thinking",
       milestones: toggledMilestones
     });
     setToggledMilestones([]);
   };
+  const autoSubmitEnabled = useAutoProgramSubmit(handleComplete);
 
   return (
     <div className="space-y-6">
@@ -124,9 +122,11 @@ export function HigherThinkingProgram({ program }: { program: ProgramDefinition 
         </article>
       ))}
 
-      <Button onClick={handleComplete} disabled={submitting}>
-        Higher Thinking Session abschließen
-      </Button>
+      {!autoSubmitEnabled && (
+        <Button onClick={handleComplete} disabled={submitting}>
+          Higher Thinking Session abschließen
+        </Button>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { MindVisualizationAsset, ProgramDefinition } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useProgramCompletion } from "@/hooks/use-program-completion";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 export function VisualizationTrainingProgram({ program }: { program: ProgramDefinition }) {
   const [assets, setAssets] = useState<MindVisualizationAsset[]>([]);
@@ -30,10 +31,6 @@ export function VisualizationTrainingProgram({ program }: { program: ProgramDefi
   };
 
   const handleComplete = async () => {
-    if (selectedIds.length === 0) {
-      alert("Wähle mindestens eine Visualisierung aus.");
-      return;
-    }
     await completeProgram({
       type: "visualization-training",
       selectedVisuals: selectedIds,
@@ -42,6 +39,7 @@ export function VisualizationTrainingProgram({ program }: { program: ProgramDefi
     setSelectedIds([]);
     setReflectionScore(5);
   };
+  const autoSubmitEnabled = useAutoProgramSubmit(handleComplete);
 
   return (
     <div className="space-y-6">
@@ -114,9 +112,11 @@ export function VisualizationTrainingProgram({ program }: { program: ProgramDefi
           className="accent-daisy-500"
         />
       </div>
-      <Button onClick={handleComplete} disabled={submitting}>
-        Visuals bestätigt & XP buchen
-      </Button>
+      {!autoSubmitEnabled && (
+        <Button onClick={handleComplete} disabled={submitting}>
+          Visuals bestätigt & XP buchen
+        </Button>
+      )}
     </div>
   );
 }

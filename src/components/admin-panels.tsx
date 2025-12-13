@@ -12,11 +12,14 @@ import type {
   MindGoalWithProgress,
   MindVisualizationAsset,
   MindMeditationFlow,
+  PerformanceChecklistItem,
   ProgramDefinition,
   ProgramStackDefinition
 } from "@/lib/types";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+
+const PERFORMANCE_CHECKLIST_PROGRAM_ID = "performance-checklist";
 
 
 export function AdminPanels() {
@@ -103,6 +106,9 @@ export function AdminPanels() {
     summary: ""
   });
   const [stepDrafts, setStepDrafts] = useState<Record<string, { title: string; description: string }>>({});
+  const [performanceItems, setPerformanceItems] = useState<PerformanceChecklistItem[]>([]);
+  const [performanceForm, setPerformanceForm] = useState({ label: "", summary: "" });
+  const [editingPerformanceItem, setEditingPerformanceItem] = useState<PerformanceChecklistItem | null>(null);
   const [programXpDrafts, setProgramXpDrafts] = useState<Record<string, string>>({});
   const [savingProgramId, setSavingProgramId] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -116,9 +122,18 @@ export function AdminPanels() {
       brainExercises: brainExercises.length,
       learningPaths: learningPaths.length,
       emotionPractices: emotionPractices.length,
-      meditations: meditations.length
+      meditations: meditations.length,
+      performanceItems: performanceItems.length
     }),
-    [visualAssets, goals, brainExercises, learningPaths, emotionPractices, meditations]
+    [
+      visualAssets,
+      goals,
+      brainExercises,
+      learningPaths,
+      emotionPractices,
+      meditations,
+      performanceItems
+    ]
   );
   const meditationStepCount = useMemo(
     () => meditations.reduce((sum, flow) => sum + flow.steps.length, 0),
@@ -130,6 +145,10 @@ export function AdminPanels() {
   );
   const sortedPrograms = useMemo(
     () => programs.slice().sort((left, right) => left.code.localeCompare(right.code)),
+    [programs]
+  );
+  const performanceProgram = useMemo(
+    () => programs.find((entry) => entry.id === PERFORMANCE_CHECKLIST_PROGRAM_ID) ?? null,
     [programs]
   );
   const toggleSection = (sectionId: string) => {
@@ -220,6 +239,7 @@ export function AdminPanels() {
       pathsPayload,
       emotionPayload,
       meditationPayload,
+      performanceChecklistPayload,
       stackPayload,
       programPayload
     ] = await Promise.all([
@@ -229,6 +249,7 @@ export function AdminPanels() {
       loadJson("/api/mind/learning-paths"),
       loadJson("/api/mind/emotions"),
       loadJson("/api/mind/meditations"),
+      loadJson("/api/mind/performance-checklist"),
       loadJson("/api/program-stacks"),
       loadJson("/api/programs")
     ]);
@@ -247,6 +268,11 @@ export function AdminPanels() {
         return next;
       });
     }
+    setPerformanceItems(
+      Array.isArray(performanceChecklistPayload)
+        ? (performanceChecklistPayload as PerformanceChecklistItem[])
+        : []
+    );
     setProgramStacks(Array.isArray(stackPayload) ? stackPayload : []);
     setPrograms(
       Array.isArray(programPayload) && programPayload.length > 0
@@ -682,6 +708,64 @@ export function AdminPanels() {
     });
   };
 
+  const resetPerformanceForm = () => {
+    setPerformanceForm({ label: "", summary: "" });
+    setEditingPerformanceItem(null);
+  };
+
+  const handlePerformanceSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!performanceForm.label.trim()) {
+      alert("Bitte Label setzen.");
+      return;
+    }
+    const endpoint = "/api/mind/performance-checklist";
+    const method = editingPerformanceItem ? "PUT" : "POST";
+    const payload = editingPerformanceItem
+      ? { id: editingPerformanceItem.id, ...performanceForm }
+      : performanceForm;
+    await fetch(endpoint, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    resetPerformanceForm();
+    await refreshMindData();
+  };
+
+  const handlePerformanceDelete = async (id: string) => {
+    if (!window.confirm("Eintrag wirklich löschen?")) return;
+    await fetch("/api/mind/performance-checklist", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id })
+    });
+    await refreshMindData();
+  };
+
+  const savePerformanceOrder = async (items: PerformanceChecklistItem[]) => {
+    await fetch("/api/mind/performance-checklist", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: items.map((item) => item.id) })
+    });
+    await refreshMindData();
+  };
+
+  const movePerformanceItem = (id: string, direction: "up" | "down") => {
+    setPerformanceItems((prev) => {
+      const index = prev.findIndex((item) => item.id === id);
+      if (index === -1) return prev;
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.splice(target, 0, item);
+      void savePerformanceOrder(next);
+      return next;
+    });
+  };
+
   const updateProgramXpDraft = (programId: string, value: string, baseline: number) => {
     setProgramXpDrafts((prev) => {
       if (value === String(baseline)) {
@@ -947,6 +1031,107 @@ export function AdminPanels() {
                       </Button>
                     </li>
                   ))}
+                </ul>
+              )}
+            </article>
+
+            <article
+              id="cards-performance-checklist"
+              className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm"
+            >
+              <header className="flex flex-col gap-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                  Ändert: Performance Checklist Card
+                </p>
+                <h3 className="text-xl font-semibold">Performance Checklist</h3>
+                <p className="text-sm text-gray-500">
+                  {mindStats.performanceItems} Bereiche mit 5er-Rating (State, Haltung, etc.).
+                </p>
+              </header>
+              <form className="mt-4 grid gap-3" onSubmit={handlePerformanceSubmit}>
+                <input
+                  value={performanceForm.label}
+                  onChange={(event) =>
+                    setPerformanceForm((prev) => ({ ...prev, label: event.target.value }))
+                  }
+                  placeholder="Bereich (z.B. State)"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <textarea
+                  value={performanceForm.summary}
+                  onChange={(event) =>
+                    setPerformanceForm((prev) => ({ ...prev, summary: event.target.value }))
+                  }
+                  placeholder="Kurzbeschreibung"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button type="submit">
+                    {editingPerformanceItem ? "Eintrag aktualisieren" : "Eintrag speichern"}
+                  </Button>
+                  {editingPerformanceItem && (
+                    <Button type="button" variant="ghost" onClick={resetPerformanceForm}>
+                      Abbrechen
+                    </Button>
+                  )}
+                </div>
+              </form>
+              {performanceItems.length > 0 && (
+                <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                  {performanceItems
+                    .slice()
+                    .sort((a, b) => a.order - b.order)
+                    .map((item, index, list) => (
+                      <li
+                        key={item.id}
+                        className="flex flex-col gap-2 rounded-2xl border border-daisy-100 bg-white/80 p-3 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div>
+                          <p className="font-semibold text-gray-900">{item.label}</p>
+                          {item.summary && (
+                            <p className="text-xs text-gray-500">{item.summary}</p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            disabled={index === 0}
+                            onClick={() => movePerformanceItem(item.id, "up")}
+                          >
+                            ↑
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            disabled={index === list.length - 1}
+                            onClick={() => movePerformanceItem(item.id, "down")}
+                          >
+                            ↓
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingPerformanceItem(item);
+                              setPerformanceForm({
+                                label: item.label,
+                                summary: item.summary ?? ""
+                              });
+                            }}
+                          >
+                            Bearbeiten
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => handlePerformanceDelete(item.id)}
+                          >
+                            Entfernen
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
                 </ul>
               )}
             </article>
@@ -1450,6 +1635,43 @@ export function AdminPanels() {
           </header>
 
           <div className="mt-6 space-y-8">
+            {performanceProgram && (
+              <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
+                <header className="flex flex-col gap-1">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                    XP · Performance Checklist
+                  </p>
+                  <h3 className="text-xl font-semibold">PC1 — {performanceProgram.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    Direkter Zugriff auf die neue Checklist XP (aktuell +{performanceProgram.xpReward} XP).
+                  </p>
+                </header>
+                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    value={
+                      programXpDrafts[performanceProgram.id] ?? String(performanceProgram.xpReward)
+                    }
+                    onChange={(event) =>
+                      updateProgramXpDraft(
+                        performanceProgram.id,
+                        event.target.value,
+                        performanceProgram.xpReward
+                      )
+                    }
+                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => persistProgramXp(performanceProgram)}
+                    disabled={savingProgramId === performanceProgram.id}
+                  >
+                    {savingProgramId === performanceProgram.id ? "Speichert…" : "XP speichern"}
+                  </Button>
+                </div>
+              </article>
+            )}
             <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
               <header className="flex flex-col gap-1">
                 <p className="text-xs uppercase tracking-[0.3em] text-gray-400">

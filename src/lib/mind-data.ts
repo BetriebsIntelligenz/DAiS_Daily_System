@@ -24,6 +24,51 @@ export const visualizationSeeds = [
   }
 ] as const;
 
+export const performanceChecklistSeeds = [
+  {
+    id: "pc-state",
+    label: "State",
+    summary: "Gefühl & Selbststeuerung prüfen.",
+    order: 0
+  },
+  {
+    id: "pc-posture",
+    label: "Körperhaltung",
+    summary: "Aufrichtung & Körpersprache (Power Pose).",
+    order: 1
+  },
+  {
+    id: "pc-energy",
+    label: "Energy",
+    summary: "Energie & Aktivierungsspanne.",
+    order: 2
+  },
+  {
+    id: "pc-nutrition",
+    label: "Gesunde Ernährung",
+    summary: "Fuel & Hydration Status.",
+    order: 3
+  },
+  {
+    id: "pc-focus",
+    label: "Fokus",
+    summary: "Ablenkung vs. Konzentrationsgrad.",
+    order: 4
+  },
+  {
+    id: "pc-concentration",
+    label: "Konzentration",
+    summary: "Tiefe Arbeitsfähigkeit.",
+    order: 5
+  },
+  {
+    id: "pc-discipline",
+    label: "Disziplin",
+    summary: "Commitments & Selbstführung.",
+    order: 6
+  }
+] as const;
+
 export const mindGoalSeeds = [
   {
     id: "goal-smart-ritual",

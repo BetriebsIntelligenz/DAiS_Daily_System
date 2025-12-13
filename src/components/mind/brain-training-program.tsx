@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/auth-gate";
 import { useProgramCompletion } from "@/hooks/use-program-completion";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 interface BrainSessionState {
   completed: boolean;
@@ -62,10 +63,6 @@ export function BrainTrainingProgram({ program }: { program: ProgramDefinition }
 
   const handleSaveSessions = async () => {
     const payload = Object.entries(sessionState).filter(([, state]) => state.completed);
-    if (payload.length === 0) {
-      alert("Bitte mindestens eine Übung abhaken.");
-      return;
-    }
     setSaving(true);
     await Promise.all(
       payload.map(([exerciseId, state]) =>
@@ -91,6 +88,7 @@ export function BrainTrainingProgram({ program }: { program: ProgramDefinition }
     setSaving(false);
     await loadExercises();
   };
+  const autoSubmitEnabled = useAutoProgramSubmit(handleSaveSessions);
 
   return (
     <div className="space-y-6">
@@ -156,9 +154,11 @@ export function BrainTrainingProgram({ program }: { program: ProgramDefinition }
         );
       })}
 
-      <Button onClick={handleSaveSessions} disabled={saving || submitting}>
-        Training speichern & XP buchen
-      </Button>
+      {!autoSubmitEnabled && (
+        <Button onClick={handleSaveSessions} disabled={saving || submitting}>
+          Training speichern & XP buchen
+        </Button>
+      )}
     </div>
   );
 }

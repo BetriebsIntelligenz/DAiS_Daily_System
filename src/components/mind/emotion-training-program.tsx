@@ -9,6 +9,7 @@ import type {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-gate";
 import { useProgramCompletion } from "@/hooks/use-program-completion";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 interface EmotionLogForm {
   practiceId: string;
@@ -25,7 +26,6 @@ export function EmotionTrainingProgram({ program }: { program: ProgramDefinition
     intensity: 5,
     note: ""
   });
-  const [hasLogged, setHasLogged] = useState(false);
   const [lastLog, setLastLog] = useState<Partial<EmotionLogForm> | null>(null);
   const { user } = useAuth();
   const { completeProgram, submitting } = useProgramCompletion(program);
@@ -47,21 +47,21 @@ export function EmotionTrainingProgram({ program }: { program: ProgramDefinition
   }, [loadPractices]);
 
   const handleLogSubmit = async () => {
-    if (!logForm.emotionLabel) {
-      alert("Bitte Emotion oder Label eintragen.");
-      return;
-    }
+    const safeLabel = logForm.emotionLabel.trim() || "Emotion";
     await fetch("/api/mind/emotions/logs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...logForm,
+        emotionLabel: safeLabel,
         userEmail: user?.email,
         userName: user?.name
       })
     });
-    setHasLogged(true);
-    setLastLog(logForm);
+    setLastLog({
+      ...logForm,
+      emotionLabel: safeLabel
+    });
     setLogForm({
       practiceId: "",
       emotionLabel: "",
@@ -72,17 +72,13 @@ export function EmotionTrainingProgram({ program }: { program: ProgramDefinition
   };
 
   const handleComplete = async () => {
-    if (!hasLogged || !lastLog) {
-      alert("Bitte mindestens einen Emotion Log erstellen.");
-      return;
-    }
     await completeProgram({
       type: "emotion-training",
-      lastLog
+      lastLog: lastLog ?? null
     });
-    setHasLogged(false);
     setLastLog(null);
   };
+  const autoSubmitEnabled = useAutoProgramSubmit(handleComplete);
 
   return (
     <div className="space-y-6">
@@ -181,9 +177,11 @@ export function EmotionTrainingProgram({ program }: { program: ProgramDefinition
         ))}
       </section>
 
-      <Button onClick={handleComplete} disabled={submitting}>
-        Emotion Training abschließen
-      </Button>
+      {!autoSubmitEnabled && (
+        <Button onClick={handleComplete} disabled={submitting}>
+          Emotion Training abschließen
+        </Button>
+      )}
     </div>
   );
 }

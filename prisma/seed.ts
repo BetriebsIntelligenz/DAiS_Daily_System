@@ -12,7 +12,8 @@ import {
   brainExerciseSeeds,
   learningPathSeeds,
   emotionPracticeSeeds,
-  meditationFlowSeeds
+  meditationFlowSeeds,
+  performanceChecklistSeeds
 } from "../src/lib/mind-data";
 
 const prisma = new PrismaClient();
@@ -100,6 +101,23 @@ async function main() {
         title: asset.title,
         imageData: asset.imageData,
         order: typeof asset.order === "number" ? asset.order : 0
+      }
+    });
+  }
+
+  for (const item of performanceChecklistSeeds) {
+    await prisma.performanceChecklistItem.upsert({
+      where: { id: item.id },
+      create: {
+        id: item.id,
+        label: item.label,
+        summary: item.summary,
+        order: item.order
+      },
+      update: {
+        label: item.label,
+        summary: item.summary,
+        order: item.order
       }
     });
   }

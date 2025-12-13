@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, type UseFormRegister } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,7 @@ import type { ProgramDefinition, ProgramExercise } from "@/lib/types";
 import { Button } from "./ui/button";
 import { useAuth } from "./auth-gate";
 import { useProgramCompletionContext } from "@/contexts/program-completion-context";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 const buildSchema = (exercises: ProgramExercise[]) => {
   const shape: Record<string, z.ZodTypeAny> = {};
@@ -32,10 +33,7 @@ const buildSchema = (exercises: ProgramExercise[]) => {
       case "html":
       case "text":
       default:
-        shape[exercise.id] = z
-          .string()
-          .min(1, "Pflichtfeld")
-          .optional();
+        shape[exercise.id] = z.string().optional();
         break;
     }
   });
@@ -84,6 +82,10 @@ export function ProgramForm({ program }: { program: ProgramDefinition }) {
       router.push(successRedirect);
     }
   });
+  const autoSubmitHandler = useCallback(async () => {
+    await onSubmit();
+  }, [onSubmit]);
+  const autoSubmitEnabled = useAutoProgramSubmit(autoSubmitHandler);
 
   return (
     <form className="space-y-6" onSubmit={onSubmit}>
@@ -109,9 +111,11 @@ export function ProgramForm({ program }: { program: ProgramDefinition }) {
         </section>
       ))}
 
-      <Button type="submit" className="w-full">
-        Programm abschließen & XP buchen
-      </Button>
+      {!autoSubmitEnabled && (
+        <Button type="submit" className="w-full">
+          Programm abschließen & XP buchen
+        </Button>
+      )}
     </form>
   );
 }

@@ -361,6 +361,57 @@ const programSeeds: ProgramSeed[] = [
     ]
   },
   {
+    id: "wake-up-program",
+    slug: "wake-up-program",
+    code: "WU1",
+    name: "Wake Up Program",
+    summary: "Earth Love, Dankbarkeit, Visualisierung, Health Shot und Pump Up Session als Morgen-Checklist.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 12,
+    xpReward: 420,
+    mode: "single",
+    units: [
+      {
+        id: "wu1-core",
+        title: "Wake Up Ritual",
+        order: 1,
+        exercises: [
+          {
+            id: "wu-earth-love",
+            label: "Earth Love Meditation",
+            type: "checkbox",
+            xpValue: 80
+          },
+          {
+            id: "wu-gratitude",
+            label: "Dankbarkeits Meditation",
+            type: "checkbox",
+            xpValue: 80
+          },
+          {
+            id: "wu-visualization",
+            label: "Visualisierung",
+            type: "checkbox",
+            xpValue: 80
+          },
+          {
+            id: "wu-power-shot",
+            label: "Power Health Shot",
+            type: "checkbox",
+            xpValue: 80
+          },
+          {
+            id: "wu-pump-up",
+            label: "Pump Up Session",
+            type: "checkbox",
+            xpValue: 100
+          }
+        ]
+      }
+    ]
+  },
+  {
     id: "state-controll",
     slug: "state-controll",
     code: "SC",
@@ -470,6 +521,77 @@ const programSeeds: ProgramSeed[] = [
     ]
   },
   {
+    id: "performance-checklist",
+    slug: "performance-checklist",
+    code: "PC1",
+    name: "Performance Checklist",
+    summary:
+      "State, Haltung, Energy, Ernährung, Fokus, Konzentration und Disziplin als tägliche Score-Tabelle.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 8,
+    xpReward: 420,
+    mode: "single",
+    units: [
+      {
+        id: "pc1-checklist",
+        title: "Performance Score",
+        order: 1,
+        exercises: [
+          {
+            id: "pc-state",
+            label: "State",
+            type: "scale",
+            config: { scaleMin: 1, scaleMax: 5 },
+            xpValue: 60
+          },
+          {
+            id: "pc-posture",
+            label: "Körperhaltung",
+            type: "scale",
+            config: { scaleMin: 1, scaleMax: 5 },
+            xpValue: 60
+          },
+          {
+            id: "pc-energy",
+            label: "Energy",
+            type: "scale",
+            config: { scaleMin: 1, scaleMax: 5 },
+            xpValue: 60
+          },
+          {
+            id: "pc-nutrition",
+            label: "Gesunde Ernährung",
+            type: "scale",
+            config: { scaleMin: 1, scaleMax: 5 },
+            xpValue: 60
+          },
+          {
+            id: "pc-focus",
+            label: "Fokus",
+            type: "scale",
+            config: { scaleMin: 1, scaleMax: 5 },
+            xpValue: 60
+          },
+          {
+            id: "pc-concentration",
+            label: "Konzentration",
+            type: "scale",
+            config: { scaleMin: 1, scaleMax: 5 },
+            xpValue: 60
+          },
+          {
+            id: "pc-discipline",
+            label: "Disziplin",
+            type: "scale",
+            config: { scaleMin: 1, scaleMax: 5 },
+            xpValue: 60
+          }
+        ]
+      }
+    ]
+  },
+  {
     id: "daily-checklist-body",
     slug: "daily-checklist-body",
     code: "MS1",
@@ -498,6 +620,7 @@ const programSeeds: ProgramSeed[] = [
                 "Laufen",
                 "Schwimmen",
                 "Boxsack",
+                "Seilspringen",
                 "Fitness"
               ],
               optionsRequireMinutes: true

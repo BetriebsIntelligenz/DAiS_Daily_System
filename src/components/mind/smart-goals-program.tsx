@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { MindGoalWithProgress, ProgramDefinition } from "@/lib/types";
+import type { MindGoalCheckin, MindGoalWithProgress, ProgramDefinition } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-gate";
 import { useProgramCompletion } from "@/hooks/use-program-completion";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 interface GoalInputState {
   progress: number;
@@ -89,16 +90,13 @@ export function SmartGoalsProgram({ program }: { program: ProgramDefinition }) {
   };
 
   const handleComplete = async () => {
-    if (completedGoals.length === 0) {
-      alert("Mindestens ein Ziel abhaken, bevor XP verbucht werden.");
-      return;
-    }
     await completeProgram({
       type: "smart-goals",
       completedGoals
     });
     setCompletedGoals([]);
   };
+  const autoSubmitEnabled = useAutoProgramSubmit(handleComplete);
 
   return (
     <div className="space-y-6">
@@ -168,6 +166,7 @@ export function SmartGoalsProgram({ program }: { program: ProgramDefinition }) {
                 className="mt-2 w-full rounded-2xl border border-daisy-200 px-4 py-3"
               />
             </label>
+            <GoalLogs logs={goal.logs} />
 
             <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
               <input
@@ -190,9 +189,11 @@ export function SmartGoalsProgram({ program }: { program: ProgramDefinition }) {
         );
       })}
 
-      <Button onClick={handleComplete} disabled={submitting}>
-        Mind Ziel Session abschließen
-      </Button>
+      {!autoSubmitEnabled && (
+        <Button onClick={handleComplete} disabled={submitting}>
+          Mind Ziel Session abschließen
+        </Button>
+      )}
 
       {logsGoal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
@@ -245,5 +246,38 @@ function SmartRow({ label, value }: { label: string; value: string }) {
       </span>
       <p className="text-sm text-gray-600">{value}</p>
     </div>
+  );
+}
+
+function GoalLogs({ logs }: { logs?: MindGoalCheckin[] }) {
+  const entries = logs ?? [];
+  return (
+    <details className="mt-3 rounded-2xl border border-daisy-200 bg-white/90 p-4">
+      <summary className="cursor-pointer text-sm font-semibold text-gray-900">
+        Verlauf anzeigen ({entries.length})
+      </summary>
+      <div className="mt-3 space-y-3 text-sm text-gray-700">
+        {entries.length === 0 ? (
+          <p>Noch keine Erfolgslog-Einträge gespeichert.</p>
+        ) : (
+          entries.map((entry) => (
+            <article key={entry.id} className="rounded-2xl border border-daisy-100 bg-daisy-50/60 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-daisy-600">
+                {new Date(entry.createdAt).toLocaleString("de-DE")}
+              </p>
+              <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+                <span>Fortschritt</span>
+                <span className="font-semibold text-daisy-600">{Math.round(entry.progressPercent)}%</span>
+              </div>
+              {entry.selfAssessment && (
+                <p className="mt-2 whitespace-pre-wrap text-sm text-gray-800">
+                  {entry.selfAssessment}
+                </p>
+              )}
+            </article>
+          ))
+        )}
+      </div>
+    </details>
   );
 }

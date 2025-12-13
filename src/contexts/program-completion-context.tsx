@@ -9,6 +9,8 @@ type CompletionHandler = (program: ProgramDefinition) => void | Promise<void>;
 export interface ProgramCompletionOverrides {
   onProgramCompleted?: CompletionHandler;
   redirectTo?: string | null;
+  autoSubmitEnabled?: boolean;
+  registerAutoSubmit?: ((submitter: (() => Promise<void>) | null) => void) | null;
 }
 
 const ProgramCompletionContext = createContext<ProgramCompletionOverrides | null>(

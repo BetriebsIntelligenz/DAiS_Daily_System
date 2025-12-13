@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import type { ProgramDefinition } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useProgramCompletion } from "@/hooks/use-program-completion";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 const AFFIRMATIONS = [
   { id: "natural-wealth", text: "Reichtum ist mein natürlicher Zustand" },
@@ -30,28 +31,20 @@ export function IncantationsProgram({ program }: { program: ProgramDefinition })
   const { completeProgram, submitting } = useProgramCompletion(program);
   const [checked, setChecked] = useState<Record<AffirmationId, boolean>>(createChecklistState);
   const [intensity, setIntensity] = useState(7);
-  const [error, setError] = useState<string | null>(null);
 
   const completedCount = useMemo(
     () => AFFIRMATIONS.filter((entry) => checked[entry.id]).length,
     [checked]
   );
-  const allCompleted = completedCount === AFFIRMATIONS.length;
 
   const toggleAffirmation = (id: AffirmationId) => {
     setChecked((prev) => {
       const next = { ...prev, [id]: !prev[id] };
       return next;
     });
-    setError(null);
   };
 
   const handleComplete = async () => {
-    if (!allCompleted) {
-      setError("Bitte jede Incantation mindestens einmal laut bestätigt.");
-      return;
-    }
-    setError(null);
     await completeProgram({
       type: "incantations-checklist",
       affirmations: AFFIRMATIONS.map((entry) => ({
@@ -64,6 +57,7 @@ export function IncantationsProgram({ program }: { program: ProgramDefinition })
     setChecked(createChecklistState());
     setIntensity(7);
   };
+  const autoSubmitEnabled = useAutoProgramSubmit(handleComplete);
 
   return (
     <div className="space-y-6">
@@ -116,19 +110,16 @@ export function IncantationsProgram({ program }: { program: ProgramDefinition })
         <p className="text-xs text-gray-500">
           Fortschritt: {completedCount}/{AFFIRMATIONS.length} Karten abgehakt.
         </p>
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
+        {!autoSubmitEnabled && (
+          <Button
+            type="button"
+            onClick={() => void handleComplete()}
+            disabled={submitting}
+            className="w-full"
+          >
+            Incantations abschließen & XP buchen
+          </Button>
         )}
-        <Button
-          type="button"
-          onClick={() => void handleComplete()}
-          disabled={submitting}
-          className="w-full"
-        >
-          Incantations abschließen & XP buchen
-        </Button>
       </section>
     </div>
   );

@@ -6,6 +6,7 @@ import { ChevronDown, Loader2 } from "lucide-react";
 import type { MindMeditationFlow, ProgramDefinition } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useProgramCompletion } from "@/hooks/use-program-completion";
+import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 export function MeditationProgram({ program }: { program: ProgramDefinition }) {
   const [flows, setFlows] = useState<MindMeditationFlow[]>([]);
@@ -59,30 +60,24 @@ export function MeditationProgram({ program }: { program: ProgramDefinition }) {
   };
 
   const handleComplete = async () => {
-    if (!selectedFlow) {
-      alert("Bitte Meditation auswählen.");
-      return;
-    }
-
-    if (!flowCompletion[selectedFlow.id]) {
-      alert("Checkbox abhaken, sobald die Meditation durchgeführt wurde.");
-      return;
-    }
-
+    const fallbackFlow = selectedFlow ?? flows[0] ?? null;
     await completeProgram({
       type: "meditation-flow",
-      flowId: selectedFlow.id,
-      flowTitle: selectedFlow.title,
-      stepCount: selectedFlow.steps.length,
-      checklistConfirmed: true
+      flowId: fallbackFlow?.id ?? null,
+      flowTitle: fallbackFlow?.title ?? program.name,
+      stepCount: fallbackFlow?.steps.length ?? 0,
+      checklistConfirmed: fallbackFlow ? Boolean(flowCompletion[fallbackFlow.id]) : false
     });
 
+    if (fallbackFlow) {
+      setFlowCompletion((prev) => ({
+        ...prev,
+        [fallbackFlow.id]: false
+      }));
+    }
     setSelectedFlowId(null);
-    setFlowCompletion((prev) => ({
-      ...prev,
-      [selectedFlow.id]: false
-    }));
   };
+  const autoSubmitEnabled = useAutoProgramSubmit(handleComplete);
 
   return (
     <div className="space-y-6">
@@ -168,14 +163,16 @@ export function MeditationProgram({ program }: { program: ProgramDefinition }) {
         </div>
       </section>
 
-      <Button
-        type="button"
-        className="w-full"
-        onClick={() => void handleComplete()}
-        disabled={!selectedFlow || submitting}
-      >
-        Meditation Session abschließen
-      </Button>
+      {!autoSubmitEnabled && (
+        <Button
+          type="button"
+          className="w-full"
+          onClick={() => void handleComplete()}
+          disabled={submitting}
+        >
+          Meditation Session abschließen
+        </Button>
+      )}
     </div>
   );
 }
