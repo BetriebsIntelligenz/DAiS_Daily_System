@@ -10,6 +10,7 @@ VALUES
 ('daily-checklist-body','daily-checklist-body','MS1','Morgensport','Morgen Sport Routine','body','daily',20,550,'flow'),
 ('daily-checklist-human','daily-checklist-human','DH1','Daily Human Checklist','Family, Chat und Meet Programme an einem Ort.','human','daily',10,400,'flow'),
 ('environment-program','environment-program','EN1','Environment Program','Haushalt, Cleaning, Garden, Shaggy Program.','environment','daily',25,500,'flow'),
+('environment-household-cards','household-cards','EN2','Haushalts Karten','Wochentagskarten mit Aufgaben-Checklist.','environment','daily',15,420,'single'),
 ('business-development-program','business-development-program','BU1','Business Development','Virtuelles Kundencenter, Immobilienentwicklungen, Research und KPIs.','business','daily',30,650,'flow')
 ON CONFLICT ("id") DO UPDATE
 SET "summary" = EXCLUDED."summary",
@@ -27,6 +28,7 @@ VALUES
 ('db1-activity','daily-checklist-body','Morgensport',1),
 ('dh1-family','daily-checklist-human','Connections',1),
 ('en1-cleaning','environment-program','Cleaning & Garden',1),
+('hh-cards-default','environment-household-cards','Haushaltskarte',1),
 ('bu1-sales','business-development-program','Sales & Development',1)
 ON CONFLICT ("id") DO UPDATE
 SET "programId" = EXCLUDED."programId",
@@ -93,6 +95,7 @@ VALUES
 ('dh1-chat','dh1-family','Menschenwert geschaffen','text','{}',120),
 ('en1-clean','en1-cleaning','Haushalt erledigt','checkbox','{}',150),
 ('en1-garden','en1-cleaning','Garden / Shaggy Program','text','{}',150),
+('hh-card-check','hh-cards-default','Haushaltskarte bestätigt','checkbox','{}',420),
 ('bu1-pipeline','bu1-sales','Pipeline gepflegt','checkbox','{}',200),
 ('bu1-innovation','bu1-sales','Innovationseintrag','text','{}',200)
 ON CONFLICT ("id") DO UPDATE
@@ -128,3 +131,59 @@ VALUES
 ('journal-success',(SELECT id FROM "User" WHERE email='demo@dais.app'),'Erfolgs Journal','success'),
 ('journal-gratitude',(SELECT id FROM "User" WHERE email='demo@dais.app'),'Dankbarkeits Journal','gratitude')
 ON CONFLICT ("id") DO NOTHING;
+
+-- Household Tasks
+INSERT INTO "HouseholdTask" ("id","label","order","active")
+VALUES
+('hh-task-clean','Aufgeräumt',0,true),
+('hh-task-dishes','Geschirr in Spühlmaschine getan',1,true),
+('hh-task-laundry','Wäsche gewaschen',2,true),
+('hh-task-floor','Boden gewischt',3,true),
+('hh-task-trash','Müll entsorgt',4,true),
+('hh-task-handwerk','Handwerkliche Aufgabe erledigt',5,true),
+('hh-task-cooking','Essen zubereitet',6,true),
+('hh-task-shopping','Einkaufen gewesen',7,true)
+ON CONFLICT ("id") DO UPDATE SET "label" = EXCLUDED."label", "order" = EXCLUDED."order", "active" = EXCLUDED."active";
+
+-- Household Cards
+INSERT INTO "HouseholdCard" ("id","title","summary","weekday")
+VALUES
+('hh-card-monday-reset','Montag Reset','Wohnbereich zurück in Fokus-Mode bringen.',1),
+('hh-card-tuesday-kitchen','Dienstag Küche','Küchenroutine und Vorratscheck.',2),
+('hh-card-wednesday-laundry','Mittwoch Laundry','Wäsche, Müll und kleine Reparaturen.',3),
+('hh-card-thursday-supply','Donnerstag Vorräte','Einkaufen und Entsorgen kombinieren.',4),
+('hh-card-friday-deep','Freitag Deep Clean','Woche mit tiefer Reinigung abschließen.',5),
+('hh-card-saturday-family','Samstag Family Prep','Küche & Essen für das Wochenende vorbereiten.',6),
+('hh-card-sunday-buffer','Sonntag Vorratscheck','Wäsche finalisieren und Einkäufe vorbereiten.',7)
+ON CONFLICT ("id") DO UPDATE SET "title" = EXCLUDED."title","summary" = EXCLUDED."summary","weekday" = EXCLUDED."weekday";
+
+-- Household Card Tasks
+DELETE FROM "HouseholdCardTask" WHERE "cardId" IN (
+  'hh-card-monday-reset','hh-card-tuesday-kitchen','hh-card-wednesday-laundry',
+  'hh-card-thursday-supply','hh-card-friday-deep','hh-card-saturday-family','hh-card-sunday-buffer'
+);
+INSERT INTO "HouseholdCardTask" ("id","cardId","taskId","order")
+VALUES
+(gen_random_uuid(),'hh-card-monday-reset','hh-task-clean',0),
+(gen_random_uuid(),'hh-card-monday-reset','hh-task-dishes',1),
+(gen_random_uuid(),'hh-card-monday-reset','hh-task-floor',2),
+(gen_random_uuid(),'hh-card-monday-reset','hh-task-trash',3),
+(gen_random_uuid(),'hh-card-tuesday-kitchen','hh-task-dishes',0),
+(gen_random_uuid(),'hh-card-tuesday-kitchen','hh-task-floor',1),
+(gen_random_uuid(),'hh-card-tuesday-kitchen','hh-task-cooking',2),
+(gen_random_uuid(),'hh-card-wednesday-laundry','hh-task-laundry',0),
+(gen_random_uuid(),'hh-card-wednesday-laundry','hh-task-trash',1),
+(gen_random_uuid(),'hh-card-wednesday-laundry','hh-task-handwerk',2),
+(gen_random_uuid(),'hh-card-thursday-supply','hh-task-shopping',0),
+(gen_random_uuid(),'hh-card-thursday-supply','hh-task-trash',1),
+(gen_random_uuid(),'hh-card-thursday-supply','hh-task-floor',2),
+(gen_random_uuid(),'hh-card-friday-deep','hh-task-clean',0),
+(gen_random_uuid(),'hh-card-friday-deep','hh-task-dishes',1),
+(gen_random_uuid(),'hh-card-friday-deep','hh-task-floor',2),
+(gen_random_uuid(),'hh-card-friday-deep','hh-task-handwerk',3),
+(gen_random_uuid(),'hh-card-saturday-family','hh-task-clean',0),
+(gen_random_uuid(),'hh-card-saturday-family','hh-task-cooking',1),
+(gen_random_uuid(),'hh-card-saturday-family','hh-task-dishes',2),
+(gen_random_uuid(),'hh-card-sunday-buffer','hh-task-laundry',0),
+(gen_random_uuid(),'hh-card-sunday-buffer','hh-task-shopping',1),
+(gen_random_uuid(),'hh-card-sunday-buffer','hh-task-trash',2);

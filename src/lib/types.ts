@@ -404,3 +404,41 @@ export interface RequirementLogEntry {
   createdAt: string;
   userId?: string | null;
 }
+
+export interface HouseholdTaskDefinition {
+  id: string;
+  label: string;
+  order: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HouseholdCardTaskDefinition {
+  id: string;
+  taskId: string;
+  order: number;
+  task: HouseholdTaskDefinition;
+}
+
+export interface HouseholdCardDefinition {
+  id: string;
+  title: string;
+  summary?: string | null;
+  weekday: number;
+  createdAt: string;
+  updatedAt: string;
+  tasks: HouseholdCardTaskDefinition[];
+}
+
+export interface HouseholdEntryRecord {
+  id: string;
+  cardId: string;
+  cardTitle: string;
+  cardSummary?: string | null;
+  weekday: number;
+  completedTaskIds: string[];
+  completedTasks: string[];
+  createdAt: string;
+  note?: string | null;
+}

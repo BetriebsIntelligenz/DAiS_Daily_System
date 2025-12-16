@@ -707,6 +707,19 @@ const programSeeds: ProgramSeed[] = [
     ]
   },
   {
+    id: "environment-household-cards",
+    slug: "household-cards",
+    code: "EN2",
+    name: "Haushalts Karten",
+    summary: "Wochentagskarten mit festen Haushalts-Tasks abhaken.",
+    category: "environment",
+    frequency: "daily",
+    durationMinutes: 15,
+    xpReward: 420,
+    mode: "single",
+    units: []
+  },
+  {
     id: "business-development-program",
     slug: "business-development-program",
     code: "BU1",

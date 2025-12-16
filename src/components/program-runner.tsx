@@ -381,16 +381,19 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
       )}
 
       {isStateControl ? (
-        <StateControlTable
-          steps={steps}
-          responses={responses}
-          onChange={updateResponse}
-          onSubmit={() => void handleSubmit()}
-          submitting={saving}
-          showSubmitButton={!autoSubmitEnabled}
-          logs={stateControlLogs}
-          loading={stateControlLogsLoading}
-        />
+        <div className="space-y-4">
+          <StateControlSummary steps={steps} responses={responses} />
+          <StateControlTable
+            steps={steps}
+            responses={responses}
+            onChange={updateResponse}
+            onSubmit={() => void handleSubmit()}
+            submitting={saving}
+            showSubmitButton={!autoSubmitEnabled}
+            logs={stateControlLogs}
+            loading={stateControlLogsLoading}
+          />
+        </div>
       ) : (
         <div className="space-y-4">
           {steps.map((step) => (
@@ -724,5 +727,149 @@ function StateControlLogs({
           ))}
       </div>
     </details>
+  );
+}
+
+function StateControlSummary({
+  steps,
+  responses
+}: {
+  steps: ProgramRitualStep[];
+  responses: Record<string, unknown>;
+}) {
+  const { segments, total, average } = useMemo(() => {
+    const palette = [
+      "#fbbf24",
+      "#f97316",
+      "#ef4444",
+      "#14b8a6",
+      "#3b82f6",
+      "#8b5cf6",
+      "#ec4899"
+    ];
+    const entries = steps.map((step, index) => {
+      const raw =
+        typeof responses[step.id] === "number"
+          ? (responses[step.id] as number)
+          : null;
+      const min = typeof step.input?.min === "number" ? step.input.min : 1;
+      const max = typeof step.input?.max === "number" ? step.input.max : 10;
+      const fallback = Math.round((min + max) / 2);
+      const value = raw ?? fallback;
+      return {
+        id: step.id,
+        title: step.title,
+        value,
+        color: palette[index % palette.length]
+      };
+    });
+    const sum = entries.reduce((acc, entry) => acc + entry.value, 0);
+    const normalized =
+      sum === 0
+        ? entries.map((entry) => ({
+            ...entry,
+            percent: 1 / entries.length
+          }))
+        : entries.map((entry) => ({
+            ...entry,
+            percent: entry.value / sum
+          }));
+    const average = entries.length > 0 ? sum / entries.length : 0;
+    return { segments: normalized, total: sum, average };
+  }, [responses, steps]);
+
+  const radius = 80;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+
+  return (
+    <section className="grid gap-6 rounded-3xl border border-daisy-200 bg-white/95 p-5 md:grid-cols-[240px,1fr]">
+      <div className="flex items-center justify-center">
+        <div className="relative">
+          <svg width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="State Controll Verteilung">
+            <circle
+              cx="120"
+              cy="120"
+              r={radius}
+              stroke="#e5e7eb"
+              strokeWidth="24"
+              fill="none"
+            />
+            {segments.map((segment) => {
+              const dash = circumference * segment.percent;
+              const circle = (
+                <circle
+                  key={segment.id}
+                  cx="120"
+                  cy="120"
+                  r={radius}
+                  stroke={segment.color}
+                  strokeWidth="24"
+                  strokeLinecap="round"
+                  fill="none"
+                  strokeDasharray={`${dash} ${circumference}`}
+                  strokeDashoffset={-offset}
+                  transform="rotate(-90 120 120)"
+                />
+              );
+              offset += dash;
+              return circle;
+            })}
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+              Ø State
+            </p>
+            <p className="text-4xl font-bold text-daisy-700">
+              {average.toFixed(1)}
+            </p>
+            <p className="text-xs text-gray-500">Live</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <header className="flex flex-col gap-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
+            Live Analyse
+          </p>
+          <h3 className="text-lg font-semibold text-gray-900">
+            State Controll Verteilung
+          </h3>
+          <p className="text-sm text-gray-500">
+            100% Kreisdiagramm mit allen States, aktualisiert bei jeder Eingabe.
+          </p>
+        </header>
+        {total === 0 ? (
+          <p className="mt-4 text-sm text-gray-500">
+            Noch keine Werte gesetzt. Bewege die Regler, um die Verteilung zu sehen.
+          </p>
+        ) : (
+          <ul className="mt-4 grid gap-3 text-sm text-gray-700">
+            {segments.map((segment) => (
+              <li
+                key={segment.id}
+                className="flex items-center justify-between rounded-2xl border border-daisy-100 bg-white/80 px-4 py-2"
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: segment.color }}
+                  />
+                  <span className="font-semibold">{segment.title}</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900">
+                    {segment.value.toFixed(1)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(segment.percent * 100).toFixed(0)}%
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }

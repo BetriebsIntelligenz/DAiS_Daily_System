@@ -15,6 +15,7 @@ import {
   meditationFlowSeeds,
   performanceChecklistSeeds
 } from "../src/lib/mind-data";
+import { householdCardSeeds, householdTaskSeeds } from "../src/lib/household-data";
 
 const prisma = new PrismaClient();
 
@@ -238,6 +239,49 @@ async function main() {
           title: step.title,
           description: step.description ?? null,
           order: typeof step.order === "number" ? step.order : 0
+        }
+      });
+    }
+  }
+
+  for (const task of householdTaskSeeds) {
+    await prisma.householdTask.upsert({
+      where: { id: task.id },
+      create: {
+        id: task.id,
+        label: task.label,
+        order: task.order
+      },
+      update: {
+        label: task.label,
+        order: task.order,
+        active: true
+      }
+    });
+  }
+
+  for (const card of householdCardSeeds) {
+    await prisma.householdCard.upsert({
+      where: { id: card.id },
+      create: {
+        id: card.id,
+        title: card.title,
+        summary: card.summary,
+        weekday: card.weekday
+      },
+      update: {
+        title: card.title,
+        summary: card.summary,
+        weekday: card.weekday
+      }
+    });
+    await prisma.householdCardTask.deleteMany({ where: { cardId: card.id } });
+    for (const [index, taskId] of card.taskIds.entries()) {
+      await prisma.householdCardTask.create({
+        data: {
+          cardId: card.id,
+          taskId,
+          order: index
         }
       });
     }

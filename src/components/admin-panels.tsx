@@ -13,11 +13,14 @@ import type {
   MindVisualizationAsset,
   MindMeditationFlow,
   PerformanceChecklistItem,
+  HouseholdCardDefinition,
+  HouseholdTaskDefinition,
   ProgramDefinition,
   ProgramStackDefinition
 } from "@/lib/types";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { HOUSEHOLD_WEEKDAYS, formatWeekday } from "@/lib/household";
 
 const PERFORMANCE_CHECKLIST_PROGRAM_ID = "performance-checklist";
 
@@ -111,6 +114,18 @@ export function AdminPanels() {
   const [editingPerformanceItem, setEditingPerformanceItem] = useState<PerformanceChecklistItem | null>(null);
   const [programXpDrafts, setProgramXpDrafts] = useState<Record<string, string>>({});
   const [savingProgramId, setSavingProgramId] = useState<string | null>(null);
+  const [householdTasks, setHouseholdTasks] = useState<HouseholdTaskDefinition[]>([]);
+  const [householdCards, setHouseholdCards] = useState<HouseholdCardDefinition[]>([]);
+  const [householdTaskLabel, setHouseholdTaskLabel] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [householdCardForm, setHouseholdCardForm] = useState({
+    title: "",
+    summary: "",
+    weekday: 1,
+    taskIds: [] as string[]
+  });
+  const [editingHouseholdCard, setEditingHouseholdCard] = useState<HouseholdCardDefinition | null>(null);
+  const [householdAdminError, setHouseholdAdminError] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     "program-builder": true
   });
@@ -123,7 +138,8 @@ export function AdminPanels() {
       learningPaths: learningPaths.length,
       emotionPractices: emotionPractices.length,
       meditations: meditations.length,
-      performanceItems: performanceItems.length
+      performanceItems: performanceItems.length,
+      householdCards: householdCards.length
     }),
     [
       visualAssets,
@@ -132,7 +148,8 @@ export function AdminPanels() {
       learningPaths,
       emotionPractices,
       meditations,
-      performanceItems
+      performanceItems,
+      householdCards
     ]
   );
   const meditationStepCount = useMemo(
@@ -151,6 +168,29 @@ export function AdminPanels() {
     () => programs.find((entry) => entry.id === PERFORMANCE_CHECKLIST_PROGRAM_ID) ?? null,
     [programs]
   );
+  const householdProgram = useMemo(
+    () => programs.find((entry) => entry.id === "environment-household-cards") ?? null,
+    [programs]
+  );
+
+  const parseHouseholdErrorResponse = async (response: Response) => {
+    try {
+      const payload = await response.json();
+      if (payload && typeof payload.error === "string") {
+        return payload.error;
+      }
+    } catch {
+      // ignore
+    }
+    return `${response.status} ${response.statusText}`.trim();
+  };
+
+  const handleHouseholdMutationError = (error: unknown, fallbackMessage: string) => {
+    console.error(fallbackMessage, error);
+    const message =
+      error instanceof Error ? (error.message || fallbackMessage) : fallbackMessage;
+    setHouseholdAdminError(message);
+  };
   const toggleSection = (sectionId: string) => {
     setOpenSections((prev) => ({
       ...prev,
@@ -241,7 +281,8 @@ export function AdminPanels() {
       meditationPayload,
       performanceChecklistPayload,
       stackPayload,
-      programPayload
+      programPayload,
+      householdPayload
     ] = await Promise.all([
       loadJson("/api/mind/visuals"),
       loadJson("/api/mind/goals"),
@@ -251,7 +292,8 @@ export function AdminPanels() {
       loadJson("/api/mind/meditations"),
       loadJson("/api/mind/performance-checklist"),
       loadJson("/api/program-stacks"),
-      loadJson("/api/programs")
+      loadJson("/api/programs"),
+      loadJson("/api/environment/household/cards")
     ]);
     setVisualAssets(Array.isArray(visuals) ? visuals : []);
     setGoals(Array.isArray(goalsPayload) ? goalsPayload : []);
@@ -279,6 +321,15 @@ export function AdminPanels() {
         ? (programPayload as ProgramDefinition[])
         : programDefinitions
     );
+    if (householdPayload && typeof householdPayload === "object") {
+      const payload = householdPayload as { cards?: unknown; tasks?: unknown };
+      setHouseholdCards(
+        Array.isArray(payload.cards) ? (payload.cards as HouseholdCardDefinition[]) : []
+      );
+      setHouseholdTasks(
+        Array.isArray(payload.tasks) ? (payload.tasks as HouseholdTaskDefinition[]) : []
+      );
+    }
   };
 
   const createProgram = async () => {
@@ -810,6 +861,174 @@ export function AdminPanels() {
     }
   };
 
+  const resetHouseholdTaskForm = () => {
+    setHouseholdTaskLabel("");
+    setEditingTaskId(null);
+  };
+
+  const handleHouseholdTaskSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const label = householdTaskLabel.trim();
+    if (!label) {
+      alert("Bitte Task Label eingeben.");
+      return;
+    }
+    const endpoint = "/api/environment/household/tasks";
+    const payload =
+      editingTaskId === null
+        ? { label }
+        : {
+            id: editingTaskId,
+            label
+          };
+    try {
+      const response = await fetch(endpoint, {
+        method: editingTaskId === null ? "POST" : "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        const message = await parseHouseholdErrorResponse(response);
+        throw new Error(message);
+      }
+      resetHouseholdTaskForm();
+      setHouseholdAdminError(null);
+      await refreshMindData();
+    } catch (error) {
+      handleHouseholdMutationError(error, "Haushalts-Task konnte nicht gespeichert werden.");
+    }
+  };
+
+  const persistHouseholdTaskOrder = async (tasks: HouseholdTaskDefinition[]) => {
+    try {
+      const response = await fetch("/api/environment/household/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: tasks.map((task) => task.id) })
+      });
+      if (!response.ok) {
+        const message = await parseHouseholdErrorResponse(response);
+        throw new Error(message);
+      }
+      setHouseholdAdminError(null);
+      await refreshMindData();
+    } catch (error) {
+      handleHouseholdMutationError(error, "Aufgaben-Reihenfolge konnte nicht gespeichert werden.");
+    }
+  };
+
+  const moveHouseholdTask = (taskId: string, direction: "up" | "down") => {
+    setHouseholdTasks((prev) => {
+      const index = prev.findIndex((task) => task.id === taskId);
+      if (index === -1) return prev;
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.splice(targetIndex, 0, item);
+      void persistHouseholdTaskOrder(next);
+      return next;
+    });
+  };
+
+  const deleteHouseholdTask = async (taskId: string) => {
+    if (!window.confirm("Task wirklich löschen? Zuweisungen werden entfernt.")) return;
+    try {
+      const response = await fetch("/api/environment/household/tasks", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId })
+      });
+      if (!response.ok) {
+        const message = await parseHouseholdErrorResponse(response);
+        throw new Error(message);
+      }
+      setHouseholdAdminError(null);
+      await refreshMindData();
+    } catch (error) {
+      handleHouseholdMutationError(error, "Task konnte nicht gelöscht werden.");
+    }
+  };
+
+  const resetHouseholdCardForm = () => {
+    setEditingHouseholdCard(null);
+    setHouseholdCardForm({ title: "", summary: "", weekday: 1, taskIds: [] });
+  };
+
+  const startEditHouseholdCard = (card: HouseholdCardDefinition) => {
+    setEditingHouseholdCard(card);
+    setHouseholdCardForm({
+      title: card.title,
+      summary: card.summary ?? "",
+      weekday: card.weekday,
+      taskIds: card.tasks.map((assignment) => assignment.taskId)
+    });
+  };
+
+  const toggleHouseholdCardTask = (taskId: string) => {
+    setHouseholdCardForm((prev) => {
+      const exists = prev.taskIds.includes(taskId);
+      return {
+        ...prev,
+        taskIds: exists ? prev.taskIds.filter((entry) => entry !== taskId) : [...prev.taskIds, taskId]
+      };
+    });
+  };
+
+  const handleHouseholdCardSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!householdCardForm.title.trim()) {
+      alert("Bitte Kartentitel ausfüllen.");
+      return;
+    }
+    const payload = {
+      title: householdCardForm.title.trim(),
+      summary: householdCardForm.summary.trim(),
+      weekday: householdCardForm.weekday,
+      taskIds: householdCardForm.taskIds
+    };
+    try {
+      const response = await fetch("/api/environment/household/cards", {
+        method: editingHouseholdCard ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          editingHouseholdCard ? { id: editingHouseholdCard.id, ...payload } : payload
+        )
+      });
+      if (!response.ok) {
+        const message = await parseHouseholdErrorResponse(response);
+        throw new Error(message);
+      }
+      resetHouseholdCardForm();
+      setHouseholdAdminError(null);
+      await refreshMindData();
+    } catch (error) {
+      handleHouseholdMutationError(error, "Haushaltskarte konnte nicht gespeichert werden.");
+    }
+  };
+
+  const deleteHouseholdCard = async (cardId: string) => {
+    if (!window.confirm("Karte wirklich löschen?")) return;
+    try {
+      const response = await fetch("/api/environment/household/cards", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: cardId })
+      });
+      if (!response.ok) {
+        const message = await parseHouseholdErrorResponse(response);
+        throw new Error(message);
+      }
+      if (editingHouseholdCard?.id === cardId) {
+        resetHouseholdCardForm();
+      }
+      setHouseholdAdminError(null);
+      await refreshMindData();
+    } catch (error) {
+      handleHouseholdMutationError(error, "Haushaltskarte konnte nicht gelöscht werden.");
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -1134,6 +1353,214 @@ export function AdminPanels() {
                     ))}
                 </ul>
               )}
+            </article>
+
+            <article
+              id="cards-household"
+              className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm"
+            >
+              <header className="flex flex-col gap-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                  Ändert: Haushalt Environment Cards
+                </p>
+                <h3 className="text-xl font-semibold">Haushalts Karten</h3>
+                <p className="text-sm text-gray-500">
+                  {mindStats.householdCards} aktive Karten · Wochentage + Aufgaben definieren.
+                </p>
+                {householdAdminError && (
+                  <p className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                    {householdAdminError}
+                  </p>
+                )}
+              </header>
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <section className="rounded-2xl border border-daisy-100 bg-white/70 p-4">
+                  <h4 className="text-sm font-semibold text-gray-900">Aufgaben verwalten</h4>
+                  <form className="mt-3 space-y-3" onSubmit={handleHouseholdTaskSubmit}>
+                    <input
+                      value={householdTaskLabel}
+                      onChange={(event) => setHouseholdTaskLabel(event.target.value)}
+                      placeholder="Task Label (z.B. Aufgeräumt)"
+                      className="w-full rounded-2xl border border-daisy-200 px-4 py-3 text-sm"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="submit">
+                        {editingTaskId ? "Task aktualisieren" : "Task hinzufügen"}
+                      </Button>
+                      {editingTaskId && (
+                        <Button type="button" variant="ghost" onClick={resetHouseholdTaskForm}>
+                          Abbrechen
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                  {householdTasks.length === 0 ? (
+                    <p className="mt-4 text-xs text-gray-500">
+                      Noch keine Aufgaben definiert.
+                    </p>
+                  ) : (
+                    <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                      {householdTasks
+                        .slice()
+                        .sort((a, b) => a.order - b.order)
+                        .map((task, index, list) => (
+                          <li
+                            key={task.id}
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-daisy-100 bg-white/90 px-3 py-2"
+                          >
+                            <div>
+                              <p className="font-semibold">{task.label}</p>
+                              {!task.active && (
+                                <p className="text-xs uppercase tracking-wide text-gray-400">
+                                  Deaktiviert
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={index === 0}
+                                onClick={() => moveHouseholdTask(task.id, "up")}
+                              >
+                                ↑
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={index === list.length - 1}
+                                onClick={() => moveHouseholdTask(task.id, "down")}
+                              >
+                                ↓
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingTaskId(task.id);
+                                  setHouseholdTaskLabel(task.label);
+                                }}
+                              >
+                                Bearb.
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => deleteHouseholdTask(task.id)}
+                              >
+                                Löschen
+                              </Button>
+                            </div>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </section>
+                <section className="rounded-2xl border border-daisy-100 bg-white/70 p-4">
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    {editingHouseholdCard ? "Karte bearbeiten" : "Neue Karte"}
+                  </h4>
+                  <form className="mt-3 space-y-3" onSubmit={handleHouseholdCardSubmit}>
+                    <input
+                      value={householdCardForm.title}
+                      onChange={(event) =>
+                        setHouseholdCardForm((prev) => ({ ...prev, title: event.target.value }))
+                      }
+                      placeholder="Titel (z.B. Montag Reset)"
+                      className="w-full rounded-2xl border border-daisy-200 px-4 py-3 text-sm"
+                    />
+                    <textarea
+                      value={householdCardForm.summary}
+                      onChange={(event) =>
+                        setHouseholdCardForm((prev) => ({ ...prev, summary: event.target.value }))
+                      }
+                      placeholder="Kurzbeschreibung"
+                      className="w-full rounded-2xl border border-daisy-200 px-4 py-3 text-sm"
+                    />
+                    <select
+                      value={householdCardForm.weekday}
+                      onChange={(event) =>
+                        setHouseholdCardForm((prev) => ({
+                          ...prev,
+                          weekday: Number(event.target.value)
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-daisy-200 px-4 py-3 text-sm"
+                    >
+                      {HOUSEHOLD_WEEKDAYS.map((weekday) => (
+                        <option key={weekday.value} value={weekday.value}>
+                          {weekday.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Aufgaben
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {householdTasks.length === 0 && (
+                          <p className="text-xs text-gray-500">
+                            Lege zuerst Tasks an, bevor du Karten erstellst.
+                          </p>
+                        )}
+                        {householdTasks.map((task) => (
+                          <label
+                            key={task.id}
+                            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${
+                              householdCardForm.taskIds.includes(task.id)
+                                ? "border-daisy-400 bg-daisy-50 text-daisy-900"
+                                : "border-daisy-100 bg-white text-gray-600"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 accent-daisy-500"
+                              checked={householdCardForm.taskIds.includes(task.id)}
+                              onChange={() => toggleHouseholdCardTask(task.id)}
+                            />
+                            {task.label}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="submit">
+                        {editingHouseholdCard ? "Karte aktualisieren" : "Karte speichern"}
+                      </Button>
+                      {editingHouseholdCard && (
+                        <Button type="button" variant="ghost" onClick={resetHouseholdCardForm}>
+                          Abbrechen
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                  {householdCards.length > 0 && (
+                    <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                      {householdCards.map((card) => (
+                        <li
+                          key={card.id}
+                          className="flex flex-col gap-2 rounded-2xl border border-daisy-100 bg-white/90 p-3 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <p className="font-semibold text-gray-900">{card.title}</p>
+                            <p className="text-xs text-gray-500">
+                              {formatWeekday(card.weekday)} · {card.tasks.length} Aufgaben
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button type="button" variant="ghost" onClick={() => startEditHouseholdCard(card)}>
+                              Bearbeiten
+                            </Button>
+                            <Button type="button" variant="ghost" onClick={() => deleteHouseholdCard(card.id)}>
+                              Entfernen
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              </div>
             </article>
 
             <article
@@ -1668,6 +2095,41 @@ export function AdminPanels() {
                     disabled={savingProgramId === performanceProgram.id}
                   >
                     {savingProgramId === performanceProgram.id ? "Speichert…" : "XP speichern"}
+                  </Button>
+                </div>
+              </article>
+            )}
+            {householdProgram && (
+              <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
+                <header className="flex flex-col gap-1">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                    XP · Haushalt
+                  </p>
+                  <h3 className="text-xl font-semibold">EN2 — {householdProgram.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    Steuert die XP pro gespeicherter Haushaltskarte (+{householdProgram.xpReward} XP).
+                  </p>
+                </header>
+                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    value={programXpDrafts[householdProgram.id] ?? String(householdProgram.xpReward)}
+                    onChange={(event) =>
+                      updateProgramXpDraft(
+                        householdProgram.id,
+                        event.target.value,
+                        householdProgram.xpReward
+                      )
+                    }
+                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => persistProgramXp(householdProgram)}
+                    disabled={savingProgramId === householdProgram.id}
+                  >
+                    {savingProgramId === householdProgram.id ? "Speichert…" : "XP speichern"}
                   </Button>
                 </div>
               </article>

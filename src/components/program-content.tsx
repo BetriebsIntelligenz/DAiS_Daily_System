@@ -13,6 +13,7 @@ import { MeditationProgram } from "./mind/meditation-program";
 import { DayPlanningProgram } from "./mind/day-planning-program";
 import { WakeUpProgram } from "./mind/wake-up-program";
 import { PerformanceChecklistProgram } from "./mind/performance-checklist-program";
+import { HouseholdCardsProgram } from "./environment/household-cards-program";
 
 type CustomRenderer = (program: ProgramDefinition) => JSX.Element;
 
@@ -28,7 +29,8 @@ const customMindRenderers: Record<string, CustomRenderer> = {
   meditation: (program) => <MeditationProgram program={program} />,
   "mm5-day-planning": (program) => <DayPlanningProgram program={program} />,
   "wake-up-program": (program) => <WakeUpProgram program={program} />,
-  "performance-checklist": (program) => <PerformanceChecklistProgram program={program} />
+  "performance-checklist": (program) => <PerformanceChecklistProgram program={program} />,
+  "household-cards": (program) => <HouseholdCardsProgram program={program} />
 };
 
 export function ProgramContent({ program }: { program: ProgramDefinition }) {
