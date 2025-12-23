@@ -29,12 +29,12 @@ interface ModalShellProps {
 function ModalShell({ open, onClose, children }: ModalShellProps) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/30 px-4 py-10 backdrop-blur">
-      <div className="relative w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
+    <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-[#050a1f]/70 px-4 py-10 backdrop-blur">
+      <div className="relative w-full max-w-2xl rounded-[36px] border-4 border-white/70 bg-gradient-to-b from-[#131f47]/95 via-[#2c3f9a]/90 to-[#6d5ce0]/90 p-8 text-white shadow-arcade">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-800"
+          className="absolute right-4 top-4 rounded-full border-2 border-white/70 bg-white/20 p-2 text-white hover:bg-white/30"
           aria-label="Schließen"
         >
           <X className="h-5 w-5" />
@@ -77,13 +77,15 @@ export function RequirementCreateModal({
 
   return (
     <ModalShell open={open} onClose={onClose}>
-      <div className="space-y-4">
+      <div className="space-y-4 text-white">
         <header className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.35em] text-daisy-500">
+          <p className="font-arcade text-[11px] uppercase tracking-[0.5em] text-[#ffd879]">
             {badge}
           </p>
-          <h3 className="text-2xl font-semibold text-gray-900">{title}</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-3xl font-semibold uppercase tracking-[0.2em]">
+            {title}
+          </h3>
+          <p className="text-sm text-white/80">
             Name, Zieldatum, Anfrager, Kosten, Prio und Bereich angeben.
           </p>
         </header>
@@ -96,7 +98,7 @@ export function RequirementCreateModal({
                 required
                 value={formState.title}
                 onChange={(event) => onChange("title", event.target.value)}
-                className="w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-500 focus:outline-none"
+                className="retro-input h-14 w-full bg-white/90 text-[#0b1230]"
                 placeholder="z.B. Steuerbescheid digitalisieren"
               />
             }
@@ -110,7 +112,7 @@ export function RequirementCreateModal({
                   type="date"
                   value={formState.targetDate}
                   onChange={(event) => onChange("targetDate", event.target.value)}
-                  className="w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-500 focus:outline-none"
+                  className="retro-input h-14 w-full bg-white/90 text-[#0b1230]"
                 />
               }
             />
@@ -121,19 +123,20 @@ export function RequirementCreateModal({
                 <input
                   value={formState.requester}
                   onChange={(event) => onChange("requester", event.target.value)}
-                  className="w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-500 focus:outline-none"
+                  className="retro-input h-14 w-full bg-white/90 text-[#0b1230]"
                   placeholder="Name oder Team"
                 />
               }
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             <Field
               label="Kosten"
+              className="xl:col-span-1"
               element={
-                <div className="flex items-center gap-2 rounded-2xl border border-daisy-200 px-4 py-3 focus-within:border-daisy-500">
-                  <Euro className="h-4 w-4 text-daisy-500" />
+                <div className="flex h-14 items-center gap-2 rounded-2xl border-4 border-white/60 bg-white/90 px-4 py-3 text-[#0b1230] focus-within:border-[#ffd879]">
+                  <Euro className="h-4 w-4 text-[#ff5fa8]" />
                   <input
                     type="number"
                     inputMode="decimal"
@@ -147,11 +150,12 @@ export function RequirementCreateModal({
             />
             <Field
               label="Prio (1 = hoch)"
+              className="xl:col-span-1"
               element={
                 <select
                   value={formState.priority}
                   onChange={(event) => onChange("priority", event.target.value)}
-                  className="w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-500 focus:outline-none"
+                  className="retro-input h-14 w-full bg-white/90 text-[#0b1230]"
                 >
                   {[1, 2, 3, 4].map((prio) => (
                     <option key={prio} value={prio}>
@@ -164,11 +168,12 @@ export function RequirementCreateModal({
             <Field
               label="Bereich"
               required
+              className="xl:col-span-1"
               element={
                 <select
                   value={formState.area}
                   onChange={(event) => onChange("area", event.target.value as RequirementArea)}
-                  className="w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-500 focus:outline-none"
+                  className="retro-input h-14 w-full bg-white/90 text-[#0b1230]"
                 >
                   {Object.entries(areaLabels).map(([id, label]) => (
                     <option key={id} value={id}>
@@ -178,20 +183,20 @@ export function RequirementCreateModal({
                 </select>
               }
             />
-            <Field
-              label="XP (bei Fertig gutschreiben)"
-              element={
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={formState.xp}
-                  onChange={(event) => onChange("xp", event.target.value)}
-                  className="w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-500 focus:outline-none"
-                  placeholder="0"
-                />
-              }
-            />
           </div>
+          <Field
+            label="XP (bei Fertig gutschreiben)"
+            element={
+              <input
+                type="number"
+                inputMode="numeric"
+                value={formState.xp}
+                onChange={(event) => onChange("xp", event.target.value)}
+                className="retro-input h-14 w-full bg-white/90 text-[#0b1230]"
+                placeholder="0"
+              />
+            }
+          />
 
           <Field
             label="Beschreibung (optional)"
@@ -199,7 +204,7 @@ export function RequirementCreateModal({
               <textarea
                 value={formState.description}
                 onChange={(event) => onChange("description", event.target.value)}
-                className="min-h-[100px] w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-500 focus:outline-none"
+                className="retro-input min-h-[120px] w-full bg-white/90 text-[#0b1230]"
                 placeholder="Kontext, gewünschte Ergebnisse, Links…"
               />
             }
@@ -211,7 +216,7 @@ export function RequirementCreateModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Abbrechen
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button variant="lagoon" type="submit" disabled={submitting}>
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> Speichert…
@@ -270,51 +275,51 @@ export function RequirementDetailModal({
 
   return (
     <ModalShell open={open} onClose={onClose}>
-      <div className="space-y-4">
-        <header className="space-y-1">
+      <div className="space-y-4 text-white">
+        <header className="space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-daisy-500">
+              <p className="font-arcade text-[11px] uppercase tracking-[0.45em] text-[#ffd879]">
                 Anforderung
               </p>
-              <h3 className="text-2xl font-semibold text-gray-900">
+              <h3 className="text-3xl font-semibold uppercase leading-snug tracking-[0.2em]">
                 {requirement.title}
               </h3>
             </div>
-            <Button onClick={onEdit} variant="outline">
+            <Button onClick={onEdit} variant="ghost">
               Bearbeiten
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
-            <span className="rounded-full bg-daisy-100 px-3 py-1 text-daisy-700">
+            <span className="rounded-full border-2 border-white/70 bg-white/30 px-3 py-1 text-white">
               {areaLabels[requirement.area]}
             </span>
-            <span className="rounded-full bg-daisy-200 px-3 py-1 text-daisy-800">
+            <span className="rounded-full border-2 border-white/70 bg-white/30 px-3 py-1 text-white">
               Prio {requirement.priority}
             </span>
-            <span className="rounded-full bg-daisy-100 px-3 py-1 text-daisy-700">
+            <span className="rounded-full border-2 border-white/70 bg-white/30 px-3 py-1 text-white">
               Status: {statusLabels[requirement.status]}
             </span>
           </div>
         </header>
 
-        <div className="space-y-2 rounded-2xl bg-daisy-50 p-4 text-sm text-gray-800">
+        <div className="space-y-3 rounded-[26px] border-4 border-white/60 bg-white/90 p-5 text-sm text-[#0b1230]">
           {requirement.description ? (
             <p className="leading-relaxed">{requirement.description}</p>
           ) : (
-            <p className="text-gray-500">Kein Beschreibungstext hinterlegt.</p>
+            <p className="text-[#5b648f]">Kein Beschreibungstext hinterlegt.</p>
           )}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <InfoRow label="Anfrager" value={requirement.requester} />
             <InfoRow
               label="Zieldatum"
               value={requirement.targetDate ? formatDate(requirement.targetDate) : "Kein Datum"}
-              icon={<CalendarClock className="h-4 w-4 text-daisy-500" />}
+              icon={<CalendarClock className="h-4 w-4 text-[#ff5fa8]" />}
             />
             <InfoRow
               label="Kosten"
               value={`${requirement.cost.toLocaleString("de-DE")} €`}
-              icon={<Euro className="h-4 w-4 text-daisy-500" />}
+              icon={<Euro className="h-4 w-4 text-[#ff5fa8]" />}
             />
             <InfoRow
               label="XP bei Fertig"
@@ -328,11 +333,11 @@ export function RequirementDetailModal({
         </div>
 
         <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
+          <p className="font-arcade text-[10px] uppercase tracking-[0.4em] text-white/80">
             Aktivitätslog
           </p>
           <textarea
-            className="min-h-[120px] w-full rounded-2xl border border-daisy-200 bg-white/80 p-3 text-sm text-gray-900 focus:border-daisy-400 focus:outline-none"
+            className="retro-input min-h-[140px] w-full bg-white/95 text-[#0b1230]"
             placeholder="Notiz hinzufügen..."
             value={logDraft}
             onChange={(event) => onLogDraftChange(event.target.value)}
@@ -341,7 +346,7 @@ export function RequirementDetailModal({
             {logError ? (
               <p className="text-sm font-semibold text-red-500">{logError}</p>
             ) : (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-white/80">
                 Datum wird automatisch ergänzt.
               </span>
             )}
@@ -355,25 +360,25 @@ export function RequirementDetailModal({
           </div>
           <div className="space-y-3">
             {logsLoading ? (
-              <p className="text-sm text-gray-500">Einträge werden geladen...</p>
+              <p className="text-sm text-white/80">Einträge werden geladen...</p>
             ) : logs.length ? (
               <div className="max-h-60 space-y-3 overflow-y-auto pr-1">
                 {logs.map((log) => (
                   <article
                     key={log.id}
-                    className="rounded-2xl border border-daisy-100 bg-white/85 p-3"
+                    className="rounded-[22px] border-4 border-white/70 bg-white/90 p-3 text-[#0b1230]"
                   >
-                    <p className="text-[11px] uppercase tracking-[0.25em] text-daisy-500">
+                    <p className="font-arcade text-[10px] uppercase tracking-[0.35em] text-[#ff5fa8]">
                       {formatDateTime(log.createdAt)}
                     </p>
-                    <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                    <p className="text-sm whitespace-pre-wrap">
                       {log.content}
                     </p>
                   </article>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-white/80">
                 Noch keine Log-Einträge vorhanden.
               </p>
             )}
@@ -381,14 +386,14 @@ export function RequirementDetailModal({
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
+          <p className="font-arcade text-[10px] uppercase tracking-[0.35em] text-white/80">
             Status ändern
           </p>
           <div className="flex flex-wrap gap-2">
             {statusOrder.map((status) => (
               <Button
                 key={status}
-                variant={requirement.status === status ? "default" : "outline"}
+                variant={requirement.status === status ? "lagoon" : "ghost"}
                 onClick={() => onChangeStatus(status)}
                 disabled={savingStatus && requirement.status === status}
               >
@@ -401,7 +406,7 @@ export function RequirementDetailModal({
           </div>
         </div>
 
-        {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
+        {error && <p className="text-sm font-semibold text-red-300">{error}</p>}
       </div>
     </ModalShell>
   );
@@ -417,11 +422,13 @@ function InfoRow({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-white/80 px-3 py-2">
+    <div className="flex items-center gap-3 rounded-2xl border-2 border-white/60 bg-white/80 px-3 py-2">
       {icon && <span>{icon}</span>}
       <div>
-        <p className="text-[11px] uppercase tracking-[0.25em] text-daisy-500">{label}</p>
-        <p className="text-sm font-semibold text-gray-900">{value}</p>
+        <p className="text-[10px] font-arcade uppercase tracking-[0.35em] text-[#6874a8]">
+          {label}
+        </p>
+        <p className="text-sm font-semibold text-[#0b1230]">{value}</p>
       </div>
     </div>
   );
@@ -430,15 +437,18 @@ function InfoRow({
 function Field({
   label,
   element,
-  required
+  required,
+  className
 }: {
   label: string;
   element: React.ReactNode;
   required?: boolean;
+  className?: string;
 }) {
+  const containerClass = className ? `space-y-2 ${className}` : "space-y-2";
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-semibold text-gray-800">
+    <div className={containerClass}>
+      <label className="text-sm font-semibold text-white/90">
         {label}
         {required ? " *" : ""}
       </label>

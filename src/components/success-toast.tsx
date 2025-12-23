@@ -26,8 +26,8 @@ export function SuccessToast({
   }
 
   return (
-    <div className="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-daisy-700 shadow-card">
-      <span className="mr-2 inline-flex items-center justify-center rounded-full bg-daisy-500 px-2 py-1 text-white">
+    <div className="flex items-center gap-3 rounded-2xl border-2 border-[#08122f] bg-gradient-to-r from-[#d8ffeb] via-[#f8fdd0] to-[#ffd1f4] px-5 py-3 text-xs font-arcade uppercase tracking-[0.25em] text-[#08122f] shadow-arcade">
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#081838] text-white shadow-[0_4px_0_#040c24]">
         <CheckCircle2 className="h-4 w-4" />
       </span>
       {message}

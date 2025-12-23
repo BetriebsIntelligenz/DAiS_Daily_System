@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthGate } from "@/components/auth-gate";
+import { BackgroundVideo } from "@/components/background-video";
 
 export const metadata: Metadata = {
   title: "DAiS | Programme, Score & Rewards",
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body className="font-sans">
+        <BackgroundVideo />
         <AuthGate>{children}</AuthGate>
       </body>
     </html>

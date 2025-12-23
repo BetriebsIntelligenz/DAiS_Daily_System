@@ -63,26 +63,35 @@ export function ScoreCards() {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <Card className="bg-white">
-        <CardTitle className="flex items-center gap-2 text-2xl">
-          <Trophy className="h-6 w-6 text-daisy-500" />
+      <Card className="bg-white/95">
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <span className="inline-flex aspect-square w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffe39e] to-[#ff9edc] text-[#3d0c2a] shadow-[0_6px_0_rgba(63,12,42,0.35)]">
+            <Trophy className="h-5 w-5" />
+          </span>
           {stats.total.toLocaleString()} XP
         </CardTitle>
-        <CardDescription>Gesamter Fortschritt</CardDescription>
+        <CardDescription className="mt-2 text-xs font-semibold uppercase tracking-[0.3em]">
+          Gesamter Fortschritt
+        </CardDescription>
         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
           {Object.entries(stats.categories).map(([category, value]) => (
-            <div key={category} className="rounded-2xl bg-daisy-50 px-3 py-2">
-              <p className="text-xs uppercase tracking-wide text-daisy-700">
+            <div
+              key={category}
+              className="rounded-2xl border-2 border-white/70 bg-gradient-to-r from-[#d5f2ff] via-[#ffe695] to-[#ffd65c] px-3 py-2 text-[#0b1230]"
+            >
+              <p className="text-[10px] font-arcade uppercase tracking-[0.4em] text-[#36528f]">
                 {category}
               </p>
-              <p className="text-lg font-semibold text-gray-900">{value} XP</p>
+              <p className="text-lg font-semibold">{value} XP</p>
             </div>
           ))}
         </div>
       </Card>
       <Card>
         <CardTitle className="flex items-center gap-2 text-xl">
-          <TrendingUp className="h-5 w-5 text-daisy-500" />
+          <span className="inline-flex aspect-square w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#bfe4ff] to-[#5d9bff] text-[#08102b] shadow-[0_6px_0_rgba(8,16,43,0.3)]">
+            <TrendingUp className="h-5 w-5" />
+          </span>
           Letzte Aktivitäten
         </CardTitle>
         <CardDescription>
@@ -90,28 +99,28 @@ export function ScoreCards() {
         </CardDescription>
         <ul className="mt-4 space-y-3 text-sm">
           {activities.length === 0 && (
-            <li className="text-gray-500">Noch keine Aktivitäten vorhanden.</li>
+            <li className="text-[#5b668f]">Noch keine Aktivitäten vorhanden.</li>
           )}
           {(showAll ? activities.slice(0, 100) : activities.slice(0, 3)).map((activity) => (
             <li key={activity.id} className="flex flex-col gap-1">
               <div className="flex justify-between">
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-[#091437]">
                   {activity.title}
                 </span>
                 <span
                   className={`font-semibold ${
                     activity.xp.startsWith("-")
-                      ? "text-red-500"
-                      : "text-daisy-600"
+                      ? "text-[#ff5474]"
+                      : "text-[#24a985]"
                   }`}
                 >
                   {activity.xp}
                 </span>
               </div>
               {activity.detail && (
-                <p className="text-xs text-gray-500">{activity.detail}</p>
+                <p className="text-xs text-[#4b567c]">{activity.detail}</p>
               )}
-              <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400">
+              <p className="text-[10px] font-arcade uppercase tracking-[0.3em] text-[#6d74a8]">
                 {new Date(activity.timestamp).toLocaleString("de-DE", {
                   dateStyle: "short",
                   timeStyle: "short"
@@ -124,7 +133,7 @@ export function ScoreCards() {
           <button
             type="button"
             onClick={() => setShowAll((prev) => !prev)}
-            className="mt-4 w-full rounded-full border border-daisy-200 py-2 text-sm font-semibold text-daisy-600"
+            className="mt-4 w-full rounded-2xl border-2 border-white/70 bg-gradient-to-r from-[#dbf8ff] to-[#ffd5fb] py-2 text-xs font-arcade uppercase tracking-[0.3em] text-[#0a1735]"
           >
             {showAll ? "Weniger anzeigen" : "Alle anzeigen"}
           </button>

@@ -15,13 +15,13 @@ import {
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Menu", icon: Home },
-  { href: "/score", label: "Score", icon: BarChart2 },
-  { href: "/timeline", label: "Timeline", icon: CalendarDays },
-  { href: "/requirements", label: "Anforderungen", icon: ListChecks },
-  { href: "/rewards", label: "Belohnungen", icon: Gift },
-  { href: "/journals", label: "Journale", icon: BookOpen },
-  { href: "/admin", label: "Admin", icon: Shield }
+  { href: "/", label: "Home", icon: Home, accent: "from-[#c2f5ff] to-[#6ad7ff]" },
+  { href: "/score", label: "Score", icon: BarChart2, accent: "from-[#ffe7c4] to-[#ffb77f]" },
+  { href: "/timeline", label: "Timeline", icon: CalendarDays, accent: "from-[#fce0ff] to-[#ff9edc]" },
+  { href: "/requirements", label: "Tasks", icon: ListChecks, accent: "from-[#d7ffe6] to-[#6bf2a0]" },
+  { href: "/rewards", label: "Rewards", icon: Gift, accent: "from-[#ffe0f1] to-[#ff9ad1]" },
+  { href: "/journals", label: "Journal", icon: BookOpen, accent: "from-[#e8e4ff] to-[#b2a3ff]" },
+  { href: "/admin", label: "Admin", icon: Shield, accent: "from-[#d9f3ff] to-[#9ad7ff]" }
 ];
 
 export function MenuDock() {
@@ -29,8 +29,8 @@ export function MenuDock() {
 
   return (
     <nav className="flex w-full justify-center text-white">
-      <div className="flex w-full flex-wrap items-center justify-center gap-3 rounded-[32px] bg-white/5 px-4 py-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      <div className="grid w-full max-w-5xl grid-cols-7 gap-4 rounded-[32px] bg-white/10 px-10 py-5 backdrop-blur">
+        {NAV_ITEMS.map(({ href, label, icon: Icon, accent }) => {
           const active = isActive(pathname, href);
           return (
             <Link
@@ -38,24 +38,23 @@ export function MenuDock() {
               href={href}
               aria-label={label}
               className={cn(
-                "group inline-flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+                "group flex h-28 flex-col items-center justify-center gap-3 rounded-[26px] px-4 py-4 text-center text-[9px] font-arcade uppercase tracking-[0.2em] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                 active
-                  ? "bg-white px-5 py-2 text-[#0d4bff] shadow-[0_14px_30px_rgba(13,75,255,0.35)]"
-                  : "h-14 w-14 bg-white/15 text-white/90 hover:bg-white/25"
+                  ? "bg-white/90 text-black shadow-[0_12px_0_rgba(10,19,29,0.6)]"
+                  : "bg-transparent text-black/60 hover:bg-white/10 hover:-translate-y-1.5"
               )}
-            >
-              <Icon className="h-5 w-5" />
+              >
               <span
-                aria-hidden="true"
                 className={cn(
-                  "overflow-hidden whitespace-nowrap transition-all duration-300 ease-out",
-                  active
-                    ? "ml-2 max-w-[160px] opacity-100"
-                    : "ml-0 max-w-0 opacity-0"
+                  "flex h-14 w-14 items-center justify-center rounded-2xl text-[#04142b] shadow-[0_5px_0_rgba(6,20,43,0.45)]",
+                  "bg-gradient-to-br",
+                  accent,
+                  active ? "border-2 border-white/70" : "border border-white/30"
                 )}
               >
-                {label}
+                <Icon className="h-5 w-5" />
               </span>
+              <span className="whitespace-nowrap">{label}</span>
             </Link>
           );
         })}

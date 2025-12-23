@@ -52,7 +52,7 @@ export function TimelineFeed() {
 
   if (loading) {
     return (
-      <Card className="text-center text-sm text-gray-500">
+      <Card className="text-center text-sm text-[#4d5785]">
         Timeline wird geladen…
       </Card>
     );
@@ -60,7 +60,7 @@ export function TimelineFeed() {
 
   if (!entries.length) {
     return (
-      <Card className="text-center text-sm text-gray-500">
+      <Card className="text-center text-sm text-[#4d5785]">
         Noch keine Aktivitäten vorhanden.
       </Card>
     );
@@ -70,7 +70,7 @@ export function TimelineFeed() {
     <div className="space-y-4">
       {entries.map((entry) => (
         <Card key={entry.id} className="space-y-3">
-          <header className="flex justify-between text-xs uppercase tracking-[0.3em] text-daisy-600">
+          <header className="flex justify-between text-[10px] font-arcade uppercase tracking-[0.3em] text-[#ff679e]">
             <span>
               {new Date(entry.timestamp).toLocaleString("de-DE", {
                 dateStyle: "medium",
@@ -80,10 +80,10 @@ export function TimelineFeed() {
             <span>{entry.category}</span>
           </header>
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-xl font-semibold text-[#0b1230]">
               {entry.title}
             </h3>
-            <ul className="mt-2 space-y-1 text-sm text-gray-600">
+            <ul className="mt-2 space-y-1 text-sm text-[#4a557f]">
               {entry.details.map((detail) => (
                 <li key={detail}>• {detail}</li>
               ))}
@@ -91,7 +91,7 @@ export function TimelineFeed() {
           </div>
           <p
             className={`text-right text-lg font-bold ${
-              entry.xp.startsWith("-") ? "text-red-500" : "text-daisy-600"
+              entry.xp.startsWith("-") ? "text-[#ff517b]" : "text-[#18a06b]"
             }`}
           >
             {entry.xp}

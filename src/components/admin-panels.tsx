@@ -11,6 +11,7 @@ import type {
   MindGoalWithProgress,
   MindVisualizationAsset,
   MindMeditationFlow,
+  MindReadingBook,
   PerformanceChecklistItem,
   HouseholdCardDefinition,
   HouseholdTaskDefinition,
@@ -121,6 +122,10 @@ export function AdminPanels() {
     summary: ""
   });
   const [stepDrafts, setStepDrafts] = useState<Record<string, { title: string; description: string }>>({});
+  const [readingBooks, setReadingBooks] = useState<MindReadingBook[]>([]);
+  const [readingBookForm, setReadingBookForm] = useState({ title: "", author: "" });
+  const [editingReadingBook, setEditingReadingBook] = useState<MindReadingBook | null>(null);
+  const [readingBookError, setReadingBookError] = useState<string | null>(null);
   const [performanceItems, setPerformanceItems] = useState<PerformanceChecklistItem[]>([]);
   const [performanceForm, setPerformanceForm] = useState({ label: "", summary: "" });
   const [editingPerformanceItem, setEditingPerformanceItem] = useState<PerformanceChecklistItem | null>(null);
@@ -163,7 +168,8 @@ export function AdminPanels() {
       emotionPractices: emotionPractices.length,
       meditations: meditations.length,
       performanceItems: performanceItems.length,
-      householdCards: householdCards.length
+      householdCards: householdCards.length,
+      readingBooks: readingBooks.length
     }),
     [
       visualAssets,
@@ -173,7 +179,8 @@ export function AdminPanels() {
       emotionPractices,
       meditations,
       performanceItems,
-      householdCards
+      householdCards,
+      readingBooks
     ]
   );
   const meditationStepCount = useMemo(
@@ -194,6 +201,10 @@ export function AdminPanels() {
   );
   const householdProgram = useMemo(
     () => programs.find((entry) => entry.id === "environment-household-cards") ?? null,
+    [programs]
+  );
+  const readingProgram = useMemo(
+    () => programs.find((entry) => entry.id === "mind-reading-tracker") ?? null,
     [programs]
   );
   const sortedHumanContacts = useMemo(
@@ -324,6 +335,7 @@ export function AdminPanels() {
       pathsPayload,
       emotionPayload,
       meditationPayload,
+      readingBooksPayload,
       performanceChecklistPayload,
       stackPayload,
       programPayload,
@@ -336,6 +348,7 @@ export function AdminPanels() {
       loadJson("/api/mind/learning-paths"),
       loadJson("/api/mind/emotions"),
       loadJson("/api/mind/meditations"),
+      loadJson("/api/mind/reading/books"),
       loadJson("/api/mind/performance-checklist"),
       loadJson("/api/program-stacks"),
       loadJson("/api/programs"),
@@ -356,6 +369,16 @@ export function AdminPanels() {
         });
         return next;
       });
+    }
+    if (readingBooksPayload && typeof readingBooksPayload === "object") {
+      const payload = readingBooksPayload as { books?: unknown };
+      setReadingBooks(
+        Array.isArray(payload.books) ? (payload.books as MindReadingBook[]) : []
+      );
+    } else if (Array.isArray(readingBooksPayload)) {
+      setReadingBooks(readingBooksPayload as MindReadingBook[]);
+    } else {
+      setReadingBooks([]);
     }
     setPerformanceItems(
       Array.isArray(performanceChecklistPayload)
@@ -878,6 +901,73 @@ export function AdminPanels() {
       void savePerformanceOrder(next);
       return next;
     });
+  };
+
+  const resetReadingBookForm = () => {
+    setReadingBookForm({ title: "", author: "" });
+    setEditingReadingBook(null);
+    setReadingBookError(null);
+  };
+
+  const handleReadingBookSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const title = readingBookForm.title.trim();
+    const author = readingBookForm.author.trim();
+    if (!title) {
+      setReadingBookError("Bitte einen Buchtitel eintragen.");
+      return;
+    }
+    setReadingBookError(null);
+    const method = editingReadingBook ? "PUT" : "POST";
+    const payload = editingReadingBook
+      ? { id: editingReadingBook.id, title, author }
+      : { title, author };
+    try {
+      const response = await fetch("/api/mind/reading/books", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? "Buch konnte nicht gespeichert werden.");
+      }
+      resetReadingBookForm();
+      await refreshMindData();
+    } catch (requestError) {
+      console.error("Failed to save reading book", requestError);
+      setReadingBookError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Buch konnte nicht gespeichert werden."
+      );
+    }
+  };
+
+  const handleReadingBookDelete = async (bookId: string) => {
+    if (!window.confirm("Buch wirklich löschen?")) return;
+    try {
+      const response = await fetch("/api/mind/reading/books", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: bookId })
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? "Buch konnte nicht gelöscht werden.");
+      }
+      if (editingReadingBook?.id === bookId) {
+        resetReadingBookForm();
+      }
+      await refreshMindData();
+    } catch (requestError) {
+      console.error("Failed to delete reading book", requestError);
+      setReadingBookError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Buch konnte nicht gelöscht werden."
+      );
+    }
   };
 
   const updateProgramXpDraft = (programId: string, value: string, baseline: number) => {
@@ -1728,6 +1818,97 @@ export function AdminPanels() {
             </article>
 
             <article
+              id="cards-reading"
+              className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm"
+            >
+              <header className="flex flex-col gap-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                  Ändert: Mind Lesen
+                </p>
+                <h3 className="text-xl font-semibold">Lesen · Bücherliste</h3>
+                <p className="text-sm text-gray-500">
+                  {mindStats.readingBooks} Bücher stehen im Leselog Dropdown zur Auswahl.
+                </p>
+                {readingBookError && (
+                  <p className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                    {readingBookError}
+                  </p>
+                )}
+              </header>
+              <form className="mt-4 grid gap-3" onSubmit={handleReadingBookSubmit}>
+                <input
+                  value={readingBookForm.title}
+                  onChange={(event) =>
+                    setReadingBookForm((prev) => ({ ...prev, title: event.target.value }))
+                  }
+                  placeholder="Buchtitel (z.B. Atomic Habits)"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <input
+                  value={readingBookForm.author}
+                  onChange={(event) =>
+                    setReadingBookForm((prev) => ({ ...prev, author: event.target.value }))
+                  }
+                  placeholder="Autor:in (optional)"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button type="submit">
+                    {editingReadingBook ? "Buch aktualisieren" : "Buch speichern"}
+                  </Button>
+                  {editingReadingBook && (
+                    <Button type="button" variant="ghost" onClick={resetReadingBookForm}>
+                      Abbrechen
+                    </Button>
+                  )}
+                </div>
+              </form>
+              {readingBooks.length === 0 ? (
+                <p className="mt-4 text-sm text-gray-500">
+                  Noch kein Buch hinterlegt. Füge oben ein Buch hinzu, um die Karte freizuschalten.
+                </p>
+              ) : (
+                <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                  {readingBooks.map((book) => (
+                    <li
+                      key={book.id}
+                      className="flex flex-col gap-2 rounded-2xl border border-daisy-100 bg-white/80 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-900">{book.title}</p>
+                        {book.author && (
+                          <p className="text-xs text-gray-500">{book.author}</p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditingReadingBook(book);
+                            setReadingBookForm({
+                              title: book.title,
+                              author: book.author ?? ""
+                            });
+                          }}
+                        >
+                          Bearbeiten
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => handleReadingBookDelete(book.id)}
+                        >
+                          Entfernen
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+
+            <article
               id="cards-household"
               className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm"
             >
@@ -2503,6 +2684,41 @@ export function AdminPanels() {
                     disabled={savingProgramId === householdProgram.id}
                   >
                     {savingProgramId === householdProgram.id ? "Speichert…" : "XP speichern"}
+                  </Button>
+                </div>
+              </article>
+            )}
+            {readingProgram && (
+              <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
+                <header className="flex flex-col gap-1">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                    XP · Lesen
+                  </p>
+                  <h3 className="text-xl font-semibold">MR1 — {readingProgram.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    Bestimmt die XP pro Leselog (+{readingProgram.xpReward} XP).
+                  </p>
+                </header>
+                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    value={programXpDrafts[readingProgram.id] ?? String(readingProgram.xpReward)}
+                    onChange={(event) =>
+                      updateProgramXpDraft(
+                        readingProgram.id,
+                        event.target.value,
+                        readingProgram.xpReward
+                      )
+                    }
+                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => persistProgramXp(readingProgram)}
+                    disabled={savingProgramId === readingProgram.id}
+                  >
+                    {savingProgramId === readingProgram.id ? "Speichert…" : "XP speichern"}
                   </Button>
                 </div>
               </article>

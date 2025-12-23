@@ -7,35 +7,63 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: [
-          "Manrope",
+          "Space Grotesk",
           "Inter",
           "SF Pro Display",
           "system-ui",
           "sans-serif"
         ],
-        future: ["Orbitron", "Manrope", "Inter", "sans-serif"]
+        future: ["Space Grotesk", "Inter", "sans-serif"],
+        arcade: ["'Press Start 2P'", "Space Grotesk", "sans-serif"]
       },
       colors: {
         daisy: {
-          50: "#fffdea",
-          100: "#fff7c2",
-          200: "#ffe989",
-          300: "#ffd149",
-          400: "#ffb526",
-          500: "#ff9a0a",
-          600: "#db7404",
-          700: "#b65507",
-          800: "#8f3b0d",
-          900: "#73300f"
+          50: "#fff5ff",
+          100: "#ffe5fb",
+          200: "#ffc7f3",
+          300: "#ff9edc",
+          400: "#ff75bd",
+          500: "#ff4f92",
+          600: "#e73a7e",
+          700: "#c12864",
+          800: "#8f1d4c",
+          900: "#691437"
+        },
+        lagoon: {
+          50: "#eefcff",
+          100: "#c9f5ff",
+          200: "#9ce5ff",
+          300: "#6cd1ff",
+          400: "#3ab2ff",
+          500: "#1b8ddf",
+          600: "#146eb0",
+          700: "#0e4f80",
+          800: "#093454",
+          900: "#041f34"
+        },
+        meadow: {
+          50: "#eafdf3",
+          100: "#c1f5da",
+          200: "#8decbc",
+          300: "#57dd99",
+          400: "#29c27d",
+          500: "#17a26b",
+          600: "#0f8054",
+          700: "#0a5c3c",
+          800: "#053c27",
+          900: "#022318"
         }
       },
       backgroundImage: {
         "dais-gradient":
-          "linear-gradient(135deg, #fff7c2 0%, #ffd149 45%, #ff9a0a 100%)"
+          "linear-gradient(135deg, #ff9edc 0%, #ffc764 45%, #6cd1ff 100%)",
+        "pixel-landscape": "url('/retro-landscape.svg')"
       },
       boxShadow: {
-        soft: "0 30px 60px rgba(255, 186, 51, 0.25)",
-        card: "0 20px 45px rgba(234, 196, 94, 0.35)"
+        soft: "0 28px 60px rgba(255, 154, 211, 0.35)",
+        card: "0 14px 35px rgba(56, 92, 157, 0.25)",
+        arcade: "0 25px 50px rgba(18, 27, 64, 0.55)",
+        "arcade-inset": "inset 0 -4px 0 rgba(255,255,255,0.25), inset 0 4px 0 rgba(0,0,0,0.1)"
       }
     }
   },

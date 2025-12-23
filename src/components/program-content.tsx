@@ -15,6 +15,7 @@ import { WakeUpProgram } from "./mind/wake-up-program";
 import { PerformanceChecklistProgram } from "./mind/performance-checklist-program";
 import { HouseholdCardsProgram } from "./environment/household-cards-program";
 import { DailyHumanChecklist } from "./human/daily-human-checklist";
+import { ReadingProgram } from "./mind/reading-program";
 
 type CustomRenderer = (program: ProgramDefinition) => JSX.Element;
 
@@ -26,6 +27,7 @@ const customMindRenderers: Record<string, CustomRenderer> = {
   "brain-training": (program) => <BrainTrainingProgram program={program} />,
   "higher-thinking": (program) => <HigherThinkingProgram program={program} />,
   "emotion-training": (program) => <EmotionTrainingProgram program={program} />,
+  lesen: (program) => <ReadingProgram program={program} />,
   "mm1-incantations": (program) => <IncantationsProgram program={program} />,
   meditation: (program) => <MeditationProgram program={program} />,
   "mm5-day-planning": (program) => <DayPlanningProgram program={program} />,

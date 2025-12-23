@@ -155,6 +155,7 @@ model User {
   requirements      Requirement[]
   householdEntries  HouseholdEntry[]
   humanContactLogs  HumanContactLog[]
+  readingLogs       MindReadingLog[]
 }
 
 model Program {
@@ -473,6 +474,31 @@ model PerformanceChecklistItem {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model MindReadingBook {
+  id        String   @id @default(cuid())
+  title     String
+  author    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logs MindReadingLog[]
+}
+
+model MindReadingLog {
+  id        String   @id @default(cuid())
+  bookId    String
+  userId    String?
+  pages     Int
+  createdAt DateTime @default(now())
+
+  book MindReadingBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user User?           @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([bookId])
 }
 
 model MindMeditationStep {

@@ -66,15 +66,15 @@ export function RewardsGrid() {
 
   return (
     <div className="space-y-10">
-      <div className="rounded-[30px] bg-gradient-to-r from-daisy-200 via-daisy-300 to-daisy-400 p-6 text-white shadow-soft">
-        <p className="text-sm uppercase tracking-[0.4em] text-white/70">
+      <div className="rounded-[36px] border-4 border-white/70 bg-gradient-to-r from-[#ffeab7]/90 via-[#ffb9df]/90 to-[#a5ddff]/90 p-6 text-[#2f1031] shadow-arcade">
+        <p className="font-arcade text-[11px] uppercase tracking-[0.5em]">
           Aktuelle Punkte
         </p>
-        <div className="mt-2 flex items-end gap-4">
-          <p className="text-5xl font-black drop-shadow-md">
+        <div className="mt-4 flex flex-wrap items-end gap-4">
+          <p className="text-5xl font-black tracking-wide">
             {xpBalance.toLocaleString()} XP
           </p>
-          <span className="animate-pulse text-xs uppercase tracking-[0.4em]">
+          <span className="rounded-xl bg-white/50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.4em]">
             ready
           </span>
         </div>
@@ -85,15 +85,17 @@ export function RewardsGrid() {
             <CardTitle>{reward.name}</CardTitle>
             <CardDescription>{reward.description}</CardDescription>
             <div className="mt-4 flex items-center justify-between">
-              <p className="text-2xl font-semibold text-daisy-600">
+              <p className="text-2xl font-semibold text-[#f15997]">
                 {reward.cost} XP
               </p>
-              <Button onClick={() => handleRedeem(reward.id)}>Einlösen</Button>
+              <Button variant="lagoon" onClick={() => handleRedeem(reward.id)}>
+                Einlösen
+              </Button>
             </div>
           </Card>
         ))}
         {!activeRewards.length && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[#4d5785]">
             Keine aktiven Rewards, sobald neue freigeschaltet werden tauchen sie
             hier auf.
           </p>
@@ -102,13 +104,15 @@ export function RewardsGrid() {
 
       <section className="space-y-4">
         <header>
-          <h3 className="text-xl font-semibold">Eingelöste Rewards</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="font-arcade text-base uppercase tracking-[0.35em]">
+            Eingelöste Rewards
+          </h3>
+          <p className="text-sm text-[#4c5680]">
             Historie der letzten Einlösungen inkl. Re-Listing.
           </p>
         </header>
         {redemptions.length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[#4c5680]">
             Noch keine Reward-Einlösungen vorhanden.
           </p>
         ) : (
@@ -131,11 +135,11 @@ export function RewardsGrid() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold uppercase tracking-wide text-daisy-600">
+                  <span className="text-xs font-arcade uppercase tracking-[0.4em] text-[#0c1d3a]">
                     {redemption.status}
                   </span>
                   <Button
-                    variant="outline"
+                    variant="meadow"
                     onClick={() =>
                       handleRelist(redemption.reward.id, redemption.id)
                     }

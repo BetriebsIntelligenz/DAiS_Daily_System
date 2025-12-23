@@ -194,6 +194,20 @@ const programSeeds: ProgramSeed[] = [
     ]
   },
   {
+    id: "mind-reading-tracker",
+    slug: "lesen",
+    code: "MR1",
+    name: "Lesen",
+    summary:
+      "Schneller Leselog – Buch wählen, Seiten eintragen und Verlauf verfolgen.",
+    category: "mind",
+    frequency: "daily",
+    durationMinutes: 15,
+    xpReward: 380,
+    mode: "single",
+    units: []
+  },
+  {
     id: "mm1-incantations",
     slug: "mm1-incantations",
     code: "MM1",

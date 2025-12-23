@@ -86,48 +86,52 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#fff4d6]">
-        <p className="text-sm font-semibold text-daisy-700">DAiS lädt…</p>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-lagoon-200/40 to-daisy-100/60">
+        <div className="insert-coin-panel text-[#552310]">
+          Loading
+          <div className="insert-coin-slot mt-4" />
+        </div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-daisy-200 to-white px-6">
-        <form
-          onSubmit={handleLogin}
-          className="w-full max-w-sm space-y-4 rounded-[32px] bg-white p-8 text-gray-900 shadow-soft"
-        >
-          <header className="space-y-1 text-center">
-            <p className="text-xs uppercase tracking-[0.4em] text-daisy-500">
-              DAiS Zugang
-            </p>
-            <h1 className="text-3xl font-semibold">Anmelden</h1>
-          </header>
-          <input
-            name="name"
-            placeholder="Benutzername"
-            className="w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-400 focus:outline-none"
-          />
-          <input
-            name="password"
-            type="password"
-            placeholder="Passwort"
-            className="w-full rounded-2xl border border-daisy-200 px-4 py-3 focus:border-daisy-400 focus:outline-none"
-          />
-          {error && (
-            <p className="text-sm font-semibold text-red-500">{error}</p>
-          )}
-          <button
-            type="submit"
-            className="w-full rounded-2xl bg-gradient-to-r from-daisy-400 to-daisy-500 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-card transition hover:opacity-90"
-          >
-            Login
-          </button>
-        </form>
-      </div>
-    );
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#80dfff]/60 via-[#ffe5f8]/70 to-[#ffd48e]/70 px-6 py-10">
+      <form
+        onSubmit={handleLogin}
+        className="w-full max-w-md space-y-5 rounded-[38px] border-4 border-white/70 bg-gradient-to-b from-[#142c6c]/80 via-[#273b9a]/85 to-[#6157d5]/80 p-8 text-white shadow-arcade backdrop-blur"
+      >
+        <header className="text-center">
+          <p className="font-arcade text-[11px] uppercase tracking-[0.6em] text-[#f8df7b]">
+            DAiS Zugang
+          </p>
+          <h1 className="mt-3 font-arcade text-2xl tracking-[0.3em]">
+            Einloggen
+          </h1>
+        </header>
+        <input
+          name="name"
+          placeholder="Benutzername"
+          className="retro-input w-full text-[#0a1435]"
+        />
+        <input
+          name="password"
+          type="password"
+          placeholder="Passwort"
+          className="retro-input w-full text-[#0a1435]"
+        />
+        {error && (
+          <p className="rounded-2xl bg-white/20 px-4 py-2 text-center text-sm font-semibold text-[#ffb7c5]">
+            {error}
+          </p>
+        )}
+        <button type="submit" className="pixel-button w-full py-3">
+          Start
+        </button>
+      </form>
+    </div>
+  );
   }
 
   return (

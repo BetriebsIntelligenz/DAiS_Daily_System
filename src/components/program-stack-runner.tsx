@@ -97,29 +97,31 @@ export function ProgramStackRunner({
   );
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-daisy-200 bg-daisy-50 px-4 py-3 text-sm font-semibold text-daisy-800">
+    <div className="space-y-6 text-[#0b1230]">
+      <div className="rounded-[28px] border-4 border-white/70 bg-white/90 px-4 py-3 text-sm font-semibold shadow-arcade">
         Programm Modus: {stack.title}
       </div>
-      <div className="flex flex-col gap-1 text-sm text-gray-600">
+      <div className="flex flex-col gap-1 text-sm text-[#4b5685]">
         <span>
           Schritt {currentIndex + 1} von {total} · Fortschritt {stackProgress}%
         </span>
-        <span className="text-xs text-gray-500">{stack.summary}</span>
+        <span className="text-xs uppercase tracking-[0.3em] text-[#7a83b5]">
+          {stack.summary}
+        </span>
       </div>
-      <ol className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+      <ol className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#6f78aa]">
         {programs.map((program, index) => {
           const done = completedProgramIds.includes(program.id);
           const isActive = index === currentIndex;
           return (
             <li
               key={program.id}
-              className={`rounded-full border px-3 py-1 ${
+              className={`rounded-full border-2 px-3 py-1 ${
                 done
-                  ? "border-daisy-500 bg-daisy-100 text-daisy-800"
+                  ? "border-white/90 bg-[#ffe5f9] text-[#821650]"
                   : isActive
-                    ? "border-daisy-400 bg-white text-daisy-700"
-                    : "border-daisy-100 bg-white"
+                    ? "border-white/70 bg-white text-[#0b1230] shadow-arcade"
+                    : "border-white/40 bg-white/60 text-[#4f5a87]"
               }`}
             >
               {program.code}
@@ -131,15 +133,16 @@ export function ProgramStackRunner({
         <ProgramContent program={currentProgram} />
       </ProgramCompletionProvider>
       {flowFinished && (
-        <div className="rounded-2xl border border-daisy-200 bg-daisy-50 px-4 py-3 text-sm text-daisy-800">
+        <div className="rounded-[26px] border-4 border-white/70 bg-white/90 px-4 py-3 text-sm text-[#0b1230] shadow-arcade">
           Programm abgeschlossen! Wähle eine Folgeaktion.
         </div>
       )}
       <div className="flex flex-wrap gap-3">
-        <Button variant="outline" onClick={goPrev} disabled={currentIndex === 0}>
+        <Button variant="ghost" onClick={goPrev} disabled={currentIndex === 0}>
           Zurück
         </Button>
         <Button
+          variant="lagoon"
           onClick={() => void goNext()}
           disabled={
             flowFinished ||
@@ -153,7 +156,7 @@ export function ProgramStackRunner({
               ? "Programm abschließen"
               : "Weiter"}
         </Button>
-        <Button asChild variant="ghost">
+        <Button asChild variant="outline">
           <Link href="/">Zum Hauptmenü</Link>
         </Button>
       </div>

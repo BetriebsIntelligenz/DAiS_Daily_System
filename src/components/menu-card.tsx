@@ -16,7 +16,6 @@ interface MenuCardProps {
   title: string;
   description: string;
   href: string;
-  accent: string;
   chips?: string[];
 }
 
@@ -32,7 +31,6 @@ export function MenuCard({
   title,
   description,
   href,
-  accent,
   chips = []
 }: MenuCardProps) {
   const icon = iconMap[title.toLowerCase()] ?? (
@@ -43,32 +41,35 @@ export function MenuCard({
     <Link href={href} className="block">
       <Card
         className={cn(
-          "relative overflow-hidden border-none bg-white p-0 text-gray-900 shadow-card transition hover:-translate-y-1",
-          accent
+          "relative overflow-hidden border-none bg-white/95 p-0 text-[#091437] shadow-arcade transition hover:-translate-y-1.5"
         )}
       >
-        <div className="card-gradient flex h-28 w-full items-center justify-between rounded-t-[22px] px-5 text-white">
+        <div className="relative flex h-32 w-full items-center justify-between bg-gradient-to-r from-[#273fa1] via-[#7d5cc6] to-[#ff9edc] px-6 text-white">
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-white/80">
+            <p className="font-arcade text-[10px] uppercase tracking-[0.5em] text-white/70">
               Programm
             </p>
-            <h3 className="text-2xl font-semibold">{title}</h3>
+            <h3 className="mt-3 text-2xl font-semibold tracking-wide">
+              {title}
+            </h3>
           </div>
-          <div className="rounded-2xl bg-white/15 p-3 text-white">{icon}</div>
+          <div className="rounded-2xl border-2 border-white/70 bg-white/15 p-3 text-white shadow-[0_8px_0_rgba(0,0,0,0.15)]">
+            {icon}
+          </div>
         </div>
-        <div className="-mt-6 space-y-4 rounded-[22px] bg-white p-5 shadow-[0_12px_30px_rgba(234,196,94,0.2)]">
-          <p className="text-sm text-gray-600">{description}</p>
+        <div className="-mt-6 space-y-4 rounded-[26px] border-4 border-white/70 bg-white p-6 shadow-[0_12px_30px_rgba(44,64,130,0.25)]">
+          <p className="text-sm text-[#2b3661]">{description}</p>
           <div className="flex flex-wrap gap-2">
             {chips.slice(0, 3).map((chip) => (
               <span
                 key={chip}
-                className="rounded-full bg-daisy-50 px-3 py-1 text-xs font-semibold text-daisy-600"
+                className="rounded-xl border-2 border-[#101a3b]/10 bg-[#fef4ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#6f2a73]"
               >
                 {chip}
               </span>
             ))}
           </div>
-          <div className="flex items-center justify-end text-daisy-600">
+          <div className="flex items-center justify-end text-[#ff5499]">
             <ArrowRight className="h-5 w-5" />
           </div>
         </div>

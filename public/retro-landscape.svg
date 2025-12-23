@@ -1,0 +1,56 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="900" fill="url(#sky)"/>
+  <circle cx="980" cy="320" r="150" fill="url(#sun)"/>
+  <path d="M0 520L180 460L320 520L480 420L640 520L780 430L960 520L1120 430L1260 520L1440 430V900H0V520Z" fill="url(#mountainBack)"/>
+  <path d="M0 560L140 500L300 560L440 500L620 560L840 470L1080 560L1240 480L1440 560V900H0V560Z" fill="url(#mountainFront)"/>
+  <rect y="600" width="1440" height="300" fill="url(#grass)"/>
+  <g opacity="0.9">
+    <path d="M180 630H220V730H180Z" fill="#67D78D"/>
+    <rect x="194" y="610" width="12" height="40" rx="6" fill="#F8DA63"/>
+    <rect x="188" y="730" width="24" height="60" fill="#3FA764"/>
+  </g>
+  <g opacity="0.9">
+    <path d="M380 650H420V750H380Z" fill="#67D78D"/>
+    <rect x="394" y="630" width="12" height="44" rx="6" fill="#F8DA63"/>
+    <rect x="388" y="750" width="24" height="70" fill="#3FA764"/>
+  </g>
+  <g opacity="0.9">
+    <path d="M620 640H660V740H620Z" fill="#67D78D"/>
+    <rect x="634" y="620" width="12" height="46" rx="6" fill="#F8DA63"/>
+    <rect x="628" y="740" width="24" height="70" fill="#3FA764"/>
+  </g>
+  <g opacity="0.9">
+    <path d="M860 650H900V750H860Z" fill="#67D78D"/>
+    <rect x="874" y="630" width="12" height="44" rx="6" fill="#F8DA63"/>
+    <rect x="868" y="750" width="24" height="70" fill="#3FA764"/>
+  </g>
+  <g opacity="0.9">
+    <path d="M1100 635H1140V735H1100Z" fill="#67D78D"/>
+    <rect x="1114" y="615" width="12" height="44" rx="6" fill="#F8DA63"/>
+    <rect x="1108" y="735" width="24" height="65" fill="#3FA764"/>
+  </g>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#79DBFF"/>
+      <stop offset="0.35" stop-color="#8EE6FF"/>
+      <stop offset="0.7" stop-color="#FFD1E8"/>
+      <stop offset="1" stop-color="#FFE9B6"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(980 320) scale(180)">
+      <stop stop-color="#FFE9A1"/>
+      <stop offset="1" stop-color="#FFD55F"/>
+    </radialGradient>
+    <linearGradient id="mountainBack" x1="0" y1="430" x2="0" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7CC2FF"/>
+      <stop offset="1" stop-color="#99D9FF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mountainFront" x1="0" y1="470" x2="0" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFB4E4"/>
+      <stop offset="1" stop-color="#FF8AD0" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="600" x2="0" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#77DF87"/>
+      <stop offset="1" stop-color="#4EB071"/>
+    </linearGradient>
+  </defs>
+</svg>

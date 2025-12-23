@@ -378,6 +378,23 @@ export interface MindMeditationFlow {
   steps: MindMeditationStep[];
 }
 
+export interface MindReadingBook {
+  id: string;
+  title: string;
+  author?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MindReadingLogEntry {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  pages: number;
+  createdAt: string;
+}
+
 export type RequirementStatus = "open" | "in_progress" | "problem" | "done";
 export type RequirementArea = "privat" | "finanzen" | "arbeit" | "staat";
 

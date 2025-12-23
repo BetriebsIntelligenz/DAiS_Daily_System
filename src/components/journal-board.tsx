@@ -46,6 +46,11 @@ export function JournalBoard() {
               activeJournal.id === journal.id ? "default" : "outline"
             }
             onClick={() => setActiveJournal(journal)}
+            className={
+              activeJournal.id === journal.id
+                ? undefined
+                : "text-[#0b1230]"
+            }
           >
             {journal.name}
           </Button>
@@ -53,13 +58,13 @@ export function JournalBoard() {
       </div>
 
       <textarea
-        className="min-h-[200px] w-full rounded-3xl border border-daisy-200 bg-white/90 p-4"
+        className="retro-input min-h-[220px] w-full rounded-[24px] border-4 border-white/60 bg-white/95 text-[#0a1435]"
         placeholder="Neue Erkenntnis hinzufügen..."
         value={entry}
         onChange={(event) => setEntry(event.target.value)}
       />
 
-      <Button onClick={submitEntry} className="w-full">
+      <Button variant="lagoon" onClick={submitEntry} className="w-full">
         Eintrag sichern
       </Button>
 
@@ -69,20 +74,20 @@ export function JournalBoard() {
           .map((entryBlock) => (
             <article
               key={entryBlock.id}
-              className="space-y-2 rounded-3xl border border-daisy-100 bg-white/70 p-4"
+              className="space-y-2 rounded-[28px] border-4 border-white/70 bg-white/90 p-4 text-[#0b1230]"
             >
-              <p className="text-xs font-semibold uppercase tracking-wide text-daisy-600">
+              <p className="text-[11px] font-arcade uppercase tracking-[0.35em] text-[#ff5fa8]">
                 {new Date(entryBlock.createdAt).toLocaleString("de-DE")}
               </p>
               <div
-                className="prose max-w-none text-gray-800"
+                className="prose max-w-none text-[#2f3763]"
                 dangerouslySetInnerHTML={{ __html: entryBlock.contentHtml }}
               />
             </article>
           ))}
         {!entries.filter((entryBlock) => entryBlock.journalId === activeJournal.id)
           .length && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[#4a547f]">
             Noch keine Einträge für dieses Journal.
           </p>
         )}

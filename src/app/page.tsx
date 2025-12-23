@@ -50,19 +50,19 @@ export default async function HomePage({
       successMessage={successMessage}
     >
       <nav className="mb-8 flex justify-center">
-        <div className="flex flex-wrap items-center justify-center gap-4 rounded-3xl bg-white/80 px-5 py-4 shadow-[0_12px_35px_rgba(234,196,94,0.25)] backdrop-blur">
+        <div className="flex flex-wrap items-center justify-center gap-6 rounded-[32px] border-4 border-white/60 bg-white/20 px-6 py-6 text-[#08102b] backdrop-blur">
           {categories.map((category) => {
             return (
               <a
                 key={category.id}
                 href={`/programs?category=${category.id}`}
-                className="group flex min-w-[120px] flex-col items-center gap-2 rounded-2xl bg-gradient-to-r from-daisy-200 to-daisy-400 px-4 py-3 text-center text-amber-900 transition hover:-translate-y-1 hover:shadow-lg"
+                className="menu-token group flex h-32 w-32 flex-col items-center justify-center gap-4 px-6 py-6 text-center text-xs font-arcade uppercase tracking-[0.45em] text-[#3b1d00] transition hover:-translate-y-1.5 hover:shadow-arcade"
               >
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/70 text-amber-900 shadow-inner">
+                <span className="flex h-12 w-12 items-center justify-center rounded-[18px] border-2 border-white/60 bg-white/55 text-[#08143f] shadow-[0_6px_0_rgba(0,0,0,0.15)]">
                   {iconMap[category.id]}
                 </span>
-                <span className="text-sm font-semibold tracking-wide">
-                  {category.title}
+                <span className="text-[20px] tracking-[0.6em]">
+                  {category.title.charAt(0)}
                 </span>
               </a>
             );
@@ -70,10 +70,12 @@ export default async function HomePage({
         </div>
       </nav>
       {programStacks.length > 0 && (
-        <section className="mb-6 rounded-3xl bg-white/80 p-6">
+        <section className="mb-6 rounded-[36px] border-4 border-white/70 bg-white/90 p-6 text-[#0a1435] shadow-arcade">
           <header className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold">Programms</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="font-arcade text-base uppercase tracking-[0.3em]">
+              Program Stacks
+            </h2>
+            <p className="text-sm text-[#3a466d]">
               Vorkonfigurierte Routinen mit {programStacks.length} verfügbaren Flows.
             </p>
           </header>
@@ -90,7 +92,6 @@ export default async function HomePage({
                   title={stack.title}
                   description={`${modules.length} Module`}
                   href={`/programs/stacks/${stack.slug}`}
-                  accent="from-daisy-300 to-daisy-600"
                   chips={modules.slice(0, 3).map((program) => program!.code)}
                 />
               );

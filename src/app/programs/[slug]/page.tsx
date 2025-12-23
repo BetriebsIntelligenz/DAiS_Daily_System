@@ -30,7 +30,7 @@ export default function ProgramPage({ params }: ProgramPageProps) {
       <div className="mb-4">
         <Link
           href={categoryBackLink}
-          className="inline-flex items-center gap-2 rounded-full border border-daisy-200 bg-white/80 px-4 py-2 text-sm font-semibold text-daisy-700 shadow-sm transition hover:-translate-x-0.5 hover:bg-white"
+          className="inline-flex items-center gap-2 rounded-2xl border-2 border-white/70 bg-white/80 px-4 py-2 text-xs font-arcade uppercase tracking-[0.35em] text-[#0b1230] shadow-arcade transition hover:-translate-x-0.5 hover:bg-white"
         >
           <ArrowLeft className="h-4 w-4" />
           Zurück

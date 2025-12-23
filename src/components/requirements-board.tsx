@@ -292,14 +292,14 @@ export function RequirementsBoard({
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-daisy-500">
+          <p className="font-arcade text-[11px] uppercase tracking-[0.4em] text-[#ff76b9]">
             Anforderungen
           </p>
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-2xl font-semibold text-[#05122c]">
             Sammelstelle für Wünsche & Tasks
           </h2>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="bg-daisy-500">
+        <Button variant="meadow" onClick={() => setShowCreate(true)}>
           <Plus className="h-4 w-4" /> Neu
         </Button>
       </div>
@@ -308,14 +308,14 @@ export function RequirementsBoard({
         {groupedRequirements.map((group) => (
           <section
             key={group.status}
-            className="rounded-3xl bg-daisy-50/60 p-4 shadow-inner"
+            className="rounded-[28px] border-4 border-white/60 bg-white/80 p-4 shadow-[0_15px_40px_rgba(5,18,46,0.15)]"
           >
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-daisy-600">
+                <p className="font-arcade text-[10px] uppercase tracking-[0.35em] text-[#2746b9]">
                   {statusLabels[group.status]}
                 </p>
-                <p className="text-[11px] uppercase tracking-[0.3em] text-daisy-400">
+                <p className="text-[11px] uppercase tracking-[0.3em] text-[#7682ba]">
                   {group.items.length} Karten
                 </p>
               </div>
@@ -327,20 +327,20 @@ export function RequirementsBoard({
               {group.items.map((item) => {
                 const priorityTone =
                   item.priority === 1
-                    ? "border-red-400/90 bg-red-50 text-red-800 shadow-[0_12px_30px_rgba(248,113,113,0.25)]"
-                    : "border-daisy-100 bg-white/90 text-gray-900 shadow-card";
+                    ? "border-[#f96a7d] bg-[#fff0f2] text-[#5a0516] shadow-[0_12px_30px_rgba(249,106,125,0.25)]"
+                    : "border-white/80 bg-white/90 text-[#0b1230] shadow-card";
 
                 return (
                   <button
                     key={item.id}
                     onClick={() => setActiveRequirement(item)}
-                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg ${priorityTone}`}
+                    className={`flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-arcade ${priorityTone}`}
                   >
                     <span className="text-sm font-semibold leading-tight">
                       {item.title}
                     </span>
                     {item.priority === 1 && (
-                      <span className="rounded-full bg-white/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3em] text-red-500">
+                      <span className="rounded-full bg-white/90 px-3 py-1 text-[10px] font-arcade uppercase tracking-[0.3em] text-[#ff3361]">
                         Prio 1
                       </span>
                     )}
@@ -348,7 +348,7 @@ export function RequirementsBoard({
                 );
               })}
               {!group.items.length && (
-                <p className="text-sm text-daisy-500">Noch leer.</p>
+                <p className="text-sm text-[#6b78a7]">Noch leer.</p>
               )}
             </div>
           </section>

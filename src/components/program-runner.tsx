@@ -338,21 +338,23 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
 
   return (
     <div className="space-y-6">
-      <header className="rounded-3xl border border-daisy-200 bg-white/90 p-5">
+      <header className="retro-panel p-6 text-[#0b1230]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-gray-500">{program.code}</p>
-            <h2 className="text-2xl font-semibold text-gray-900">{program.name}</h2>
-            <p className="text-sm text-gray-600">{program.summary}</p>
+            <p className="font-arcade text-[10px] uppercase tracking-[0.4em] text-[#7480c1]">
+              {program.code}
+            </p>
+            <h2 className="text-2xl font-semibold text-[#070f2c]">{program.name}</h2>
+            <p className="text-sm text-[#4b5685]">{program.summary}</p>
           </div>
         </div>
         {program.blueprint.stateRole.desiredState && (
-          <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
-            <span className="rounded-full bg-daisy-100 px-3 py-1">
+          <div className="mt-4 flex flex-wrap gap-4 text-xs text-[#4b5685]">
+            <span className="retro-chip">
               Desired State: {program.blueprint.stateRole.desiredState}
             </span>
             {program.blueprint.stateRole.roleTags.map((role) => (
-              <span key={role} className="rounded-full bg-daisy-50 px-3 py-1">
+              <span key={role} className="retro-chip">
                 {role}
               </span>
             ))}
@@ -361,13 +363,13 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
       </header>
 
       {draftFound && (
-        <div className="flex flex-wrap items-center justify-between rounded-3xl border border-daisy-200 bg-daisy-50 px-4 py-3 text-sm text-daisy-900">
+        <div className="flex flex-wrap items-center justify-between rounded-[26px] border-4 border-white/70 bg-white/90 px-4 py-3 text-sm text-[#0b1230] shadow-arcade">
           <span>Entwurf gefunden – möchtest du fortsetzen?</span>
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={clearDraft}>
               Verwerfen
             </Button>
-            <Button type="button" onClick={loadDraft}>
+            <Button type="button" variant="lagoon" onClick={loadDraft}>
               Fortsetzen
             </Button>
           </div>
@@ -375,7 +377,7 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
       )}
 
       {error && (
-        <div className="rounded-3xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="rounded-[26px] border-4 border-[#ff95b2] bg-[#ffe4ec] px-4 py-3 text-sm text-[#7a132c] shadow-arcade">
           {error}
         </div>
       )}
@@ -397,11 +399,11 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
       ) : (
         <div className="space-y-4">
           {steps.map((step) => (
-            <article key={step.id} className="rounded-3xl border border-daisy-200 bg-white/95 p-6">
+            <article key={step.id} className="retro-panel p-6">
               <header>
-                <h3 className="text-xl font-semibold text-gray-900">{step.title}</h3>
+                <h3 className="text-xl font-semibold text-[#0b1230]">{step.title}</h3>
                 {step.description && (
-                  <p className="mt-1 text-sm text-gray-600">{step.description}</p>
+                  <p className="mt-1 text-sm text-[#4b5685]">{step.description}</p>
                 )}
               </header>
               <div className="mt-4">
@@ -412,11 +414,11 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
                 />
               </div>
               {isMorgensport && step.id === MORGENSPORT_STEP_ID && (
-                <details className="mt-4 rounded-2xl border border-daisy-200 bg-white/90 p-4">
-                  <summary className="cursor-pointer text-sm font-semibold text-gray-900">
+                <details className="mt-4 rounded-[24px] border-4 border-white/70 bg-white/95 p-4">
+                  <summary className="cursor-pointer text-sm font-semibold text-[#0b1230]">
                     Verlauf anzeigen ({morgensportLogs.length})
                   </summary>
-                  <div className="mt-3 space-y-3 text-sm text-gray-700">
+                  <div className="mt-3 space-y-3 text-sm text-[#4b5685]">
                     {morgensportLogsLoading && <p>Einträge werden geladen…</p>}
                     {!morgensportLogsLoading && morgensportLogs.length === 0 && (
                       <p>Noch keine Morgensport-Einträge gespeichert.</p>
@@ -469,7 +471,7 @@ function StepInput({
 }) {
   if (!step.input) {
     return (
-      <div className="rounded-2xl border border-daisy-200 bg-daisy-50 px-4 py-3 text-sm text-gray-700">
+      <div className="rounded-[24px] border-4 border-white/70 bg-white/90 px-4 py-3 text-sm text-[#4b5685]">
         Kein Input erforderlich – konzentriere dich auf den Schritt.
       </div>
     );
@@ -478,11 +480,12 @@ function StepInput({
   switch (step.input.type) {
     case "checkbox":
       return (
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+        <label className="flex items-center gap-3 rounded-[22px] border-2 border-white/70 bg-white/90 px-4 py-2 text-sm font-semibold text-[#0b1230]">
           <input
             type="checkbox"
             checked={Boolean(value)}
             onChange={(event) => onChange(event.target.checked)}
+            className="h-5 w-5 rounded border-2 border-[#0b1230] accent-[#ff5fa8]"
           />
           Schritt erledigt
         </label>
@@ -493,7 +496,7 @@ function StepInput({
       const max = step.input.max ?? 10;
       const numericValue = typeof value === "number" ? value : Math.round((min + max) / 2);
       return (
-        <label className="text-sm font-medium text-gray-700">
+        <label className="text-sm font-semibold text-[#0b1230]">
           {step.input.type === "rating" ? "Rating" : "Slider"}: {numericValue}
           <input
             type="range"
@@ -501,7 +504,7 @@ function StepInput({
             max={max}
             value={numericValue}
             onChange={(event) => onChange(Number(event.target.value))}
-            className="mt-2 w-full"
+            className="mt-2 w-full accent-[#ff5fa8]"
           />
         </label>
       );
@@ -517,16 +520,16 @@ function StepInput({
             };
         const { selections, minutes } = structuredValue;
         return (
-          <div className="space-y-3 text-sm text-gray-700">
+          <div className="space-y-3 text-sm text-[#0b1230]">
             {options.map((option) => {
               const selected = selections.includes(option);
               const minuteValue = minutes[option] ?? "";
               return (
                 <div
                   key={option}
-                  className="flex flex-wrap items-center gap-3 rounded-2xl border border-daisy-200 bg-white px-4 py-3"
+                  className="flex flex-wrap items-center gap-3 rounded-[24px] border-2 border-white/70 bg-white px-4 py-3"
                 >
-                  <label className="flex items-center gap-2 font-medium">
+                  <label className="flex items-center gap-2 font-semibold">
                     <input
                       type="checkbox"
                       checked={selected}
@@ -560,7 +563,7 @@ function StepInput({
                         minutes: nextMinutes
                       });
                     }}
-                    className="w-24 rounded-xl border border-daisy-200 px-3 py-1 text-sm"
+                    className="w-24 rounded-xl border-2 border-white/70 px-3 py-1 text-sm"
                   />
                 </div>
               );
@@ -570,7 +573,7 @@ function StepInput({
       }
       const selected = Array.isArray(value) ? (value as string[]) : [];
       return (
-        <div className="space-y-2 text-sm text-gray-700">
+        <div className="space-y-2 text-sm text-[#0b1230]">
           {options.map((option) => (
             <label key={option} className="flex items-center gap-2">
               <input
@@ -596,12 +599,12 @@ function StepInput({
           value={typeof value === "string" ? value : ""}
           onChange={(event) => onChange(event.target.value)}
           placeholder={step.input.placeholder}
-          className="min-h-[120px] w-full rounded-2xl border border-daisy-200 px-4 py-3"
+          className="retro-input min-h-[130px] w-full bg-white/95 text-[#0b1230]"
         />
       );
     case "timer":
       return (
-        <div className="rounded-2xl border border-daisy-200 bg-daisy-50 px-4 py-3 text-sm text-gray-700">
+        <div className="rounded-[24px] border-4 border-white/70 bg-white/90 px-4 py-3 text-sm text-[#4b5685]">
           Timer läuft automatisch – konzentriere dich auf den Schritt.
         </div>
       );
@@ -612,7 +615,7 @@ function StepInput({
           value={typeof value === "string" ? value : ""}
           onChange={(event) => onChange(event.target.value)}
           placeholder={step.input.placeholder}
-          className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+          className="retro-input w-full bg-white/95 text-[#0b1230]"
         />
       );
   }
@@ -638,20 +641,22 @@ function StateControlTable({
   loading: boolean;
 }) {
   return (
-    <div className="space-y-5 rounded-3xl border border-daisy-200 bg-white/95 p-6">
+    <div className="space-y-5 retro-panel p-6">
       <div>
-        <h3 className="text-xl font-semibold text-gray-900">State Übersicht</h3>
-        <p className="text-sm text-gray-600">Alle States in einer Liste – jede Zeile direkt bewerten.</p>
+        <h3 className="text-xl font-semibold text-[#0b1230]">State Übersicht</h3>
+        <p className="text-sm text-[#4b5685]">
+          Alle States in einer Liste – jede Zeile direkt bewerten.
+        </p>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full table-auto text-sm text-gray-800">
+        <table className="w-full table-auto text-sm text-[#0b1230]">
           <thead>
-            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <tr className="text-left text-xs font-semibold uppercase tracking-[0.3em] text-[#6b74a7]">
               <th className="pb-2">State</th>
               <th className="pb-2">Wertung</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-daisy-100">
+          <tbody className="divide-y divide-white/70">
             {steps.map((step) => {
               const min = typeof step.input?.min === "number" ? step.input.min : 1;
               const max = typeof step.input?.max === "number" ? step.input.max : 10;
@@ -664,7 +669,7 @@ function StateControlTable({
                   <td className="py-3 pr-4 font-semibold">{step.title}</td>
                   <td className="py-3">
                     <div className="flex flex-col gap-2">
-                      <span className="text-xs font-semibold text-daisy-600">
+                      <span className="text-xs font-semibold text-[#ff5fa8]">
                         {current}/{max}
                       </span>
                       <input
@@ -673,7 +678,7 @@ function StateControlTable({
                         max={max}
                         value={current}
                         onChange={(event) => onChange(step.id, Number(event.target.value))}
-                        className="w-full"
+                        className="w-full accent-[#ff5fa8]"
                       />
                     </div>
                   </td>
@@ -703,24 +708,24 @@ function StateControlLogs({
   loading: boolean;
 }) {
   return (
-    <details className="rounded-2xl border border-daisy-200 bg-white/90 p-4">
-      <summary className="cursor-pointer text-sm font-semibold text-gray-900">
+    <details className="rounded-[24px] border-4 border-white/70 bg-white/95 p-4">
+      <summary className="cursor-pointer text-sm font-semibold text-[#0b1230]">
         Verlauf anzeigen ({logs.length})
       </summary>
-      <div className="mt-3 space-y-3 text-sm text-gray-700">
+      <div className="mt-3 space-y-3 text-sm text-[#4b5685]">
         {loading && <p>Einträge werden geladen…</p>}
         {!loading && logs.length === 0 && <p>Noch keine State Controll-Einträge gespeichert.</p>}
         {!loading &&
           logs.map((log) => (
             <article
               key={log.id}
-              className="rounded-2xl border border-daisy-100 bg-daisy-50/60 px-4 py-3"
+              className="rounded-[22px] border-2 border-white/70 bg-white/90 px-4 py-3"
             >
-              <p className="text-xs font-semibold uppercase tracking-wide text-daisy-600">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#ff5fa8]">
                 {new Date(log.createdAt).toLocaleString("de-DE")}
               </p>
               <div
-                className="prose prose-sm max-w-none text-gray-800"
+                className="prose prose-sm max-w-none text-[#2f3763]"
                 dangerouslySetInnerHTML={{ __html: log.contentHtml }}
               />
             </article>
