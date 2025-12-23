@@ -1,10 +1,9 @@
 "use client";
 
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, GaugeCircle, Gift, Layers, LayoutGrid, Users } from "lucide-react";
 
 import { programDefinitions, rewardDefinitions } from "@/lib/data";
-import { ProgramWizard } from "./program-wizard";
 import type {
   BrainExerciseWithState,
   EmotionPracticeWithLogs,
@@ -16,13 +15,26 @@ import type {
   HouseholdCardDefinition,
   HouseholdTaskDefinition,
   ProgramDefinition,
-  ProgramStackDefinition
+  ProgramStackDefinition,
+  HumanContactPersonDefinition,
+  HumanContactStatsEntry,
+  HumanContactActivity,
+  HumanContactCadence,
+  HumanContactRelation
 } from "@/lib/types";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { HOUSEHOLD_WEEKDAYS, formatWeekday } from "@/lib/household";
+import {
+  HUMAN_ACTIVITY_OPTIONS,
+  HUMAN_CADENCE_OPTIONS,
+  HUMAN_RELATION_OPTIONS,
+  getHumanActivityLabel,
+  getHumanRelationLabel
+} from "@/lib/human";
 
 const PERFORMANCE_CHECKLIST_PROGRAM_ID = "performance-checklist";
+const HUMAN_DEFAULT_RELATION = HUMAN_RELATION_OPTIONS[0]?.value ?? "family";
 
 
 export function AdminPanels() {
@@ -126,8 +138,20 @@ export function AdminPanels() {
   });
   const [editingHouseholdCard, setEditingHouseholdCard] = useState<HouseholdCardDefinition | null>(null);
   const [householdAdminError, setHouseholdAdminError] = useState<string | null>(null);
+  const [humanContacts, setHumanContacts] = useState<HumanContactPersonDefinition[]>([]);
+  const [humanContactStats, setHumanContactStats] = useState<HumanContactStatsEntry[]>([]);
+  const [humanContactForm, setHumanContactForm] = useState({
+    name: "",
+    relation: HUMAN_DEFAULT_RELATION,
+    note: ""
+  });
+  const [editingHumanContact, setEditingHumanContact] = useState<HumanContactPersonDefinition | null>(null);
+  const [humanContactError, setHumanContactError] = useState<string | null>(null);
+  const [humanContactSaving, setHumanContactSaving] = useState(false);
+  const [humanAssignmentBusyKey, setHumanAssignmentBusyKey] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    "program-builder": true
+    "program-builder": true,
+    "human-connections": true
   });
 
   const mindStats = useMemo(
@@ -172,6 +196,18 @@ export function AdminPanels() {
     () => programs.find((entry) => entry.id === "environment-household-cards") ?? null,
     [programs]
   );
+  const sortedHumanContacts = useMemo(
+    () => humanContacts.slice().sort((left, right) => left.name.localeCompare(right.name)),
+    [humanContacts]
+  );
+  const humanStatsById = useMemo(
+    () =>
+      humanContactStats.reduce<Record<string, HumanContactStatsEntry>>((acc, entry) => {
+        acc[entry.personId] = entry;
+        return acc;
+      }, {}),
+    [humanContactStats]
+  );
 
   const parseHouseholdErrorResponse = async (response: Response) => {
     try {
@@ -202,7 +238,8 @@ export function AdminPanels() {
     sectionId: string,
     title: string,
     subtitle: string,
-    content: ReactNode
+    content: ReactNode,
+    icon?: ReactNode
   ) => {
     const isOpen = openSections[sectionId] ?? false;
     return (
@@ -219,11 +256,18 @@ export function AdminPanels() {
           aria-expanded={isOpen}
           aria-controls={`${sectionId}-content`}
         >
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
-              {subtitle}
-            </p>
-            <p className="text-xl font-semibold text-gray-900">{title}</p>
+          <div className="flex items-center gap-3">
+            {icon && (
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/60 text-daisy-700 shadow">
+                {icon}
+              </span>
+            )}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
+                {subtitle}
+              </p>
+              <p className="text-xl font-semibold text-gray-900">{title}</p>
+            </div>
           </div>
           <ChevronDown
             className={cn(
@@ -247,6 +291,7 @@ export function AdminPanels() {
   };
 
   useEffect(() => {
+    setOpenSections({});
     void refreshMindData();
   }, []);
 
@@ -282,7 +327,8 @@ export function AdminPanels() {
       performanceChecklistPayload,
       stackPayload,
       programPayload,
-      householdPayload
+      householdPayload,
+      humanContactsPayload
     ] = await Promise.all([
       loadJson("/api/mind/visuals"),
       loadJson("/api/mind/goals"),
@@ -293,7 +339,8 @@ export function AdminPanels() {
       loadJson("/api/mind/performance-checklist"),
       loadJson("/api/program-stacks"),
       loadJson("/api/programs"),
-      loadJson("/api/environment/household/cards")
+      loadJson("/api/environment/household/cards"),
+      loadJson("/api/human/contacts")
     ]);
     setVisualAssets(Array.isArray(visuals) ? visuals : []);
     setGoals(Array.isArray(goalsPayload) ? goalsPayload : []);
@@ -329,6 +376,22 @@ export function AdminPanels() {
       setHouseholdTasks(
         Array.isArray(payload.tasks) ? (payload.tasks as HouseholdTaskDefinition[]) : []
       );
+    }
+    if (humanContactsPayload && typeof humanContactsPayload === "object") {
+      const payload = humanContactsPayload as { persons?: unknown; stats?: unknown };
+      setHumanContacts(
+        Array.isArray(payload.persons)
+          ? (payload.persons as HumanContactPersonDefinition[])
+          : []
+      );
+      setHumanContactStats(
+        Array.isArray(payload.stats)
+          ? (payload.stats as HumanContactStatsEntry[])
+          : []
+      );
+    } else {
+      setHumanContacts([]);
+      setHumanContactStats([]);
     }
   };
 
@@ -1029,26 +1092,135 @@ export function AdminPanels() {
     }
   };
 
+  const parseHumanAdminError = async (response: Response) => {
+    try {
+      const payload = await response.json();
+      if (payload && typeof payload.error === "string") {
+        return payload.error;
+      }
+    } catch {
+      // ignore parsing errors
+    }
+    return null;
+  };
 
+  const resetHumanContactForm = () => {
+    setEditingHumanContact(null);
+    setHumanContactForm({ name: "", relation: HUMAN_DEFAULT_RELATION, note: "" });
+  };
+
+  const startEditHumanContact = (person: HumanContactPersonDefinition) => {
+    setEditingHumanContact(person);
+    setHumanContactForm({
+      name: person.name,
+      relation: person.relation,
+      note: person.note ?? ""
+    });
+    setHumanContactError(null);
+  };
+
+  const handleHumanContactSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!humanContactForm.name.trim()) {
+      setHumanContactError("Name erforderlich.");
+      return;
+    }
+    setHumanContactSaving(true);
+    setHumanContactError(null);
+    try {
+      const payload = editingHumanContact
+        ? { id: editingHumanContact.id, ...humanContactForm }
+        : humanContactForm;
+      const response = await fetch("/api/human/contacts", {
+        method: editingHumanContact ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        const message = await parseHumanAdminError(response);
+        throw new Error(message ?? "Kontakt konnte nicht gespeichert werden.");
+      }
+      resetHumanContactForm();
+      await refreshMindData();
+    } catch (error) {
+      console.error("Human contact submit failed", error);
+      setHumanContactError(
+        error instanceof Error ? error.message : "Kontakt konnte nicht gespeichert werden."
+      );
+    } finally {
+      setHumanContactSaving(false);
+    }
+  };
+
+  const deleteHumanContact = async (personId: string) => {
+    if (!window.confirm("Kontakt wirklich löschen? Aktivitäten bleiben bestehen.")) {
+      return;
+    }
+    setHumanContactError(null);
+    try {
+      const response = await fetch("/api/human/contacts", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: personId })
+      });
+      if (!response.ok) {
+        const message = await parseHumanAdminError(response);
+        throw new Error(message ?? "Kontakt konnte nicht gelöscht werden.");
+      }
+      if (editingHumanContact?.id === personId) {
+        resetHumanContactForm();
+      }
+      await refreshMindData();
+    } catch (error) {
+      console.error("Human contact delete failed", error);
+      setHumanContactError(
+        error instanceof Error ? error.message : "Kontakt konnte nicht gelöscht werden."
+      );
+    }
+  };
+
+  const toggleHumanAssignment = async (
+    personId: string,
+    cadence: HumanContactCadence,
+    activity: HumanContactActivity,
+    enabled: boolean
+  ) => {
+    const busyKey = `${personId}:${cadence}:${activity}`;
+    setHumanAssignmentBusyKey(busyKey);
+    setHumanContactError(null);
+    try {
+      const response = await fetch("/api/human/contacts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          personId,
+          cadence,
+          activity,
+          enabled
+        })
+      });
+      if (!response.ok) {
+        const message = await parseHumanAdminError(response);
+        throw new Error(message ?? "Aufgaben konnten nicht aktualisiert werden.");
+      }
+      const payload = await response.json();
+      const assignments = Array.isArray(payload.assignments) ? payload.assignments : [];
+      setHumanContacts((prev) =>
+        prev.map((person) =>
+          person.id === personId ? { ...person, assignments } : person
+        )
+      );
+    } catch (error) {
+      console.error("Human assignment toggle failed", error);
+      setHumanContactError(
+        error instanceof Error ? error.message : "Aufgaben konnten nicht aktualisiert werden."
+      );
+    } finally {
+      setHumanAssignmentBusyKey(null);
+    }
+  };
   return (
     <div className="space-y-6">
-      {renderAccordionSection(
-        "program-builder",
-        "Program Builder",
-        "Blueprint & Wizard",
-        <>
-          <header className="flex flex-col gap-1">
-            <h2 className="text-xl font-semibold">Programm Blueprint</h2>
-            <p className="text-sm text-gray-500">
-              Erstelle neue Programme inklusive Rituale, XP und Scheduling.
-            </p>
-          </header>
-          <div className="mt-4">
-            <ProgramWizard onCreated={refreshMindData} />
-          </div>
-        </>
-      )}
-
       {renderAccordionSection(
         "program-stacks",
         "Stacks",
@@ -1133,7 +1305,206 @@ export function AdminPanels() {
               ))}
             </ul>
           )}
-        </>
+        </>,
+        <Layers className="h-6 w-6" />
+      )}
+
+      {renderAccordionSection(
+        "human-connections",
+        "Humans",
+        "Kontakte & Aktivitäten",
+        <>
+          <header className="flex flex-col gap-1">
+            <h2 className="text-xl font-semibold">Human Connections</h2>
+            <p className="text-sm text-gray-500">
+              Personen anlegen, Beziehungen taggen und Daily/Weekly Touchpoints vergeben.
+            </p>
+          </header>
+          <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={handleHumanContactSubmit}>
+            <input
+              value={humanContactForm.name}
+              onChange={(event) =>
+                setHumanContactForm((prev) => ({ ...prev, name: event.target.value }))
+              }
+              placeholder="Personenname"
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            />
+            <select
+              value={humanContactForm.relation}
+              onChange={(event) =>
+                setHumanContactForm((prev) => ({
+                  ...prev,
+                  relation: event.target.value as HumanContactRelation
+                }))
+              }
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            >
+              {HUMAN_RELATION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <textarea
+              value={humanContactForm.note}
+              onChange={(event) =>
+                setHumanContactForm((prev) => ({ ...prev, note: event.target.value }))
+              }
+              placeholder="Notiz / Kontext"
+              className="rounded-2xl border border-daisy-200 px-4 py-3 md:col-span-2"
+            />
+            <div className="flex flex-wrap gap-2 md:col-span-2">
+              <Button type="submit" disabled={humanContactSaving}>
+                {humanContactSaving
+                  ? "Speichert…"
+                  : editingHumanContact
+                    ? "Kontakt aktualisieren"
+                    : "Kontakt speichern"}
+              </Button>
+              {editingHumanContact && (
+                <Button type="button" variant="ghost" onClick={resetHumanContactForm}>
+                  Abbrechen
+                </Button>
+              )}
+            </div>
+          </form>
+          {humanContactError && (
+            <p className="mt-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+              {humanContactError}
+            </p>
+          )}
+          <div className="mt-6 space-y-4">
+            {sortedHumanContacts.length === 0 ? (
+              <p className="rounded-3xl border border-daisy-100 bg-white/80 px-4 py-6 text-sm text-gray-500">
+                Noch keine Kontakte erfasst. Nutze das Formular, um Familie, Partner oder Business
+                Partner anzulegen.
+              </p>
+            ) : (
+              sortedHumanContacts.map((person) => {
+                const assignmentSet = new Set(
+                  person.assignments.map(
+                    (assignment) => `${assignment.cadence}:${assignment.activity}`
+                  )
+                );
+                const stats = humanStatsById[person.id];
+                return (
+                  <article
+                    key={person.id}
+                    className="rounded-3xl border border-daisy-100 bg-white/80 p-5 shadow-sm"
+                  >
+                    <header className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.4em] text-gray-400">
+                          {getHumanRelationLabel(person.relation)}
+                        </p>
+                        <h4 className="text-lg font-semibold text-gray-900">{person.name}</h4>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => startEditHumanContact(person)}
+                        >
+                          Bearbeiten
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => deleteHumanContact(person.id)}
+                        >
+                          Löschen
+                        </Button>
+                      </div>
+                    </header>
+                    {person.note && (
+                      <p className="mt-2 text-sm text-gray-600">{person.note}</p>
+                    )}
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      {HUMAN_CADENCE_OPTIONS.map((cadence) => (
+                        <div key={cadence.value} className="rounded-2xl border border-daisy-100 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
+                            {cadence.label}
+                          </p>
+                          <div className="mt-2 space-y-2">
+                            {HUMAN_ACTIVITY_OPTIONS.map((activity) => {
+                              const assignmentKey = `${cadence.value}:${activity.value}`;
+                              const checked = assignmentSet.has(assignmentKey);
+                              const busy =
+                                humanAssignmentBusyKey ===
+                                `${person.id}:${cadence.value}:${activity.value}`;
+                              return (
+                                <label
+                                  key={assignmentKey}
+                                  className="flex cursor-pointer items-center gap-2 text-sm text-gray-700"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded border-gray-300 text-daisy-500 focus:ring-daisy-500"
+                                    checked={checked}
+                                    disabled={busy}
+                                    onChange={() =>
+                                      toggleHumanAssignment(
+                                        person.id,
+                                        cadence.value,
+                                        activity.value,
+                                        !checked
+                                      )
+                                    }
+                                  />
+                                  <span>{activity.label}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 rounded-2xl border border-daisy-100 bg-white/90 p-3">
+                      {stats && stats.total > 0 ? (
+                        <>
+                          <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                            Kontaktverteilung (30 Tage)
+                          </p>
+                          <div className="mt-2 space-y-2">
+                            {stats.distribution.map((entry) => {
+                              const width =
+                                entry.percentage > 0
+                                  ? entry.percentage
+                                  : entry.count > 0
+                                    ? 6
+                                    : 0;
+                              return (
+                                <div key={entry.activity} className="flex items-center gap-3 text-xs">
+                                  <span className="w-28 text-gray-500">
+                                    {getHumanActivityLabel(entry.activity)}
+                                  </span>
+                                  <div className="relative h-2 flex-1 rounded-full bg-daisy-100">
+                                    <div
+                                      className="absolute inset-y-0 rounded-full bg-gradient-to-r from-daisy-400 to-daisy-600"
+                                      style={{ width: `${width}%` }}
+                                    />
+                                  </div>
+                                  <span className="w-6 text-right font-semibold text-gray-700">
+                                    {entry.count}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          Noch keine Aktivitäten protokolliert.
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                );
+              })
+            )}
+          </div>
+        </>,
+        <Users className="h-6 w-6" />
       )}
 
       {renderAccordionSection(
@@ -1163,7 +1534,8 @@ export function AdminPanels() {
             />
             <Button onClick={createReward}>Belohnung speichern</Button>
           </div>
-        </>
+        </>,
+        <Gift className="h-6 w-6" />
       )}
 
       {renderAccordionSection(
@@ -2046,7 +2418,8 @@ export function AdminPanels() {
               )}
             </article>
           </div>
-        </>
+        </>,
+        <LayoutGrid className="h-6 w-6" />
       )}
       {renderAccordionSection(
         "xp-center",
@@ -2195,7 +2568,8 @@ export function AdminPanels() {
               )}
             </article>
           </div>
-        </>
+        </>,
+        <GaugeCircle className="h-6 w-6" />
       )}
 
       {editingStack && (

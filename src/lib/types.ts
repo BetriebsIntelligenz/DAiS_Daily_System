@@ -442,3 +442,57 @@ export interface HouseholdEntryRecord {
   createdAt: string;
   note?: string | null;
 }
+
+export type HumanContactRelation =
+  | "family"
+  | "friend"
+  | "colleague"
+  | "business_partner"
+  | "network";
+
+export type HumanContactActivity =
+  | "whatsapp"
+  | "call"
+  | "email"
+  | "meeting"
+  | "video_call";
+
+export type HumanContactCadence = "daily" | "weekly";
+
+export interface HumanContactAssignmentDefinition {
+  id: string;
+  personId: string;
+  activity: HumanContactActivity;
+  cadence: HumanContactCadence;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HumanContactPersonDefinition {
+  id: string;
+  name: string;
+  relation: HumanContactRelation;
+  note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  assignments: HumanContactAssignmentDefinition[];
+}
+
+export interface HumanContactLogEntry {
+  id: string;
+  personId: string;
+  activity: HumanContactActivity;
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface HumanContactStatsEntry {
+  personId: string;
+  total: number;
+  counts: Record<HumanContactActivity, number>;
+  distribution: Array<{
+    activity: HumanContactActivity;
+    count: number;
+    percentage: number;
+  }>;
+}

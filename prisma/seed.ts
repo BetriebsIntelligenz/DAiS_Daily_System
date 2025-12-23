@@ -16,6 +16,7 @@ import {
   performanceChecklistSeeds
 } from "../src/lib/mind-data";
 import { householdCardSeeds, householdTaskSeeds } from "../src/lib/household-data";
+import { humanContactSeeds } from "../src/lib/human-data";
 
 const prisma = new PrismaClient();
 
@@ -284,6 +285,41 @@ async function main() {
           order: index
         }
       });
+    }
+  }
+
+  for (const contact of humanContactSeeds) {
+    await prisma.humanContactPerson.upsert({
+      where: { id: contact.id },
+      create: {
+        id: contact.id,
+        name: contact.name,
+        relation: contact.relation,
+        note: contact.note ?? null
+      },
+      update: {
+        name: contact.name,
+        relation: contact.relation,
+        note: contact.note ?? null
+      }
+    });
+
+    await prisma.humanContactAssignment.deleteMany({ where: { personId: contact.id } });
+    const cadences = ["daily", "weekly"] as const;
+    for (const cadence of cadences) {
+      const activities = contact.assignments?.[cadence];
+      if (!activities || activities.length === 0) {
+        continue;
+      }
+      for (const activity of activities) {
+        await prisma.humanContactAssignment.create({
+          data: {
+            personId: contact.id,
+            activity,
+            cadence
+          }
+        });
+      }
     }
   }
 }

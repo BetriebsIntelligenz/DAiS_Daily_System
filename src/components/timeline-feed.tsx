@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "./ui/card";
+import { useAuth } from "./auth-gate";
 
 interface TimelineEntry {
   id: string;
@@ -16,13 +17,20 @@ interface TimelineEntry {
 export function TimelineFeed() {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setEntries([]);
 
     const loadEntries = async () => {
       try {
-        const response = await fetch("/api/timeline");
+        const response = await fetch(
+          `/api/timeline${
+            user?.email ? `?email=${encodeURIComponent(user.email)}` : ""
+          }`
+        );
         const data = await response.json();
         if (active) {
           setEntries(data.entries);
@@ -40,7 +48,7 @@ export function TimelineFeed() {
       active = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [user?.email]);
 
   if (loading) {
     return (

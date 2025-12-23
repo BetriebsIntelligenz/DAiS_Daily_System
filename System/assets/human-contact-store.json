@@ -1,0 +1,267 @@
+{
+  "version": 1,
+  "persons": [
+    {
+      "id": "human-contact-lena",
+      "name": "Lena (Family)",
+      "relation": "family",
+      "note": "Täglicher Check-in via WhatsApp.",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-sven",
+      "name": "Sven (Business)",
+      "relation": "business_partner",
+      "note": "Pipeline Sync Call",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-amelie",
+      "name": "Amelie (Network)",
+      "relation": "network",
+      "note": null,
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "33b69547-3ae1-4624-9c90-92253778ceb6",
+      "name": "Herbert",
+      "relation": "colleague",
+      "note": "fefef",
+      "createdAt": "2025-12-16T18:36:14.590Z",
+      "updatedAt": "2025-12-16T18:36:30.529Z"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "human-contact-lena-daily-whatsapp",
+      "personId": "human-contact-lena",
+      "activity": "whatsapp",
+      "cadence": "daily",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-lena-weekly-meeting",
+      "personId": "human-contact-lena",
+      "activity": "meeting",
+      "cadence": "weekly",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-sven-daily-email",
+      "personId": "human-contact-sven",
+      "activity": "email",
+      "cadence": "daily",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-sven-weekly-video_call",
+      "personId": "human-contact-sven",
+      "activity": "video_call",
+      "cadence": "weekly",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-sven-weekly-meeting",
+      "personId": "human-contact-sven",
+      "activity": "meeting",
+      "cadence": "weekly",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-amelie-daily-whatsapp",
+      "personId": "human-contact-amelie",
+      "activity": "whatsapp",
+      "cadence": "daily",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-amelie-weekly-call",
+      "personId": "human-contact-amelie",
+      "activity": "call",
+      "cadence": "weekly",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "human-contact-amelie-weekly-meeting",
+      "personId": "human-contact-amelie",
+      "activity": "meeting",
+      "cadence": "weekly",
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "a80c99cf-932b-4392-9572-1a14f1efd6f3",
+      "personId": "33b69547-3ae1-4624-9c90-92253778ceb6",
+      "activity": "call",
+      "cadence": "daily",
+      "createdAt": "2025-12-16T18:36:20.007Z",
+      "updatedAt": "2025-12-16T18:36:20.007Z"
+    }
+  ],
+  "logs": [
+    {
+      "id": "f1d6798e-03c2-4e84-8e1b-8c44faae62e7",
+      "personId": "human-contact-amelie",
+      "activity": "whatsapp",
+      "note": "",
+      "createdAt": "2025-12-16T18:35:25.791Z"
+    },
+    {
+      "id": "cff9aa41-fbbe-442b-9cc7-d4793924a7fb",
+      "personId": "human-contact-amelie",
+      "activity": "call",
+      "note": "",
+      "createdAt": "2025-12-16T18:35:27.711Z"
+    },
+    {
+      "id": "d17f1e9c-62fc-450c-be18-e51508de9137",
+      "personId": "human-contact-amelie",
+      "activity": "email",
+      "note": "",
+      "createdAt": "2025-12-16T18:35:29.608Z"
+    },
+    {
+      "id": "35e8c501-86d4-4093-a88b-41476aae3de1",
+      "personId": "human-contact-amelie",
+      "activity": "meeting",
+      "note": "wfff",
+      "createdAt": "2025-12-16T18:35:34.385Z"
+    },
+    {
+      "id": "bac03ddb-b4e9-4375-89e7-f2ff197db5fc",
+      "personId": "human-contact-amelie",
+      "activity": "video_call",
+      "note": "",
+      "createdAt": "2025-12-16T18:35:39.069Z"
+    },
+    {
+      "id": "09828eb9-416d-4499-b4e0-2dcc9cb9e78e",
+      "personId": "human-contact-amelie",
+      "activity": "video_call",
+      "note": "fwfwf",
+      "createdAt": "2025-12-16T18:35:40.736Z"
+    },
+    {
+      "id": "b2b43bcc-3322-4cec-b3fd-49c569c3e794",
+      "personId": "human-contact-lena",
+      "activity": "whatsapp",
+      "note": "",
+      "createdAt": "2025-12-16T18:35:44.791Z"
+    },
+    {
+      "id": "7018323a-30f9-4006-a595-9afee53c64e9",
+      "personId": "human-contact-lena",
+      "activity": "whatsapp",
+      "note": "wffwf",
+      "createdAt": "2025-12-16T18:35:46.862Z"
+    },
+    {
+      "id": "e1380273-71c8-4825-bc04-199420675863",
+      "personId": "human-contact-lena",
+      "activity": "call",
+      "note": "wfwfwffwf",
+      "createdAt": "2025-12-16T18:35:48.943Z"
+    },
+    {
+      "id": "2055d2d7-3ddc-4d4a-ad1f-120ea263268f",
+      "personId": "human-contact-lena",
+      "activity": "email",
+      "note": "",
+      "createdAt": "2025-12-16T18:35:51.330Z"
+    },
+    {
+      "id": "25e6ffe2-7a04-49a4-a719-b72492d0db34",
+      "personId": "human-contact-lena",
+      "activity": "call",
+      "note": "",
+      "createdAt": "2025-12-16T18:35:52.352Z"
+    },
+    {
+      "id": "46113b72-7e0a-421c-9f61-96abb3d989d1",
+      "personId": "33b69547-3ae1-4624-9c90-92253778ceb6",
+      "activity": "call",
+      "note": "fefeffe",
+      "createdAt": "2025-12-16T18:36:48.950Z"
+    },
+    {
+      "id": "5fef6200-a7d1-4d6c-ba92-127f7eba5111",
+      "personId": "33b69547-3ae1-4624-9c90-92253778ceb6",
+      "activity": "email",
+      "note": "fefeff",
+      "createdAt": "2025-12-16T18:36:52.700Z"
+    },
+    {
+      "id": "666d48f0-9ee7-4691-b0db-95997bc00fc1",
+      "personId": "human-contact-amelie",
+      "activity": "whatsapp",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:06.249Z"
+    },
+    {
+      "id": "33b6b6cb-073a-41bc-b067-e860b33b87ac",
+      "personId": "human-contact-amelie",
+      "activity": "email",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:10.470Z"
+    },
+    {
+      "id": "79be3a65-05b5-441e-9072-289ff1727345",
+      "personId": "human-contact-amelie",
+      "activity": "email",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:11.250Z"
+    },
+    {
+      "id": "d31d6ba9-6269-4670-8e54-6e28b3fc09ea",
+      "personId": "human-contact-amelie",
+      "activity": "email",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:11.759Z"
+    },
+    {
+      "id": "5001606b-6caf-4f56-a2c3-8d520f33337a",
+      "personId": "human-contact-amelie",
+      "activity": "meeting",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:12.737Z"
+    },
+    {
+      "id": "c18f32e4-88e9-4728-a400-6e5262ca3617",
+      "personId": "human-contact-amelie",
+      "activity": "call",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:14.151Z"
+    },
+    {
+      "id": "31addca9-6239-4440-a834-7f24cbc8605c",
+      "personId": "human-contact-amelie",
+      "activity": "email",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:15.052Z"
+    },
+    {
+      "id": "cd3d32cf-34f1-480d-971c-978d9d0c5ba5",
+      "personId": "33b69547-3ae1-4624-9c90-92253778ceb6",
+      "activity": "email",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:21.597Z"
+    },
+    {
+      "id": "399f7faf-35cf-4d96-89ff-a75adeb74cc5",
+      "personId": "33b69547-3ae1-4624-9c90-92253778ceb6",
+      "activity": "email",
+      "note": "",
+      "createdAt": "2025-12-23T19:12:22.833Z"
+    }
+  ]
+}

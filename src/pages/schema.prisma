@@ -80,6 +80,27 @@ enum ExerciseType {
   html
 }
 
+enum HumanContactRelation {
+  family
+  friend
+  colleague
+  business_partner
+  network
+}
+
+enum HumanContactActivity {
+  whatsapp
+  call
+  email
+  meeting
+  video_call
+}
+
+enum HumanContactCadence {
+  daily
+  weekly
+}
+
 enum XpTransactionType {
   earn
   spend
@@ -133,6 +154,7 @@ model User {
   emotionLogs       EmotionLog[]
   requirements      Requirement[]
   householdEntries  HouseholdEntry[]
+  humanContactLogs  HumanContactLog[]
 }
 
 model Program {
@@ -516,4 +538,44 @@ model HouseholdEntry {
 
   @@index([createdAt])
   @@index([cardId])
+}
+
+model HumanContactPerson {
+  id        String               @id @default(cuid())
+  name      String
+  relation  HumanContactRelation
+  note      String?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  assignments HumanContactAssignment[]
+  logs        HumanContactLog[]
+}
+
+model HumanContactAssignment {
+  id        String              @id @default(cuid())
+  personId  String
+  activity  HumanContactActivity
+  cadence   HumanContactCadence
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  person HumanContactPerson @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, activity, cadence])
+  @@index([personId])
+}
+
+model HumanContactLog {
+  id        String              @id @default(cuid())
+  personId  String
+  userId    String?
+  activity  HumanContactActivity
+  note      String?
+  createdAt DateTime            @default(now())
+
+  person HumanContactPerson @relation(fields: [personId], references: [id], onDelete: Cascade)
+  user   User?             @relation(fields: [userId], references: [id])
+
+  @@index([personId, createdAt])
 }

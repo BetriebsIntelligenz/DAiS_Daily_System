@@ -11,7 +11,9 @@ import { useAutoProgramSubmit } from "@/hooks/use-auto-program-submit";
 
 export function HigherThinkingProgram({ program }: { program: ProgramDefinition }) {
   const [paths, setPaths] = useState<LearningPathWithProgress[]>([]);
-  const [toggledMilestones, setToggledMilestones] = useState<string[]>([]);
+  const [toggledMilestones, setToggledMilestones] = useState<
+    Array<{ pathId: string; milestoneId: string }>
+  >([]);
   const [toggling, setToggling] = useState<string | null>(null);
   const { user } = useAuth();
   const { completeProgram, submitting } = useProgramCompletion(program);
@@ -26,6 +28,13 @@ export function HigherThinkingProgram({ program }: { program: ProgramDefinition 
     if (!response.ok) return;
     const data: LearningPathWithProgress[] = await response.json();
     setPaths(data ?? []);
+    const completedMilestones =
+      (data ?? []).flatMap((path) =>
+        path.milestones
+          .filter((milestone) => milestone.completed)
+          .map((milestone) => ({ pathId: path.id, milestoneId: milestone.id }))
+      ) ?? [];
+    setToggledMilestones(completedMilestones);
   }, [user?.email, user?.name]);
 
   useEffect(() => {
@@ -38,34 +47,47 @@ export function HigherThinkingProgram({ program }: { program: ProgramDefinition 
     completed: boolean
   ) => {
     setToggling(milestoneId);
-    const response = await fetch(
-      `/api/mind/learning-paths/${pathId}/milestones/${milestoneId}/toggle`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          completed,
-          userEmail: user?.email,
-          userName: user?.name
-        })
-      }
-    );
-    if (response.ok) {
-      const updatedPath: LearningPathWithProgress = await response.json();
-      setPaths((prev) => prev.map((path) => (path.id === pathId ? updatedPath : path)));
-      setToggledMilestones((prev) =>
-        prev.includes(milestoneId) ? prev : [...prev, milestoneId]
+    try {
+      const response = await fetch(
+        `/api/mind/learning-paths/${pathId}/milestones/${milestoneId}/toggle`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            completed,
+            userEmail: user?.email,
+            userName: user?.name
+          })
+        }
       );
+      if (response.ok) {
+        const updatedPath: LearningPathWithProgress = await response.json();
+        setPaths((prev) => prev.map((path) => (path.id === pathId ? updatedPath : path)));
+        setToggledMilestones((prev) => {
+          if (completed) {
+            if (prev.some((entry) => entry.milestoneId === milestoneId)) {
+              return prev;
+            }
+            return [...prev, { pathId, milestoneId }];
+          }
+          return prev.filter((entry) => entry.milestoneId !== milestoneId);
+        });
+      }
+    } finally {
+      setToggling(null);
     }
-    setToggling(null);
   };
 
   const handleComplete = async () => {
+    const selections = [...toggledMilestones];
+    const completedMilestones = selections.map((entry) => entry.milestoneId);
     await completeProgram({
       type: "higher-thinking",
-      milestones: toggledMilestones
+      milestones: completedMilestones
     });
-    setToggledMilestones([]);
+    for (const entry of selections) {
+      await handleToggle(entry.pathId, entry.milestoneId, false);
+    }
   };
   const autoSubmitEnabled = useAutoProgramSubmit(handleComplete);
 
