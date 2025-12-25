@@ -11,6 +11,7 @@
   --text: #051226;
 }
 
+html,
 body {
   font-family: "Space Grotesk", "Inter", "SF Pro Display", system-ui,
     -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -21,6 +22,7 @@ body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+  width: 100%;
 }
 
 body::after {

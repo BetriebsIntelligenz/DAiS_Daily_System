@@ -32,7 +32,7 @@ export default function ProgramsPage() {
 
           return (
             <Link key={program.id} href={`/programs/${program.slug}`}>
-              <Card className="relative overflow-hidden border-none bg-gradient-to-br from-[#fff8de] via-[#ffd4f4] to-[#b7e9ff] p-5 shadow-arcade transition hover:-translate-y-1.5">
+              <Card className="relative overflow-hidden border-none bg-gradient-to-br from-[#fff8de] via-[#ffd4f4] to-[#b7e9ff] p-4 sm:p-5 shadow-arcade transition hover:-translate-y-1.5">
                 <div className="pointer-events-none absolute inset-0 opacity-50">
                   <div className="absolute -right-10 top-0 h-32 w-32 rounded-full bg-[#ff9edc]/40 blur-3xl" />
                   <div className="absolute bottom-0 left-6 h-16 w-16 rounded-full bg-[#8fe9ff]/70 blur-2xl" />
@@ -51,10 +51,12 @@ export default function ProgramsPage() {
                     </span>
                   </div>
                   <div>
-                    <CardTitle className="flex items-center gap-2 text-[#0b1230]">
-                      {program.code} — {program.name}
+                    <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[#0b1230] leading-tight">
+                      <span className="uppercase tracking-widest opacity-70 text-xs sm:text-base">{program.code}</span>
+                      <span className="hidden sm:inline">—</span>
+                      <span>{program.name}</span>
                     </CardTitle>
-                    <CardDescription className="text-sm text-[#4b5685]">
+                    <CardDescription className="text-sm text-[#4b5685] mt-1">
                       {program.summary}
                     </CardDescription>
                   </div>
