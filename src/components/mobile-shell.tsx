@@ -16,7 +16,7 @@ export function MobileShell({
   successMessage?: string;
 }) {
   return (
-    <div className="relative min-h-screen w-full px-4 pb-16 pt-10 sm:px-6">
+    <div className="relative min-h-screen w-full px-2 pb-12 pt-4 sm:px-6 sm:pt-10">
       <div className="mx-auto grid w-full max-w-5xl gap-6 md:grid-cols-[minmax(0,1fr)_120px]">
         <div className="space-y-6">
           {successMessage && (
@@ -48,22 +48,7 @@ export function MobileShell({
           </main>
         </div>
       </div>
-      <Link
-        href="/rewards"
-        className="absolute right-6 top-16 hidden md:block"
-      >
-        <div className="coin-wrapper cursor-pointer">
-          <div className="insert-coin-box">
-            INSERT
-            <br />
-            COIN
-          </div>
-          <div className="coin-slot">
-            <div className="coin-hole" />
-          </div>
-          <p className="coin-note">QUICK MODE</p>
-        </div>
-      </Link>
+
     </div>
   );
 }

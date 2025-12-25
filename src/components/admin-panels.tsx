@@ -3,7 +3,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { ChevronDown, GaugeCircle, Gift, Layers, LayoutGrid, Users } from "lucide-react";
 
-import { programDefinitions, rewardDefinitions } from "@/lib/data";
+import { programDefinitions } from "@/lib/data";
 import type {
   BrainExerciseWithState,
   EmotionPracticeWithLogs,
@@ -21,7 +21,8 @@ import type {
   HumanContactStatsEntry,
   HumanContactActivity,
   HumanContactCadence,
-  HumanContactRelation
+  HumanContactRelation,
+  RewardDefinition
 } from "@/lib/types";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ export function AdminPanels() {
   const [programs, setPrograms] = useState<ProgramDefinition[]>(programDefinitions);
   const [rewardName, setRewardName] = useState("");
   const [rewardCost, setRewardCost] = useState(1000);
+  const [rewards, setRewards] = useState<RewardDefinition[]>([]);
 
   const [visualAssets, setVisualAssets] = useState<MindVisualizationAsset[]>([]);
   const [visualTitle, setVisualTitle] = useState("");
@@ -344,7 +346,8 @@ export function AdminPanels() {
       stackPayload,
       programPayload,
       householdPayload,
-      humanContactsPayload
+      humanContactsPayload,
+      rewardsPayload
     ] = await Promise.all([
       loadJson("/api/mind/visuals"),
       loadJson("/api/mind/goals"),
@@ -357,7 +360,8 @@ export function AdminPanels() {
       loadJson("/api/program-stacks"),
       loadJson("/api/programs"),
       loadJson("/api/environment/household/cards"),
-      loadJson("/api/human/contacts")
+      loadJson("/api/human/contacts"),
+      loadJson("/api/rewards")
     ]);
     setVisualAssets(Array.isArray(visuals) ? visuals : []);
     setGoals(Array.isArray(goalsPayload) ? goalsPayload : []);
@@ -420,6 +424,9 @@ export function AdminPanels() {
       setHumanContacts([]);
       setHumanContactStats([]);
     }
+    setRewards(
+      (rewardsPayload as any)?.rewards || []
+    );
   };
 
   const createProgram = async () => {
@@ -441,7 +448,29 @@ export function AdminPanels() {
     });
     setRewardName("");
     setRewardCost(1000);
+    setRewardName("");
+    setRewardCost(1000);
+    await refreshMindData();
     alert("Belohnung gespeichert.");
+  };
+
+  const deleteReward = async (id: string) => {
+    if (!window.confirm("Reward löschen?")) return;
+    await fetch("/api/rewards", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id })
+    });
+    await refreshMindData();
+  };
+
+  const toggleRewardActive = async (id: string, currentActive: boolean) => {
+    await fetch("/api/rewards", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, active: !currentActive })
+    });
+    await refreshMindData();
   };
 
   const handleVisualUpload = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -1609,7 +1638,7 @@ export function AdminPanels() {
           <header className="flex flex-col gap-1">
             <h2 className="text-xl font-semibold">Belohnungen verwalten</h2>
             <p className="text-sm text-gray-500">
-              Aktive Rewards: {rewardDefinitions.filter((r) => r.active).length}
+              Aktive Rewards: {rewards.filter((r) => r.active).length}
             </p>
           </header>
 
@@ -1627,6 +1656,50 @@ export function AdminPanels() {
               className="rounded-2xl border border-daisy-200 px-4 py-3"
             />
             <Button onClick={createReward}>Belohnung speichern</Button>
+          </div>
+
+          <div className="mt-8 space-y-4">
+            {rewards.map((reward) => (
+              <div
+                key={reward.id}
+                className="flex items-center justify-between rounded-2xl border border-daisy-100 bg-white p-4 shadow-sm"
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold">{reward.name}</p>
+                    {!reward.active && (
+                      <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                        Inaktiv
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">{reward.cost} XP</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => toggleRewardActive(reward.id, reward.active)}
+                  >
+                    {reward.active ? "Deaktivieren" : "Aktivieren"}
+                  </Button>
+                  <Button
+                    className="bg-red-500 text-white hover:bg-red-600"
+                    onClick={() => deleteReward(reward.id)}
+                  >
+                    Löschen
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {rewards.length === 0 && (
+              <p className="text-center text-sm text-gray-400">
+                Keine Belohnungen angelegt.
+              </p>
+            )}
+            <div className="mt-4 p-4 bg-gray-100 rounded text-xs overflow-auto max-h-40">
+              <p className="font-bold">DEBUG DATA ({rewards.length}):</p>
+              <pre>{JSON.stringify(rewards, null, 2)}</pre>
+            </div>
           </div>
         </>,
         <Gift className="h-6 w-6" />
@@ -2064,8 +2137,8 @@ export function AdminPanels() {
                           <label
                             key={task.id}
                             className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${householdCardForm.taskIds.includes(task.id)
-                                ? "border-daisy-400 bg-daisy-50 text-daisy-900"
-                                : "border-daisy-100 bg-white text-gray-600"
+                              ? "border-daisy-400 bg-daisy-50 text-daisy-900"
+                              : "border-daisy-100 bg-white text-gray-600"
                               }`}
                           >
                             <input

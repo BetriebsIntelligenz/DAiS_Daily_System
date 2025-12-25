@@ -30,13 +30,11 @@ export function ScoreCards() {
     const load = async () => {
       const [timelineResponse, statsResponse] = await Promise.all([
         fetch(
-          `/api/timeline?limit=100${
-            user?.email ? `&email=${encodeURIComponent(user.email)}` : ""
+          `/api/timeline?limit=100${user?.email ? `&email=${encodeURIComponent(user.email)}` : ""
           }`
         ),
         fetch(
-          `/api/xp/summary${
-            user?.email ? `?email=${encodeURIComponent(user.email)}` : ""
+          `/api/xp/summary${user?.email ? `?email=${encodeURIComponent(user.email)}` : ""
           }`
         )
       ]);
@@ -54,7 +52,7 @@ export function ScoreCards() {
         }))
       );
       setStats({
-        total: statsData.total ?? 0,
+        total: statsData.totalEarned ?? statsData.total ?? 0,
         categories: statsData.categories ?? {}
       });
     };
@@ -108,11 +106,10 @@ export function ScoreCards() {
                   {activity.title}
                 </span>
                 <span
-                  className={`font-semibold ${
-                    activity.xp.startsWith("-")
+                  className={`font-semibold ${activity.xp.startsWith("-")
                       ? "text-[#ff5474]"
                       : "text-[#24a985]"
-                  }`}
+                    }`}
                 >
                   {activity.xp}
                 </span>

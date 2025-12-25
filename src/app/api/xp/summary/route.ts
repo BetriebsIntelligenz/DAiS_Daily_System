@@ -8,14 +8,27 @@ export async function GET(request: Request) {
   const email = searchParams.get("email") ?? undefined;
   const user = await getOrCreateDemoUser({ email });
 
-  const [xpAggregate, xpByCategory] = await Promise.all([
+  const [balanceAggregate, earnedAggregate, xpByCategory] = await Promise.all([
+    // Current Balance (Net: Earnings - Spendings)
     prisma.xpTransaction.aggregate({
       where: { userId: user.id },
       _sum: { amount: true }
     }),
+    // Total Earned (Gross: Only positive amounts)
+    prisma.xpTransaction.aggregate({
+      where: {
+        userId: user.id,
+        amount: { gt: 0 }
+      },
+      _sum: { amount: true }
+    }),
+    // Categories based on Earnings only
     prisma.xpTransaction.groupBy({
       by: ["category"],
-      where: { userId: user.id },
+      where: {
+        userId: user.id,
+        amount: { gt: 0 }
+      },
       _sum: { amount: true }
     })
   ]);
@@ -25,7 +38,16 @@ export async function GET(request: Request) {
     {}
   );
 
-  const total = xpAggregate._sum.amount ?? 0;
+  const balance = balanceAggregate._sum.amount ?? 0;
+  const totalEarned = earnedAggregate._sum.amount ?? 0;
 
-  return NextResponse.json({ total, categories });
+  // Returning 'total' as balance to maintain backward compatibility for now,
+  // but adding specific fields for clarity.
+  // The frontend components will be updated to use the specific fields.
+  return NextResponse.json({
+    total: balance,
+    balance,
+    totalEarned,
+    categories
+  });
 }

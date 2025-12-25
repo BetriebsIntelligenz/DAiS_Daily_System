@@ -33,15 +33,21 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem("daisUser") : null;
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem("daisUser");
-      }
-    }
+    // TEMPORARY: Auto-login bypass
+    const devUser = { name: "Dev", email: "dev@dais.app" };
+    setUser(devUser);
     setLoading(false);
+
+    // Original Logic (Commented out)
+    // const stored = typeof window !== "undefined" ? localStorage.getItem("daisUser") : null;
+    // if (stored) {
+    //   try {
+    //     setUser(JSON.parse(stored));
+    //   } catch {
+    //     localStorage.removeItem("daisUser");
+    //   }
+    // }
+    // setLoading(false);
   }, []);
 
   const logout = () => {
@@ -97,41 +103,41 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#80dfff]/60 via-[#ffe5f8]/70 to-[#ffd48e]/70 px-6 py-10">
-      <form
-        onSubmit={handleLogin}
-        className="w-full max-w-md space-y-5 rounded-[38px] border-4 border-white/70 bg-gradient-to-b from-[#142c6c]/80 via-[#273b9a]/85 to-[#6157d5]/80 p-8 text-white shadow-arcade backdrop-blur"
-      >
-        <header className="text-center">
-          <p className="font-arcade text-[11px] uppercase tracking-[0.6em] text-[#f8df7b]">
-            DAiS Zugang
-          </p>
-          <h1 className="mt-3 font-arcade text-2xl tracking-[0.3em]">
-            Einloggen
-          </h1>
-        </header>
-        <input
-          name="name"
-          placeholder="Benutzername"
-          className="retro-input w-full text-[#0a1435]"
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Passwort"
-          className="retro-input w-full text-[#0a1435]"
-        />
-        {error && (
-          <p className="rounded-2xl bg-white/20 px-4 py-2 text-center text-sm font-semibold text-[#ffb7c5]">
-            {error}
-          </p>
-        )}
-        <button type="submit" className="pixel-button w-full py-3">
-          Start
-        </button>
-      </form>
-    </div>
-  );
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#80dfff]/60 via-[#ffe5f8]/70 to-[#ffd48e]/70 px-6 py-10">
+        <form
+          onSubmit={handleLogin}
+          className="w-full max-w-md space-y-5 rounded-[38px] border-4 border-white/70 bg-gradient-to-b from-[#142c6c]/80 via-[#273b9a]/85 to-[#6157d5]/80 p-8 text-white shadow-arcade backdrop-blur"
+        >
+          <header className="text-center">
+            <p className="font-arcade text-[11px] uppercase tracking-[0.6em] text-[#f8df7b]">
+              DAiS Zugang
+            </p>
+            <h1 className="mt-3 font-arcade text-2xl tracking-[0.3em]">
+              Einloggen
+            </h1>
+          </header>
+          <input
+            name="name"
+            placeholder="Benutzername"
+            className="retro-input w-full text-[#0a1435]"
+          />
+          <input
+            name="password"
+            type="password"
+            placeholder="Passwort"
+            className="retro-input w-full text-[#0a1435]"
+          />
+          {error && (
+            <p className="rounded-2xl bg-white/20 px-4 py-2 text-center text-sm font-semibold text-[#ffb7c5]">
+              {error}
+            </p>
+          )}
+          <button type="submit" className="pixel-button w-full py-3">
+            Start
+          </button>
+        </form>
+      </div>
+    );
   }
 
   return (

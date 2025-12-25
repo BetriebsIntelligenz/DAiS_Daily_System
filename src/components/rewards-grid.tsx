@@ -37,7 +37,7 @@ export function RewardsGrid() {
 
     const summaryResponse = await fetch(`/api/xp/summary${emailQuery}`);
     const summaryData = await summaryResponse.json();
-    setXpBalance(summaryData.total ?? 0);
+    setXpBalance(summaryData.balance ?? summaryData.total ?? 0);
   }, [user?.email]);
 
   useEffect(() => {
@@ -129,8 +129,8 @@ export function RewardsGrid() {
                     {new Date(redemption.requestedAt).toLocaleString("de-DE")}
                     {redemption.resolvedAt
                       ? ` · abgeschlossen ${new Date(
-                          redemption.resolvedAt
-                        ).toLocaleString("de-DE")}`
+                        redemption.resolvedAt
+                      ).toLocaleString("de-DE")}`
                       : ""}
                   </CardDescription>
                 </div>
