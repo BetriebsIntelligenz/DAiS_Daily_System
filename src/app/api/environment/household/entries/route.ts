@@ -44,7 +44,7 @@ class HouseholdTablesUnavailableError extends Error {
 }
 
 function getDelegate<TDelegate>(name: keyof PrismaClient) {
-  const delegate = (prisma as Record<string, unknown>)[name];
+  const delegate = (prisma as unknown as Record<string | symbol, unknown>)[name];
   if (!delegate || typeof (delegate as Record<string, unknown>).findMany !== "function") {
     throw new HouseholdTablesUnavailableError(MIGRATION_HINT);
   }
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
   const to = toParam ?? endOfWeek(base);
 
   try {
-    const entryClient = getDelegate<Prisma.HouseholdEntryDelegate<undefined>>("householdEntry");
+    const entryClient = getDelegate<Prisma.HouseholdEntryDelegate>("householdEntry");
     const entries = await entryClient.findMany({
       where: {
         createdAt: {
@@ -172,8 +172,8 @@ export async function POST(request: Request) {
   });
 
   try {
-    const cardClient = getDelegate<Prisma.HouseholdCardDelegate<undefined>>("householdCard");
-    const entryClient = getDelegate<Prisma.HouseholdEntryDelegate<undefined>>("householdEntry");
+    const cardClient = getDelegate<Prisma.HouseholdCardDelegate>("householdCard");
+    const entryClient = getDelegate<Prisma.HouseholdEntryDelegate>("householdEntry");
     const selectedCard = (await cardClient.findUnique({
       where: { id: cardId },
       include: {

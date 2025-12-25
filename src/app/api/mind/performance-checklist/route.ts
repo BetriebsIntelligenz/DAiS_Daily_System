@@ -5,9 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { performanceChecklistSeeds } from "@/lib/mind-data";
 
 type PrismaPerformanceClient = typeof prisma & {
-  performanceChecklistItem?: Prisma.PerformanceChecklistItemDelegate<
-    Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
-  >;
+  performanceChecklistItem?: Prisma.PerformanceChecklistItemDelegate;
 };
 
 const PERFORMANCE_CHECKLIST_HINT =
@@ -47,7 +45,7 @@ function missingTableError(message?: string) {
   return missingTableResponse(
     503,
     message ??
-      "Performance Checklist steht noch nicht in der Datenbank zur Verfügung."
+    "Performance Checklist steht noch nicht in der Datenbank zur Verfügung."
   );
 }
 
@@ -192,7 +190,7 @@ export async function PATCH(request: Request) {
     if (!delegate) {
       return missingTableError("Reihenfolge konnte nicht gespeichert werden – Client noch nicht generiert.");
     }
-    const updates = order.map((id, index) =>
+    const updates = order.map((id: string, index: number) =>
       delegate.update({
         where: { id },
         data: { order: index }

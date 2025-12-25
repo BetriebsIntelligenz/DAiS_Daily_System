@@ -33,9 +33,9 @@ class HumanContactsUnavailableError extends Error {
 }
 
 type PrismaWithHumanContacts = PrismaClient & {
-  humanContactPerson?: Prisma.HumanContactPersonDelegate<undefined>;
-  humanContactAssignment?: Prisma.HumanContactAssignmentDelegate<undefined>;
-  humanContactLog?: Prisma.HumanContactLogDelegate<undefined>;
+  humanContactPerson?: Prisma.HumanContactPersonDelegate;
+  humanContactAssignment?: Prisma.HumanContactAssignmentDelegate;
+  humanContactLog?: Prisma.HumanContactLogDelegate;
 };
 
 const prismaWithHumanContacts = prisma as PrismaWithHumanContacts;
@@ -51,23 +51,23 @@ function getHumanContactDelegate<TDelegate extends { findMany?: unknown }>(
   ) {
     throw new HumanContactsUnavailableError(HUMAN_CONTACT_MIGRATION_HINT);
   }
-  return candidate as TDelegate;
+  return candidate as unknown as TDelegate;
 }
 
 export function getHumanContactPersonClient() {
-  return getHumanContactDelegate<Prisma.HumanContactPersonDelegate<undefined>>(
+  return getHumanContactDelegate<Prisma.HumanContactPersonDelegate>(
     "humanContactPerson"
   );
 }
 
 export function getHumanContactAssignmentClient() {
   return getHumanContactDelegate<
-    Prisma.HumanContactAssignmentDelegate<undefined>
+    Prisma.HumanContactAssignmentDelegate
   >("humanContactAssignment");
 }
 
 export function getHumanContactLogClient() {
-  return getHumanContactDelegate<Prisma.HumanContactLogDelegate<undefined>>(
+  return getHumanContactDelegate<Prisma.HumanContactLogDelegate>(
     "humanContactLog"
   );
 }

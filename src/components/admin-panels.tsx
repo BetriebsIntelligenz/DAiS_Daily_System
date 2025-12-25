@@ -145,9 +145,13 @@ export function AdminPanels() {
   const [householdAdminError, setHouseholdAdminError] = useState<string | null>(null);
   const [humanContacts, setHumanContacts] = useState<HumanContactPersonDefinition[]>([]);
   const [humanContactStats, setHumanContactStats] = useState<HumanContactStatsEntry[]>([]);
-  const [humanContactForm, setHumanContactForm] = useState({
+  const [humanContactForm, setHumanContactForm] = useState<{
+    name: string;
+    relation: HumanContactRelation;
+    note: string;
+  }>({
     name: "",
-    relation: HUMAN_DEFAULT_RELATION,
+    relation: HUMAN_DEFAULT_RELATION as HumanContactRelation,
     note: ""
   });
   const [editingHumanContact, setEditingHumanContact] = useState<HumanContactPersonDefinition | null>(null);
@@ -1031,9 +1035,9 @@ export function AdminPanels() {
       editingTaskId === null
         ? { label }
         : {
-            id: editingTaskId,
-            label
-          };
+          id: editingTaskId,
+          label
+        };
     try {
       const response = await fetch(endpoint, {
         method: editingTaskId === null ? "POST" : "PUT",
@@ -2059,11 +2063,10 @@ export function AdminPanels() {
                         {householdTasks.map((task) => (
                           <label
                             key={task.id}
-                            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${
-                              householdCardForm.taskIds.includes(task.id)
+                            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${householdCardForm.taskIds.includes(task.id)
                                 ? "border-daisy-400 bg-daisy-50 text-daisy-900"
                                 : "border-daisy-100 bg-white text-gray-600"
-                            }`}
+                              }`}
                           >
                             <input
                               type="checkbox"
@@ -2434,164 +2437,164 @@ export function AdminPanels() {
                         key={flow.id}
                         className="space-y-3 rounded-2xl border border-daisy-100 bg-white/90 p-4"
                       >
-                          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                            <div>
-                              <p className="text-xs uppercase tracking-[0.3em] text-daisy-400">
-                                {flow.subtitle ?? "Meditation"}
-                              </p>
-                              <h4 className="text-lg font-semibold text-gray-900">{flow.title}</h4>
-                              {flow.summary && (
-                                <p className="text-sm text-gray-600">{flow.summary}</p>
-                              )}
-                              <p className="text-xs text-gray-500">
-                                {flow.steps.length} Steps · Position {index + 1}
-                              </p>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                disabled={isFirstFlow}
-                                onClick={() => moveMeditation(flow.id, "up")}
-                              >
-                                ↑
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                disabled={isLastFlow}
-                                onClick={() => moveMeditation(flow.id, "down")}
-                              >
-                                ↓
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => openMeditationEdit(flow)}
-                              >
-                                Bearbeiten
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => handleMeditationDelete(flow.id)}
-                              >
-                                Löschen
-                              </Button>
-                            </div>
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.3em] text-daisy-400">
+                              {flow.subtitle ?? "Meditation"}
+                            </p>
+                            <h4 className="text-lg font-semibold text-gray-900">{flow.title}</h4>
+                            {flow.summary && (
+                              <p className="text-sm text-gray-600">{flow.summary}</p>
+                            )}
+                            <p className="text-xs text-gray-500">
+                              {flow.steps.length} Steps · Position {index + 1}
+                            </p>
                           </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              disabled={isFirstFlow}
+                              onClick={() => moveMeditation(flow.id, "up")}
+                            >
+                              ↑
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              disabled={isLastFlow}
+                              onClick={() => moveMeditation(flow.id, "down")}
+                            >
+                              ↓
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => openMeditationEdit(flow)}
+                            >
+                              Bearbeiten
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => handleMeditationDelete(flow.id)}
+                            >
+                              Löschen
+                            </Button>
+                          </div>
+                        </div>
 
-                          {isEditing && (
-                            <form className="space-y-2 rounded-2xl border border-daisy-100 bg-white/80 p-3" onSubmit={handleMeditationUpdate}>
-                              <input
-                                value={meditationEditForm.title}
-                                onChange={(event) =>
-                                  setMeditationEditForm((prev) => ({
-                                    ...prev,
-                                    title: event.target.value
-                                  }))
-                                }
-                                placeholder="Titel"
-                                className="rounded-2xl border border-daisy-200 px-4 py-3"
-                              />
-                              <input
-                                value={meditationEditForm.subtitle}
-                                onChange={(event) =>
-                                  setMeditationEditForm((prev) => ({
-                                    ...prev,
-                                    subtitle: event.target.value
-                                  }))
-                                }
-                                placeholder="Untertitel"
-                                className="rounded-2xl border border-daisy-200 px-4 py-3"
-                              />
-                              <textarea
-                                value={meditationEditForm.summary}
-                                onChange={(event) =>
-                                  setMeditationEditForm((prev) => ({
-                                    ...prev,
-                                    summary: event.target.value
-                                  }))
-                                }
-                                placeholder="Beschreibung"
-                                className="rounded-2xl border border-daisy-200 px-4 py-3"
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                <Button type="submit">Speichern</Button>
-                                <Button type="button" variant="ghost" onClick={cancelMeditationEdit}>
-                                  Abbrechen
-                                </Button>
-                              </div>
-                            </form>
-                          )}
-
-                          {flow.steps.length > 0 && (
-                            <ul className="space-y-2 rounded-2xl border border-daisy-100 bg-white/60 p-3 text-sm text-gray-700">
-                              {flow.steps
-                                .slice()
-                                .sort((a, b) => a.order - b.order)
-                                .map((step, stepIndex, stepList) => (
-                                  <li
-                                    key={step.id}
-                                    className="flex flex-col gap-2 rounded-2xl border border-daisy-50 bg-white/80 p-3 md:flex-row md:items-center md:justify-between"
-                                  >
-                                    <div>
-                                      <p className="font-semibold text-gray-900">
-                                        {stepIndex + 1}. {step.title}
-                                      </p>
-                                      {step.description && (
-                                        <p className="text-sm text-gray-600">{step.description}</p>
-                                      )}
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        disabled={stepIndex === 0}
-                                        onClick={() => moveMeditationStep(flow.id, step.id, "up")}
-                                      >
-                                        ↑
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        disabled={stepIndex === stepList.length - 1}
-                                        onClick={() => moveMeditationStep(flow.id, step.id, "down")}
-                                      >
-                                        ↓
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        onClick={() => handleStepDelete(flow.id, step.id)}
-                                      >
-                                        Entfernen
-                                      </Button>
-                                    </div>
-                                  </li>
-                                ))}
-                            </ul>
-                          )}
-
-                          <form className="grid gap-2 rounded-2xl border border-daisy-100 bg-white/80 p-3" onSubmit={handleStepSubmit(flow.id)}>
+                        {isEditing && (
+                          <form className="space-y-2 rounded-2xl border border-daisy-100 bg-white/80 p-3" onSubmit={handleMeditationUpdate}>
                             <input
-                              value={stepDraft.title}
+                              value={meditationEditForm.title}
                               onChange={(event) =>
-                                updateStepDraft(flow.id, { title: event.target.value })
+                                setMeditationEditForm((prev) => ({
+                                  ...prev,
+                                  title: event.target.value
+                                }))
                               }
-                              placeholder="Neuer Step Titel"
+                              placeholder="Titel"
+                              className="rounded-2xl border border-daisy-200 px-4 py-3"
+                            />
+                            <input
+                              value={meditationEditForm.subtitle}
+                              onChange={(event) =>
+                                setMeditationEditForm((prev) => ({
+                                  ...prev,
+                                  subtitle: event.target.value
+                                }))
+                              }
+                              placeholder="Untertitel"
                               className="rounded-2xl border border-daisy-200 px-4 py-3"
                             />
                             <textarea
-                              value={stepDraft.description}
+                              value={meditationEditForm.summary}
                               onChange={(event) =>
-                                updateStepDraft(flow.id, { description: event.target.value })
+                                setMeditationEditForm((prev) => ({
+                                  ...prev,
+                                  summary: event.target.value
+                                }))
                               }
-                              placeholder="Beschreibung (optional)"
+                              placeholder="Beschreibung"
                               className="rounded-2xl border border-daisy-200 px-4 py-3"
                             />
-                            <Button type="submit">Step hinzufügen</Button>
+                            <div className="flex flex-wrap gap-2">
+                              <Button type="submit">Speichern</Button>
+                              <Button type="button" variant="ghost" onClick={cancelMeditationEdit}>
+                                Abbrechen
+                              </Button>
+                            </div>
                           </form>
+                        )}
+
+                        {flow.steps.length > 0 && (
+                          <ul className="space-y-2 rounded-2xl border border-daisy-100 bg-white/60 p-3 text-sm text-gray-700">
+                            {flow.steps
+                              .slice()
+                              .sort((a, b) => a.order - b.order)
+                              .map((step, stepIndex, stepList) => (
+                                <li
+                                  key={step.id}
+                                  className="flex flex-col gap-2 rounded-2xl border border-daisy-50 bg-white/80 p-3 md:flex-row md:items-center md:justify-between"
+                                >
+                                  <div>
+                                    <p className="font-semibold text-gray-900">
+                                      {stepIndex + 1}. {step.title}
+                                    </p>
+                                    {step.description && (
+                                      <p className="text-sm text-gray-600">{step.description}</p>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      disabled={stepIndex === 0}
+                                      onClick={() => moveMeditationStep(flow.id, step.id, "up")}
+                                    >
+                                      ↑
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      disabled={stepIndex === stepList.length - 1}
+                                      onClick={() => moveMeditationStep(flow.id, step.id, "down")}
+                                    >
+                                      ↓
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      onClick={() => handleStepDelete(flow.id, step.id)}
+                                    >
+                                      Entfernen
+                                    </Button>
+                                  </div>
+                                </li>
+                              ))}
+                          </ul>
+                        )}
+
+                        <form className="grid gap-2 rounded-2xl border border-daisy-100 bg-white/80 p-3" onSubmit={handleStepSubmit(flow.id)}>
+                          <input
+                            value={stepDraft.title}
+                            onChange={(event) =>
+                              updateStepDraft(flow.id, { title: event.target.value })
+                            }
+                            placeholder="Neuer Step Titel"
+                            className="rounded-2xl border border-daisy-200 px-4 py-3"
+                          />
+                          <textarea
+                            value={stepDraft.description}
+                            onChange={(event) =>
+                              updateStepDraft(flow.id, { description: event.target.value })
+                            }
+                            placeholder="Beschreibung (optional)"
+                            className="rounded-2xl border border-daisy-200 px-4 py-3"
+                          />
+                          <Button type="submit">Step hinzufügen</Button>
+                        </form>
                       </div>
                     );
                   })}

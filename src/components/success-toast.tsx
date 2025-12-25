@@ -6,20 +6,25 @@ import { CheckCircle2 } from "lucide-react";
 interface SuccessToastProps {
   message?: string;
   duration?: number;
+  onClose?: () => void;
 }
 
 export function SuccessToast({
   message,
-  duration = 4000
+  duration = 4000,
+  onClose
 }: SuccessToastProps) {
   const [visible, setVisible] = useState(Boolean(message));
 
   useEffect(() => {
     if (!message) return;
     setVisible(true);
-    const timer = setTimeout(() => setVisible(false), duration);
+    const timer = setTimeout(() => {
+      setVisible(false);
+      onClose?.();
+    }, duration);
     return () => clearTimeout(timer);
-  }, [message, duration]);
+  }, [message, duration, onClose]);
 
   if (!message || !visible) {
     return null;

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "node scripts/dev-server.js dev",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "node scripts/dev-server.js start",
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",

@@ -28,7 +28,7 @@ class HouseholdTablesUnavailableError extends Error {
 type DelegateName = keyof PrismaClient;
 
 function getPrismaDelegate<TDelegate>(name: DelegateName) {
-  const candidate = (prisma as Record<string, unknown>)[name];
+  const candidate = (prisma as unknown as Record<string | symbol, unknown>)[name];
   if (!candidate || typeof (candidate as Record<string, unknown>).findMany !== "function") {
     throw new HouseholdTablesUnavailableError(MIGRATION_HINT);
   }
@@ -56,7 +56,7 @@ function serializeCard(card: Awaited<ReturnType<typeof loadCards>>[number] | Car
 }
 
 async function loadCards() {
-  const cardClient = getPrismaDelegate<Prisma.HouseholdCardDelegate<undefined>>("householdCard");
+  const cardClient = getPrismaDelegate<Prisma.HouseholdCardDelegate>("householdCard");
   return cardClient.findMany({
     orderBy: [{ weekday: "asc" }, { title: "asc" }],
     include: {
@@ -71,18 +71,18 @@ async function loadCards() {
 async function syncCardTasks(cardId: string, taskIds: string[]) {
   const uniqueTaskIds = [...new Set(taskIds)];
   if (uniqueTaskIds.length === 0) {
-    await getPrismaDelegate<Prisma.HouseholdCardTaskDelegate<undefined>>("householdCardTask").deleteMany({
+    await getPrismaDelegate<Prisma.HouseholdCardTaskDelegate>("householdCardTask").deleteMany({
       where: { cardId }
     });
     return;
   }
-  const taskClient = getPrismaDelegate<Prisma.HouseholdTaskDelegate<undefined>>("householdTask");
+  const taskClient = getPrismaDelegate<Prisma.HouseholdTaskDelegate>("householdTask");
   const existingTasks = await taskClient.findMany({
     where: { id: { in: uniqueTaskIds } },
     select: { id: true }
   });
   const validIds = uniqueTaskIds.filter((taskId) => existingTasks.some((task) => task.id === taskId));
-  const cardTaskClient = getPrismaDelegate<Prisma.HouseholdCardTaskDelegate<undefined>>("householdCardTask");
+  const cardTaskClient = getPrismaDelegate<Prisma.HouseholdCardTaskDelegate>("householdCardTask");
   await cardTaskClient.deleteMany({ where: { cardId } });
   if (validIds.length === 0) return;
   for (const [index, taskId] of validIds.entries()) {
@@ -120,7 +120,7 @@ export async function GET() {
   try {
     const [cards, tasks] = await Promise.all([
       loadCards(),
-      getPrismaDelegate<Prisma.HouseholdTaskDelegate<undefined>>("householdTask").findMany({
+      getPrismaDelegate<Prisma.HouseholdTaskDelegate>("householdTask").findMany({
         orderBy: { order: "asc" }
       })
     ]);
@@ -154,14 +154,14 @@ export async function POST(request: Request) {
   const summary = typeof body.summary === "string" ? body.summary.trim() : "";
   const weekdayRaw = Number(body.weekday ?? 1);
   const weekday = Number.isFinite(weekdayRaw) ? Math.min(7, Math.max(1, weekdayRaw)) : 1;
-  const taskIds = Array.isArray(body.taskIds) ? body.taskIds.filter((id) => typeof id === "string") : [];
+  const taskIds = Array.isArray(body.taskIds) ? body.taskIds.filter((id: any) => typeof id === "string") : [];
 
   if (!title) {
     return NextResponse.json({ error: "Titel erforderlich." }, { status: 400 });
   }
 
   try {
-    const cardClient = getPrismaDelegate<Prisma.HouseholdCardDelegate<undefined>>("householdCard");
+    const cardClient = getPrismaDelegate<Prisma.HouseholdCardDelegate>("householdCard");
     const card = await cardClient.create({
       data: {
         title,
@@ -225,7 +225,7 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const cardClient = getPrismaDelegate<Prisma.HouseholdCardDelegate<undefined>>("householdCard");
+    const cardClient = getPrismaDelegate<Prisma.HouseholdCardDelegate>("householdCard");
     await cardClient.update({
       where: { id },
       data
@@ -275,7 +275,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Card ID erforderlich." }, { status: 400 });
   }
   try {
-    await getPrismaDelegate<Prisma.HouseholdCardDelegate<undefined>>("householdCard").delete({ where: { id } });
+    await getPrismaDelegate<Prisma.HouseholdCardDelegate>("householdCard").delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof HouseholdTablesUnavailableError || isMissingHouseholdTables(error)) {

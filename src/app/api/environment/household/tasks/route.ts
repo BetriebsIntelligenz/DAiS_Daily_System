@@ -24,7 +24,7 @@ class HouseholdTablesUnavailableError extends Error {
 }
 
 function getTaskDelegate() {
-  const delegate = (prisma as PrismaClient & { householdTask?: Prisma.HouseholdTaskDelegate<undefined> })
+  const delegate = (prisma as PrismaClient & { householdTask?: Prisma.HouseholdTaskDelegate })
     .householdTask;
   if (!delegate || typeof delegate.findMany !== "function") {
     throw new HouseholdTablesUnavailableError(MIGRATION_HINT);

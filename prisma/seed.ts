@@ -232,13 +232,13 @@ async function main() {
           id: step.id,
           flowId: flow.id,
           title: step.title,
-          description: step.description ?? null,
+          description: (step as any).description ?? null,
           order: typeof step.order === "number" ? step.order : 0
         },
         update: {
           flowId: flow.id,
           title: step.title,
-          description: step.description ?? null,
+          description: (step as any).description ?? null,
           order: typeof step.order === "number" ? step.order : 0
         }
       });

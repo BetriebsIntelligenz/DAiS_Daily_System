@@ -41,7 +41,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   });
   const existingIds = new Set(existingSteps.map((step) => step.id));
 
-  const includesInvalid = orderArray.some((id) => !existingIds.has(id));
+  const includesInvalid = orderArray.some((id: string) => !existingIds.has(id));
   if (includesInvalid || existingSteps.length !== orderArray.length) {
     return NextResponse.json(
       { error: "Reihenfolge stimmt nicht mit den vorhandenen Steps überein." },

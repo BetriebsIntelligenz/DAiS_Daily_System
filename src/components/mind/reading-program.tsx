@@ -36,7 +36,7 @@ export function ReadingProgram({ program }: { program: ProgramDefinition }) {
     completionOverrides?.redirectTo === null
       ? null
       : completionOverrides?.redirectTo ??
-        `/?programCompleted=${encodeURIComponent(program.name)}`;
+      `/?programCompleted=${encodeURIComponent(program.name)}`;
 
   const loadBooks = useCallback(async () => {
     setLoadingBooks(true);
@@ -276,7 +276,7 @@ export function ReadingProgram({ program }: { program: ProgramDefinition }) {
           </div>
         </details>
       </section>
-      <SuccessToast message={toastMessage} onClose={() => setToastMessage(null)} />
+      <SuccessToast message={toastMessage ?? undefined} onClose={() => setToastMessage(null)} />
     </div>
   );
 }
