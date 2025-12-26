@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "task-dishes",
+      "label": "Dishwasher",
+      "order": 0,
+      "active": true,
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "task-floor",
+      "label": "Floor wipe",
+      "order": 1,
+      "active": true,
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "task-plants",
+      "label": "Water plants",
+      "order": 2,
+      "active": true,
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    }
+  ],
+  "cards": [
+    {
+      "id": "card-monday-reset",
+      "title": "Monday reset",
+      "summary": "Quick kitchen sweep",
+      "weekday": 1,
+      "taskIds": [
+        "task-dishes",
+        "task-floor"
+      ],
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "card-wednesday-garden",
+      "title": "Wednesday garden",
+      "summary": "Plants and balcony",
+      "weekday": 3,
+      "taskIds": [
+        "task-plants"
+      ],
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry-monday",
+      "cardId": "card-monday-reset",
+      "userId": "demo-user",
+      "programRunId": null,
+      "completedTaskIds": [
+        "task-dishes"
+      ],
+      "note": "Floors still open",
+      "createdAt": "2025-01-03T07:00:00.000Z"
+    },
+    {
+      "id": "entry-garden",
+      "cardId": "card-wednesday-garden",
+      "userId": "demo-user",
+      "programRunId": null,
+      "completedTaskIds": [
+        "task-plants"
+      ],
+      "note": null,
+      "createdAt": "2024-12-10T07:00:00.000Z"
+    }
+  ]
+}
+

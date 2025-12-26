@@ -1,0 +1,8 @@
+[household]
+stale_after_days = 7
+max_overdue_cards = 3
+
+[human_contacts]
+default_timezone = "UTC"
+default_cadence = "weekly"
+

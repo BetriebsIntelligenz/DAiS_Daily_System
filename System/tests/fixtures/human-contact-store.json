@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "persons": [
+    {
+      "id": "person-anna",
+      "name": "Anna",
+      "relation": "family",
+      "note": "Weekly sync",
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "person-ben",
+      "name": "Ben",
+      "relation": "partner",
+      "note": null,
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "person-cara",
+      "name": "Cara",
+      "relation": "mentor",
+      "note": null,
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "person-dora",
+      "name": "Dora",
+      "relation": "investor",
+      "note": null,
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "assign-anna-call",
+      "personId": "person-anna",
+      "activity": "call",
+      "cadence": "weekly",
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "assign-ben-daily",
+      "personId": "person-ben",
+      "activity": "message",
+      "cadence": "daily",
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "assign-cara-biweekly",
+      "personId": "person-cara",
+      "activity": "review",
+      "cadence": "biweekly",
+      "createdAt": "2025-01-01T06:00:00.000Z",
+      "updatedAt": "2025-01-01T06:00:00.000Z"
+    },
+    {
+      "id": "assign-dora-weekly",
+      "personId": "person-dora",
+      "activity": "email",
+      "cadence": "weekly",
+      "createdAt": "2024-12-01T06:00:00.000Z",
+      "updatedAt": "2024-12-01T06:00:00.000Z"
+    }
+  ],
+  "logs": [
+    {
+      "id": "log-anna",
+      "personId": "person-anna",
+      "activity": "call",
+      "note": "Kickoff",
+      "createdAt": "2025-01-01T09:00:00.000Z"
+    },
+    {
+      "id": "log-ben",
+      "personId": "person-ben",
+      "activity": "message",
+      "note": null,
+      "createdAt": "2025-01-05T09:00:00.000Z"
+    },
+    {
+      "id": "log-dora",
+      "personId": "person-dora",
+      "activity": "email",
+      "note": null,
+      "createdAt": "2024-12-15T09:00:00.000Z"
+    }
+  ]
+}
+
