@@ -103,10 +103,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#80dfff]/60 via-[#ffe5f8]/70 to-[#ffd48e]/70 px-6 py-10">
+      <div className="flex min-h-[100dvh] w-full flex-col overflow-y-auto bg-gradient-to-b from-[#80dfff]/60 via-[#ffe5f8]/70 to-[#ffd48e]/70 px-6 py-10">
         <form
           onSubmit={handleLogin}
-          className="w-full max-w-md space-y-5 rounded-[38px] border-4 border-white/70 bg-gradient-to-b from-[#142c6c]/80 via-[#273b9a]/85 to-[#6157d5]/80 p-8 text-white shadow-arcade backdrop-blur"
+          className="m-auto w-full max-w-md space-y-5 rounded-[38px] border-4 border-white/70 bg-gradient-to-b from-[#142c6c]/80 via-[#273b9a]/85 to-[#6157d5]/80 p-8 text-white shadow-arcade backdrop-blur"
         >
           <header className="text-center">
             <p className="font-arcade text-[11px] uppercase tracking-[0.6em] text-[#f8df7b]">
