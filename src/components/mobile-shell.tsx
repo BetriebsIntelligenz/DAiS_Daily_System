@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { SuccessToast } from "./success-toast";
 import { UserMenu } from "./user-menu";
-import { MenuDock } from "./menu-dock";
 
 export function MobileShell({
   title,
@@ -38,9 +37,7 @@ export function MobileShell({
               <UserMenu />
             </div>
 
-            <div className="mt-8">
-              <MenuDock />
-            </div>
+
           </section>
 
           <main className="crt-noise relative rounded-[38px] border-4 border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(5,20,52,0.35)] sm:p-8">

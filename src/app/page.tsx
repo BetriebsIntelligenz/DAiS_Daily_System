@@ -46,8 +46,8 @@ export default async function HomePage({
 
   return (
     <MobileShell
-      title="Programme Menü"
-      description="Wähle eine Kategorie (Mind, Body, Human, Environment, Business) um mit dem nächsten Flow zu starten."
+      title="DAiS Programme"
+      description="Hier werden alle Programme angezeigt"
       successMessage={successMessage}
     >
       <nav className="mb-8 flex justify-center">
