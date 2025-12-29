@@ -1828,6 +1828,36 @@ export function AdminPanels() {
       )}
 
       {renderAccordionSection(
+        "xp-center",
+        "XP Center",
+        "Experience & Leveling",
+        <>
+          <header className="flex flex-col gap-1">
+            <h2 className="text-xl font-semibold">XP Center</h2>
+            <p className="text-sm text-gray-500">
+              Konfiguriere XP-Regeln und Multiplikatoren für das System.
+            </p>
+          </header>
+          <div className="mt-6 space-y-6">
+            <div className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
+              <h3 className="text-lg font-semibold">Tages-Bonus</h3>
+              <p className="text-sm text-gray-500 mb-4">Bonus-XP für das Abschließen aller Tages-Stacks.</p>
+              <div className="flex items-center gap-4">
+                <input
+                  type="number"
+                  defaultValue={500}
+                  className="rounded-2xl border border-daisy-200 px-4 py-3 w-32"
+                />
+                <span className="text-sm font-bold text-daisy-600">XP</span>
+                <Button onClick={() => alert("XP Bonus gespeichert (Stub)")}>Update</Button>
+              </div>
+            </div>
+          </div>
+        </>,
+        <GaugeCircle className="h-6 w-6" />
+      )}
+
+      {renderAccordionSection(
         "cards",
         "Cards",
         "Mind Module & Assets",
@@ -2105,6 +2135,33 @@ export function AdminPanels() {
                   ))}
                 </ul>
               )}
+            </article>
+
+
+
+            {/* DAY VIEW CARD */}
+            <article
+              id="cards-day-view"
+              className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm"
+            >
+              <header className="flex flex-col gap-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                  Ändert: Tagesansicht
+                </p>
+                <h3 className="text-xl font-semibold">Tagesansicht Konfiguration</h3>
+                <p className="text-sm text-gray-500">
+                  Einstellungen für die Day-View (z.B. Startzeiten, Standard-Zoom).
+                </p>
+              </header>
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-2">Standard Start-Zeit der Timeline:</p>
+                <input
+                  type="time"
+                  defaultValue="06:00"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <Button className="ml-4" onClick={() => alert("Einstellung gespeichert (Stub)")}>Speichern</Button>
+              </div>
             </article>
 
             <article
@@ -2796,501 +2853,510 @@ export function AdminPanels() {
                 </div>
               )}
             </article>
-          </div>
+          </div >
         </>,
         <LayoutGrid className="h-6 w-6" />
-      )}
-      {renderAccordionSection(
-        "xp-center",
-        "XP Center",
-        "XP Verwaltung",
-        <>
-          <header className="flex flex-col gap-1">
-            <h2 className="text-xl font-semibold">XP Control Center</h2>
-            <p className="text-sm text-gray-500">
-              Passe die XP Vergabe je Programmkarte (z.B. MG1 — SMART Ziele) an. Änderungen wirken
-              sofort für neue Runs und damit auch auf das Score Dashboard.
-            </p>
-          </header>
-
-          <div className="mt-6 space-y-8">
-            {performanceProgram && (
-              <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
-                <header className="flex flex-col gap-1">
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
-                    XP · Performance Checklist
-                  </p>
-                  <h3 className="text-xl font-semibold">PC1 — {performanceProgram.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    Direkter Zugriff auf die neue Checklist XP (aktuell +{performanceProgram.xpReward} XP).
-                  </p>
-                </header>
-                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
-                  <input
-                    type="number"
-                    min={0}
-                    value={
-                      programXpDrafts[performanceProgram.id] ?? String(performanceProgram.xpReward)
-                    }
-                    onChange={(event) =>
-                      updateProgramXpDraft(
-                        performanceProgram.id,
-                        event.target.value,
-                        performanceProgram.xpReward
-                      )
-                    }
-                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => persistProgramXp(performanceProgram)}
-                    disabled={savingProgramId === performanceProgram.id}
-                  >
-                    {savingProgramId === performanceProgram.id ? "Speichert…" : "XP speichern"}
-                  </Button>
-                </div>
-              </article>
-            )}
-            {householdProgram && (
-              <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
-                <header className="flex flex-col gap-1">
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
-                    XP · Haushalt
-                  </p>
-                  <h3 className="text-xl font-semibold">EN2 — {householdProgram.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    Steuert die XP pro gespeicherter Haushaltskarte (+{householdProgram.xpReward} XP).
-                  </p>
-                </header>
-                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
-                  <input
-                    type="number"
-                    min={0}
-                    value={programXpDrafts[householdProgram.id] ?? String(householdProgram.xpReward)}
-                    onChange={(event) =>
-                      updateProgramXpDraft(
-                        householdProgram.id,
-                        event.target.value,
-                        householdProgram.xpReward
-                      )
-                    }
-                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => persistProgramXp(householdProgram)}
-                    disabled={savingProgramId === householdProgram.id}
-                  >
-                    {savingProgramId === householdProgram.id ? "Speichert…" : "XP speichern"}
-                  </Button>
-                </div>
-              </article>
-            )}
-            {readingProgram && (
-              <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
-                <header className="flex flex-col gap-1">
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
-                    XP · Lesen
-                  </p>
-                  <h3 className="text-xl font-semibold">MR1 — {readingProgram.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    Bestimmt die XP pro Leselog (+{readingProgram.xpReward} XP).
-                  </p>
-                </header>
-                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
-                  <input
-                    type="number"
-                    min={0}
-                    value={programXpDrafts[readingProgram.id] ?? String(readingProgram.xpReward)}
-                    onChange={(event) =>
-                      updateProgramXpDraft(
-                        readingProgram.id,
-                        event.target.value,
-                        readingProgram.xpReward
-                      )
-                    }
-                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => persistProgramXp(readingProgram)}
-                    disabled={savingProgramId === readingProgram.id}
-                  >
-                    {savingProgramId === readingProgram.id ? "Speichert…" : "XP speichern"}
-                  </Button>
-                </div>
-              </article>
-            )}
-            <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
-              <header className="flex flex-col gap-1">
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
-                  XP · Programm Karten
-                </p>
-                <h3 className="text-xl font-semibold">XP je Karte steuern</h3>
-                <p className="text-sm text-gray-500">
-                  Wird beim nächsten Programm Run verwendet und verteilt sich automatisch auf die XP
-                  Kategorien.
-                </p>
-              </header>
-              {sortedPrograms.length === 0 ? (
-                <p className="mt-4 text-sm text-gray-500">Noch keine Programme vorhanden.</p>
-              ) : (
-                <div className="mt-4 space-y-3">
-                  {sortedPrograms.map((program) => {
-                    const value = programXpDrafts[program.id] ?? String(program.xpReward);
-                    const isSaving = savingProgramId === program.id;
-                    return (
-                      <div
-                        key={program.id}
-                        className="flex flex-col gap-3 rounded-2xl border border-daisy-100 bg-white/90 p-4"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">
-                              {program.code} — {program.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Aktuell +{program.xpReward} XP · {program.category}
-                            </p>
-                          </div>
-                          <span className="rounded-full bg-daisy-50 px-3 py-1 text-xs font-semibold text-daisy-700">
-                            {program.mode === "flow" ? "Flow" : "Single"}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                          <input
-                            type="number"
-                            min={0}
-                            value={value}
-                            onChange={(event) =>
-                              updateProgramXpDraft(program.id, event.target.value, program.xpReward)
-                            }
-                            className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
-                          />
-                          <Button
-                            type="button"
-                            onClick={() => persistProgramXp(program)}
-                            disabled={isSaving}
-                          >
-                            {isSaving ? "Speichern…" : "XP aktualisieren"}
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </article>
-          </div>
-        </>,
-        <GaugeCircle className="h-6 w-6" />
-      )}
-
-      {editingStack && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
-            <header className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
-                  Programm bearbeiten
-                </p>
-                <h3 className="text-xl font-semibold">{editingStack.title}</h3>
-              </div>
-              <Button variant="ghost" type="button" onClick={() => setEditingStack(null)}>
-                Schließen
-              </Button>
+      )
+      }
+      {
+        renderAccordionSection(
+          "xp-center",
+          "XP Center",
+          "XP Verwaltung",
+          <>
+            <header className="flex flex-col gap-1">
+              <h2 className="text-xl font-semibold">XP Control Center</h2>
+              <p className="text-sm text-gray-500">
+                Passe die XP Vergabe je Programmkarte (z.B. MG1 — SMART Ziele) an. Änderungen wirken
+                sofort für neue Runs und damit auch auf das Score Dashboard.
+              </p>
             </header>
 
-            <form className="mt-4 space-y-3" onSubmit={handleStackUpdate}>
-              <input
-                value={editTitle}
-                onChange={(event) => setEditTitle(event.target.value)}
-                placeholder="Titel"
-                className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
-              />
-              <textarea
-                value={editSummary}
-                onChange={(event) => setEditSummary(event.target.value)}
-                placeholder="Beschreibung"
-                className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
-              />
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-gray-700">Wochentage</label>
-                <div className="flex flex-wrap gap-2">
-                  {HOUSEHOLD_WEEKDAYS.map((day) => {
-                    const isSelected = editWeekdays.includes(day.value);
-                    return (
-                      <button
-                        key={day.value}
-                        type="button"
-                        onClick={() => {
-                          setEditWeekdays((prev) =>
-                            isSelected
-                              ? prev.filter((d) => d !== day.value)
-                              : [...prev, day.value]
-                          );
-                          if (isSelected) {
-                            const next = { ...editStartTimes };
-                            delete next[day.value];
-                            setEditStartTimes(next);
-                          }
-                        }}
-                        className={cn(
-                          "h-8 w-8 rounded-full text-xs font-bold transition-all",
-                          isSelected
-                            ? "bg-daisy-500 text-white shadow-md"
-                            : "border border-daisy-200 bg-white text-gray-500 hover:bg-daisy-50"
-                        )}
-                      >
-                        {day.label.slice(0, 2)}
-                      </button>
-                    );
-                  })}
-                </div>
-                {editWeekdays.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2 rounded-2xl border border-daisy-100 bg-daisy-50/50 p-3">
-                    {editWeekdays
-                      .sort((a, b) => a - b)
-                      .map((dayValue) => {
-                        const dayLabel =
-                          HOUSEHOLD_WEEKDAYS.find((d) => d.value === dayValue)?.label ?? "";
-                        return (
-                          <div key={dayValue} className="flex items-center gap-2">
-                            <span className="w-8 text-xs font-medium text-gray-500">
-                              {dayLabel.slice(0, 2)}
-                            </span>
-                            <input
-                              type="time"
-                              value={editStartTimes[dayValue] || ""}
-                              onChange={(e) =>
-                                setEditStartTimes((prev) => ({
-                                  ...prev,
-                                  [dayValue]: e.target.value
-                                }))
-                              }
-                              className="flex-1 rounded-lg border border-daisy-200 px-2 py-1 text-sm shadow-sm"
-                            />
-                          </div>
-                        );
-                      })}
+            <div className="mt-6 space-y-8">
+              {performanceProgram && (
+                <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
+                  <header className="flex flex-col gap-1">
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                      XP · Performance Checklist
+                    </p>
+                    <h3 className="text-xl font-semibold">PC1 — {performanceProgram.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      Direkter Zugriff auf die neue Checklist XP (aktuell +{performanceProgram.xpReward} XP).
+                    </p>
+                  </header>
+                  <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                    <input
+                      type="number"
+                      min={0}
+                      value={
+                        programXpDrafts[performanceProgram.id] ?? String(performanceProgram.xpReward)
+                      }
+                      onChange={(event) =>
+                        updateProgramXpDraft(
+                          performanceProgram.id,
+                          event.target.value,
+                          performanceProgram.xpReward
+                        )
+                      }
+                      className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => persistProgramXp(performanceProgram)}
+                      disabled={savingProgramId === performanceProgram.id}
+                    >
+                      {savingProgramId === performanceProgram.id ? "Speichert…" : "XP speichern"}
+                    </Button>
                   </div>
-                )}
-              </div>
-              <input
-                type="number"
-                value={editDuration ?? ""}
-                onChange={(e) => setEditDuration(e.target.value ? Number(e.target.value) : null)}
-                placeholder="Dauer (Minuten)"
-                className="rounded-2xl border border-daisy-200 px-4 py-3"
-              />
-              <div className="flex gap-3">
-                <input
-                  type="time"
-                  value={editStartTime}
-                  onChange={(e) => setEditStartTime(e.target.value)}
-                  className="flex-1 rounded-2xl border border-daisy-200 px-4 py-3"
-                />
-                {editStartTime && editDuration && (
-                  <div className="flex flex-1 items-center justify-center rounded-2xl border border-daisy-100 bg-daisy-50 text-sm text-daisy-700">
-                    Ende:{" "}
-                    {(() => {
-                      const [h, m] = editStartTime.split(":").map(Number);
-                      const end = new Date();
-                      end.setHours(h, m + editDuration);
-                      return end.toLocaleTimeString("de-DE", {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      });
-                    })()}
+                </article>
+              )}
+              {householdProgram && (
+                <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
+                  <header className="flex flex-col gap-1">
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                      XP · Haushalt
+                    </p>
+                    <h3 className="text-xl font-semibold">EN2 — {householdProgram.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      Steuert die XP pro gespeicherter Haushaltskarte (+{householdProgram.xpReward} XP).
+                    </p>
+                  </header>
+                  <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                    <input
+                      type="number"
+                      min={0}
+                      value={programXpDrafts[householdProgram.id] ?? String(householdProgram.xpReward)}
+                      onChange={(event) =>
+                        updateProgramXpDraft(
+                          householdProgram.id,
+                          event.target.value,
+                          householdProgram.xpReward
+                        )
+                      }
+                      className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => persistProgramXp(householdProgram)}
+                      disabled={savingProgramId === householdProgram.id}
+                    >
+                      {savingProgramId === householdProgram.id ? "Speichert…" : "XP speichern"}
+                    </Button>
                   </div>
-                )}
-              </div>
-              <div className="grid gap-3 md:grid-cols-[2fr,auto]">
-                <select
-                  value={editSelection}
-                  onChange={(event) => setEditSelection(event.target.value)}
-                  className="rounded-2xl border border-daisy-200 px-4 py-3"
-                >
-                  <option value="">Programm wählen…</option>
-                  {programs.map((program) => (
-                    <option key={program.id} value={program.slug}>
-                      {program.code} — {program.name}
-                    </option>
-                  ))}
-                </select>
-                <Button type="button" onClick={addEditProgram}>
-                  Modul hinzufügen
-                </Button>
-              </div>
-              {editPrograms.length > 0 && (
-                <ol className="space-y-2 rounded-2xl border border-daisy-100 bg-white/70 p-4 text-sm text-gray-700">
-                  {editPrograms.map((slug, index) => {
-                    const program = programs.find((entry) => entry.slug === slug);
-                    return (
-                      <li key={slug} className="flex items-center justify-between gap-4">
-                        <span>
-                          {index + 1}. {program?.name ?? slug}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={() => removeEditProgram(slug)}
+                </article>
+              )}
+              {readingProgram && (
+                <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
+                  <header className="flex flex-col gap-1">
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                      XP · Lesen
+                    </p>
+                    <h3 className="text-xl font-semibold">MR1 — {readingProgram.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      Bestimmt die XP pro Leselog (+{readingProgram.xpReward} XP).
+                    </p>
+                  </header>
+                  <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                    <input
+                      type="number"
+                      min={0}
+                      value={programXpDrafts[readingProgram.id] ?? String(readingProgram.xpReward)}
+                      onChange={(event) =>
+                        updateProgramXpDraft(
+                          readingProgram.id,
+                          event.target.value,
+                          readingProgram.xpReward
+                        )
+                      }
+                      className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => persistProgramXp(readingProgram)}
+                      disabled={savingProgramId === readingProgram.id}
+                    >
+                      {savingProgramId === readingProgram.id ? "Speichert…" : "XP speichern"}
+                    </Button>
+                  </div>
+                </article>
+              )}
+              <article className="rounded-3xl border border-daisy-100 bg-white/80 p-6 shadow-sm">
+                <header className="flex flex-col gap-1">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                    XP · Programm Karten
+                  </p>
+                  <h3 className="text-xl font-semibold">XP je Karte steuern</h3>
+                  <p className="text-sm text-gray-500">
+                    Wird beim nächsten Programm Run verwendet und verteilt sich automatisch auf die XP
+                    Kategorien.
+                  </p>
+                </header>
+                {sortedPrograms.length === 0 ? (
+                  <p className="mt-4 text-sm text-gray-500">Noch keine Programme vorhanden.</p>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {sortedPrograms.map((program) => {
+                      const value = programXpDrafts[program.id] ?? String(program.xpReward);
+                      const isSaving = savingProgramId === program.id;
+                      return (
+                        <div
+                          key={program.id}
+                          className="flex flex-col gap-3 rounded-2xl border border-daisy-100 bg-white/90 p-4"
                         >
-                          Entfernen
-                        </Button>
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {program.code} — {program.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Aktuell +{program.xpReward} XP · {program.category}
+                              </p>
+                            </div>
+                            <span className="rounded-full bg-daisy-50 px-3 py-1 text-xs font-semibold text-daisy-700">
+                              {program.mode === "flow" ? "Flow" : "Single"}
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                            <input
+                              type="number"
+                              min={0}
+                              value={value}
+                              onChange={(event) =>
+                                updateProgramXpDraft(program.id, event.target.value, program.xpReward)
+                              }
+                              className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                            />
+                            <Button
+                              type="button"
+                              onClick={() => persistProgramXp(program)}
+                              disabled={isSaving}
+                            >
+                              {isSaving ? "Speichern…" : "XP aktualisieren"}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </article>
+            </div>
+          </>,
+          <GaugeCircle className="h-6 w-6" />
+        )
+      }
 
-              <div className="flex justify-end gap-3">
-                <Button variant="ghost" type="button" onClick={() => setEditingStack(null)}>
-                  Abbrechen
-                </Button>
-                <Button type="submit">Änderungen speichern</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {editingGoal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
-            <header className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Ziel bearbeiten</p>
-                <h3 className="text-xl font-semibold">{editingGoal.title}</h3>
-              </div>
-              <Button variant="ghost" type="button" onClick={() => setEditingGoal(null)}>
-                Schließen
-              </Button>
-            </header>
-
-            <form className="mt-4 space-y-3" onSubmit={handleGoalUpdate}>
-              {(["title", "specific", "measurable", "achievable", "relevant", "timeBound"] as const).map(
-                (field) => (
-                  <textarea
-                    key={field}
-                    value={goalForm[field]}
-                    onChange={(event) =>
-                      setGoalForm((prev) => ({ ...prev, [field]: event.target.value }))
-                    }
-                    placeholder={field.toUpperCase()}
-                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
-                  />
-                )
-              )}
-              <div className="grid gap-3 md:grid-cols-3">
-                <input
-                  value={goalForm.metricName}
-                  onChange={(event) =>
-                    setGoalForm((prev) => ({ ...prev, metricName: event.target.value }))
-                  }
-                  placeholder="Metrik"
-                  className="rounded-2xl border border-daisy-200 px-4 py-3"
-                />
-                <input
-                  value={goalForm.targetValue}
-                  onChange={(event) =>
-                    setGoalForm((prev) => ({ ...prev, targetValue: event.target.value }))
-                  }
-                  placeholder="Zielwert"
-                  className="rounded-2xl border border-daisy-200 px-4 py-3"
-                />
-                <input
-                  value={goalForm.unit}
-                  onChange={(event) => setGoalForm((prev) => ({ ...prev, unit: event.target.value }))}
-                  placeholder="Einheit"
-                  className="rounded-2xl border border-daisy-200 px-4 py-3"
-                />
-              </div>
-              <input
-                type="date"
-                value={goalForm.targetDate}
-                onChange={(event) =>
-                  setGoalForm((prev) => ({ ...prev, targetDate: event.target.value }))
-                }
-                className="rounded-2xl border border-daisy-200 px-4 py-3"
-              />
-
-              <div className="flex flex-col gap-2 rounded-2xl border border-daisy-200 bg-white p-4 text-sm font-semibold text-gray-700">
-                <div className="flex items-center justify-between">
-                  <span>Aktuelle Erreichung</span>
-                  <span className="text-base font-bold text-daisy-600">{goalProgress}%</span>
+      {
+        editingStack && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
+              <header className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                    Programm bearbeiten
+                  </p>
+                  <h3 className="text-xl font-semibold">{editingStack.title}</h3>
                 </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={goalProgress}
-                  onChange={(event) => setGoalProgress(Number(event.target.value))}
-                  className="accent-daisy-500"
-                />
-              </div>
+                <Button variant="ghost" type="button" onClick={() => setEditingStack(null)}>
+                  Schließen
+                </Button>
+              </header>
 
-              <label className="flex flex-col gap-2 text-sm font-semibold text-gray-700">
-                Erfolgslog
-                <textarea
-                  value={goalLogText}
-                  onChange={(event) => setGoalLogText(event.target.value)}
-                  placeholder="Was lief besonders gut?"
+              <form className="mt-4 space-y-3" onSubmit={handleStackUpdate}>
+                <input
+                  value={editTitle}
+                  onChange={(event) => setEditTitle(event.target.value)}
+                  placeholder="Titel"
                   className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
                 />
-              </label>
-
-              <div className="flex justify-end gap-3">
-                <Button variant="ghost" type="button" onClick={() => setEditingGoal(null)}>
-                  Abbrechen
-                </Button>
-                <Button type="submit">Änderungen speichern</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {logsModalGoal && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
-            <header className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Erfolgslog</p>
-                <h3 className="text-xl font-semibold">{logsModalGoal.title}</h3>
-              </div>
-              <Button variant="ghost" type="button" onClick={() => setLogsModalGoal(null)}>
-                Schließen
-              </Button>
-            </header>
-            <div className="mt-4 max-h-[360px] overflow-y-auto space-y-3 text-sm text-gray-700">
-              {logsModalGoal.logs && logsModalGoal.logs.length > 0 ? (
-                logsModalGoal.logs.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="rounded-2xl border border-daisy-100 bg-white p-3 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>{new Date(entry.createdAt).toLocaleString()}</span>
-                      <span className="font-semibold text-daisy-600">
-                        {entry.progressPercent}%
-                      </span>
-                    </div>
-                    {entry.selfAssessment && (
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
-                        {entry.selfAssessment}
-                      </p>
-                    )}
+                <textarea
+                  value={editSummary}
+                  onChange={(event) => setEditSummary(event.target.value)}
+                  placeholder="Beschreibung"
+                  className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-gray-700">Wochentage</label>
+                  <div className="flex flex-wrap gap-2">
+                    {HOUSEHOLD_WEEKDAYS.map((day) => {
+                      const isSelected = editWeekdays.includes(day.value);
+                      return (
+                        <button
+                          key={day.value}
+                          type="button"
+                          onClick={() => {
+                            setEditWeekdays((prev) =>
+                              isSelected
+                                ? prev.filter((d) => d !== day.value)
+                                : [...prev, day.value]
+                            );
+                            if (isSelected) {
+                              const next = { ...editStartTimes };
+                              delete next[day.value];
+                              setEditStartTimes(next);
+                            }
+                          }}
+                          className={cn(
+                            "h-8 w-8 rounded-full text-xs font-bold transition-all",
+                            isSelected
+                              ? "bg-daisy-500 text-white shadow-md"
+                              : "border border-daisy-200 bg-white text-gray-500 hover:bg-daisy-50"
+                          )}
+                        >
+                          {day.label.slice(0, 2)}
+                        </button>
+                      );
+                    })}
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">Noch keine Einträge.</p>
-              )}
+                  {editWeekdays.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2 rounded-2xl border border-daisy-100 bg-daisy-50/50 p-3">
+                      {editWeekdays
+                        .sort((a, b) => a - b)
+                        .map((dayValue) => {
+                          const dayLabel =
+                            HOUSEHOLD_WEEKDAYS.find((d) => d.value === dayValue)?.label ?? "";
+                          return (
+                            <div key={dayValue} className="flex items-center gap-2">
+                              <span className="w-8 text-xs font-medium text-gray-500">
+                                {dayLabel.slice(0, 2)}
+                              </span>
+                              <input
+                                type="time"
+                                value={editStartTimes[dayValue] || ""}
+                                onChange={(e) =>
+                                  setEditStartTimes((prev) => ({
+                                    ...prev,
+                                    [dayValue]: e.target.value
+                                  }))
+                                }
+                                className="flex-1 rounded-lg border border-daisy-200 px-2 py-1 text-sm shadow-sm"
+                              />
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="number"
+                  value={editDuration ?? ""}
+                  onChange={(e) => setEditDuration(e.target.value ? Number(e.target.value) : null)}
+                  placeholder="Dauer (Minuten)"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <div className="flex gap-3">
+                  <input
+                    type="time"
+                    value={editStartTime}
+                    onChange={(e) => setEditStartTime(e.target.value)}
+                    className="flex-1 rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                  {editStartTime && editDuration && (
+                    <div className="flex flex-1 items-center justify-center rounded-2xl border border-daisy-100 bg-daisy-50 text-sm text-daisy-700">
+                      Ende:{" "}
+                      {(() => {
+                        const [h, m] = editStartTime.split(":").map(Number);
+                        const end = new Date();
+                        end.setHours(h, m + editDuration);
+                        return end.toLocaleTimeString("de-DE", {
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        });
+                      })()}
+                    </div>
+                  )}
+                </div>
+                <div className="grid gap-3 md:grid-cols-[2fr,auto]">
+                  <select
+                    value={editSelection}
+                    onChange={(event) => setEditSelection(event.target.value)}
+                    className="rounded-2xl border border-daisy-200 px-4 py-3"
+                  >
+                    <option value="">Programm wählen…</option>
+                    {programs.map((program) => (
+                      <option key={program.id} value={program.slug}>
+                        {program.code} — {program.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Button type="button" onClick={addEditProgram}>
+                    Modul hinzufügen
+                  </Button>
+                </div>
+                {editPrograms.length > 0 && (
+                  <ol className="space-y-2 rounded-2xl border border-daisy-100 bg-white/70 p-4 text-sm text-gray-700">
+                    {editPrograms.map((slug, index) => {
+                      const program = programs.find((entry) => entry.slug === slug);
+                      return (
+                        <li key={slug} className="flex items-center justify-between gap-4">
+                          <span>
+                            {index + 1}. {program?.name ?? slug}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => removeEditProgram(slug)}
+                          >
+                            Entfernen
+                          </Button>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+
+                <div className="flex justify-end gap-3">
+                  <Button variant="ghost" type="button" onClick={() => setEditingStack(null)}>
+                    Abbrechen
+                  </Button>
+                  <Button type="submit">Änderungen speichern</Button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+      {
+        editingGoal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
+              <header className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Ziel bearbeiten</p>
+                  <h3 className="text-xl font-semibold">{editingGoal.title}</h3>
+                </div>
+                <Button variant="ghost" type="button" onClick={() => setEditingGoal(null)}>
+                  Schließen
+                </Button>
+              </header>
+
+              <form className="mt-4 space-y-3" onSubmit={handleGoalUpdate}>
+                {(["title", "specific", "measurable", "achievable", "relevant", "timeBound"] as const).map(
+                  (field) => (
+                    <textarea
+                      key={field}
+                      value={goalForm[field]}
+                      onChange={(event) =>
+                        setGoalForm((prev) => ({ ...prev, [field]: event.target.value }))
+                      }
+                      placeholder={field.toUpperCase()}
+                      className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                    />
+                  )
+                )}
+                <div className="grid gap-3 md:grid-cols-3">
+                  <input
+                    value={goalForm.metricName}
+                    onChange={(event) =>
+                      setGoalForm((prev) => ({ ...prev, metricName: event.target.value }))
+                    }
+                    placeholder="Metrik"
+                    className="rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                  <input
+                    value={goalForm.targetValue}
+                    onChange={(event) =>
+                      setGoalForm((prev) => ({ ...prev, targetValue: event.target.value }))
+                    }
+                    placeholder="Zielwert"
+                    className="rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                  <input
+                    value={goalForm.unit}
+                    onChange={(event) => setGoalForm((prev) => ({ ...prev, unit: event.target.value }))}
+                    placeholder="Einheit"
+                    className="rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                </div>
+                <input
+                  type="date"
+                  value={goalForm.targetDate}
+                  onChange={(event) =>
+                    setGoalForm((prev) => ({ ...prev, targetDate: event.target.value }))
+                  }
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+
+                <div className="flex flex-col gap-2 rounded-2xl border border-daisy-200 bg-white p-4 text-sm font-semibold text-gray-700">
+                  <div className="flex items-center justify-between">
+                    <span>Aktuelle Erreichung</span>
+                    <span className="text-base font-bold text-daisy-600">{goalProgress}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={goalProgress}
+                    onChange={(event) => setGoalProgress(Number(event.target.value))}
+                    className="accent-daisy-500"
+                  />
+                </div>
+
+                <label className="flex flex-col gap-2 text-sm font-semibold text-gray-700">
+                  Erfolgslog
+                  <textarea
+                    value={goalLogText}
+                    onChange={(event) => setGoalLogText(event.target.value)}
+                    placeholder="Was lief besonders gut?"
+                    className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+                  />
+                </label>
+
+                <div className="flex justify-end gap-3">
+                  <Button variant="ghost" type="button" onClick={() => setEditingGoal(null)}>
+                    Abbrechen
+                  </Button>
+                  <Button type="submit">Änderungen speichern</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        logsModalGoal && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+              <header className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Erfolgslog</p>
+                  <h3 className="text-xl font-semibold">{logsModalGoal.title}</h3>
+                </div>
+                <Button variant="ghost" type="button" onClick={() => setLogsModalGoal(null)}>
+                  Schließen
+                </Button>
+              </header>
+              <div className="mt-4 max-h-[360px] overflow-y-auto space-y-3 text-sm text-gray-700">
+                {logsModalGoal.logs && logsModalGoal.logs.length > 0 ? (
+                  logsModalGoal.logs.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="rounded-2xl border border-daisy-100 bg-white p-3 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>{new Date(entry.createdAt).toLocaleString()}</span>
+                        <span className="font-semibold text-daisy-600">
+                          {entry.progressPercent}%
+                        </span>
+                      </div>
+                      {entry.selfAssessment && (
+                        <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
+                          {entry.selfAssessment}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">Noch keine Einträge.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 }
