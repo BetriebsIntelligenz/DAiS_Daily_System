@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 const CROSSFADE_BUFFER_SECONDS = 0.8;
 const CROSSFADE_DELAY_MS = 850;
-const BACKGROUND_VIDEO_SRC = "/DAiS%20Video%20BG.mp4";
+const BACKGROUND_VIDEO_SRC = "/DAiS_Video_BG.mp4";
 
 export const BackgroundVideo = () => {
   const primaryVideoRef = useRef<HTMLVideoElement>(null);
@@ -108,9 +108,8 @@ export const BackgroundVideo = () => {
         <video
           key={index}
           ref={videoRefs[index]}
-          className={`background-video__media${
-            activeIndex === index ? " background-video__media--active" : ""
-          }`}
+          className={`background-video__media${activeIndex === index ? " background-video__media--active" : ""
+            }`}
           autoPlay={index === 0}
           muted
           loop

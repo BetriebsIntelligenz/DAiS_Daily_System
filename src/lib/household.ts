@@ -12,6 +12,12 @@ export function formatWeekday(value: number) {
   return HOUSEHOLD_WEEKDAYS.find((entry) => entry.value === value)?.label ?? "Tag";
 }
 
+export function formatWeekdays(values: number[]) {
+  if (!values || values.length === 0) return "";
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted.map(v => formatWeekday(v).slice(0, 2)).join(", ");
+}
+
 export function getWeekStart(date: Date) {
   const clone = new Date(date);
   clone.setHours(0, 0, 0, 0);

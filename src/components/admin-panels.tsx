@@ -26,7 +26,7 @@ import type {
 } from "@/lib/types";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { HOUSEHOLD_WEEKDAYS, formatWeekday } from "@/lib/household";
+import { HOUSEHOLD_WEEKDAYS, formatWeekday, formatWeekdays } from "@/lib/household";
 import {
   HUMAN_ACTIVITY_OPTIONS,
   HUMAN_CADENCE_OPTIONS,
@@ -58,6 +58,8 @@ export function AdminPanels() {
   const [stackSelection, setStackSelection] = useState(
     programDefinitions[0]?.slug ?? ""
   );
+  const [stackWeekdays, setStackWeekdays] = useState<number[]>([]);
+  const [stackDuration, setStackDuration] = useState<number | null>(null);
   const [editingStack, setEditingStack] = useState<ProgramStackDefinition | null>(
     null
   );
@@ -67,6 +69,8 @@ export function AdminPanels() {
   const [editSelection, setEditSelection] = useState(
     programDefinitions[0]?.slug ?? ""
   );
+  const [editWeekdays, setEditWeekdays] = useState<number[]>([]);
+  const [editDuration, setEditDuration] = useState<number | null>(null);
 
   const [goals, setGoals] = useState<MindGoalWithProgress[]>([]);
   const [goalForm, setGoalForm] = useState({
@@ -534,12 +538,16 @@ export function AdminPanels() {
       body: JSON.stringify({
         title: stackTitle,
         summary: stackSummary,
-        programSlugs: stackPrograms
+        programSlugs: stackPrograms,
+        weekdays: stackWeekdays,
+        durationMinutes: stackDuration
       })
     });
     setStackTitle("");
     setStackSummary("");
     setStackPrograms([]);
+    setStackWeekdays([]);
+    setStackDuration(null);
     await refreshMindData();
   };
 
@@ -560,6 +568,8 @@ export function AdminPanels() {
     setEditSummary(stack.summary);
     setEditPrograms(stack.programSlugs);
     setEditSelection(stack.programSlugs[0] ?? programs[0]?.slug ?? "");
+    setEditWeekdays(stack.weekdays ?? []);
+    setEditDuration(stack.durationMinutes ?? null);
   };
 
   const addEditProgram = () => {
@@ -584,7 +594,9 @@ export function AdminPanels() {
         id: editingStack.id,
         title: editTitle,
         summary: editSummary,
-        programSlugs: editPrograms
+        programSlugs: editPrograms,
+        weekdays: editWeekdays,
+        durationMinutes: editDuration
       })
     });
 
@@ -1368,6 +1380,42 @@ export function AdminPanels() {
               placeholder="Beschreibung"
               className="rounded-2xl border border-daisy-200 px-4 py-3"
             />
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-gray-700">Wochentage</label>
+              <div className="flex flex-wrap gap-2">
+                {HOUSEHOLD_WEEKDAYS.map((day) => {
+                  const isSelected = stackWeekdays.includes(day.value);
+                  return (
+                    <button
+                      key={day.value}
+                      type="button"
+                      onClick={() =>
+                        setStackWeekdays((prev) =>
+                          isSelected
+                            ? prev.filter((d) => d !== day.value)
+                            : [...prev, day.value]
+                        )
+                      }
+                      className={cn(
+                        "h-8 w-8 rounded-full text-xs font-bold transition-all",
+                        isSelected
+                          ? "bg-daisy-500 text-white shadow-md"
+                          : "border border-daisy-200 bg-white text-gray-500 hover:bg-daisy-50"
+                      )}
+                    >
+                      {day.label.slice(0, 2)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <input
+              type="number"
+              value={stackDuration ?? ""}
+              onChange={(e) => setStackDuration(e.target.value ? Number(e.target.value) : null)}
+              placeholder="Dauer (Minuten)"
+              className="rounded-2xl border border-daisy-200 px-4 py-3"
+            />
             <div className="grid gap-3 md:grid-cols-[2fr,auto]">
               <select
                 value={stackSelection}
@@ -1419,6 +1467,8 @@ export function AdminPanels() {
                     <p className="font-semibold">{stack.title}</p>
                     <p className="text-xs text-gray-500">
                       {stack.programSlugs.length} Module – {stack.summary}
+                      {stack.weekdays && stack.weekdays.length > 0 && ` · ${formatWeekdays(stack.weekdays)}`}
+                      {stack.durationMinutes && ` · ${stack.durationMinutes} Min.`}
                     </p>
                   </div>
                   <Button type="button" variant="ghost" onClick={() => openEditStack(stack)}>
@@ -2891,6 +2941,42 @@ export function AdminPanels() {
                 onChange={(event) => setEditSummary(event.target.value)}
                 placeholder="Beschreibung"
                 className="w-full rounded-2xl border border-daisy-200 px-4 py-3"
+              />
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-gray-700">Wochentage</label>
+                <div className="flex flex-wrap gap-2">
+                  {HOUSEHOLD_WEEKDAYS.map((day) => {
+                    const isSelected = editWeekdays.includes(day.value);
+                    return (
+                      <button
+                        key={day.value}
+                        type="button"
+                        onClick={() =>
+                          setEditWeekdays((prev) =>
+                            isSelected
+                              ? prev.filter((d) => d !== day.value)
+                              : [...prev, day.value]
+                          )
+                        }
+                        className={cn(
+                          "h-8 w-8 rounded-full text-xs font-bold transition-all",
+                          isSelected
+                            ? "bg-daisy-500 text-white shadow-md"
+                            : "border border-daisy-200 bg-white text-gray-500 hover:bg-daisy-50"
+                        )}
+                      >
+                        {day.label.slice(0, 2)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <input
+                type="number"
+                value={editDuration ?? ""}
+                onChange={(e) => setEditDuration(e.target.value ? Number(e.target.value) : null)}
+                placeholder="Dauer (Minuten)"
+                className="rounded-2xl border border-daisy-200 px-4 py-3"
               />
               <div className="grid gap-3 md:grid-cols-[2fr,auto]">
                 <select

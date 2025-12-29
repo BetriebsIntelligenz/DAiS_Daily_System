@@ -4,6 +4,7 @@ import { categories, programDefinitions } from "@/lib/data";
 import { MenuCard } from "@/components/menu-card";
 import { MobileShell } from "@/components/mobile-shell";
 import { prisma } from "@/lib/prisma";
+import { formatWeekdays } from "@/lib/household";
 import {
   Activity,
   Brain,
@@ -92,7 +93,13 @@ export default async function HomePage({
                   title={stack.title}
                   description={`${modules.length} Module`}
                   href={`/programs/stacks/${stack.slug}`}
-                  chips={modules.slice(0, 3).map((program) => program!.code)}
+                  chips={[
+                    ...(stack.weekdays && stack.weekdays.length > 0
+                      ? [formatWeekdays(stack.weekdays)]
+                      : []),
+                    ...(stack.durationMinutes ? [`${stack.durationMinutes} Min.`] : []),
+                    ...modules.slice(0, 3).map((program) => program!.code)
+                  ]}
                 />
               );
             })}

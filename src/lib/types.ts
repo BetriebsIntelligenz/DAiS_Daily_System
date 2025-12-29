@@ -241,6 +241,8 @@ export interface ProgramStackDefinition {
   title: string;
   summary: string;
   programSlugs: string[];
+  weekdays?: number[];
+  durationMinutes?: number | null;
   createdAt: string;
   updatedAt: string;
 }

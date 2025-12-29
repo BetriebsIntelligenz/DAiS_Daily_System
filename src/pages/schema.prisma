@@ -235,9 +235,11 @@ model ProgramStack {
   slug         String   @unique
   title        String
   summary      String
-  programSlugs String[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  programSlugs    String[]
+  weekdays         Int[]
+  durationMinutes Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model XpTransaction {

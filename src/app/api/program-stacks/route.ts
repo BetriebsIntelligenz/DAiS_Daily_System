@@ -26,10 +26,13 @@ export async function GET() {
   }
 }
 
+// POST Handler Fix
 export async function POST(request: Request) {
   const body = await request.json();
   const title = String(body.title ?? "").trim();
   const summary = String(body.summary ?? "").trim();
+  const weekdays = Array.isArray(body.weekdays) ? body.weekdays.map(Number) : [];
+  const durationMinutes = body.durationMinutes ? Number(body.durationMinutes) : null;
   const programSlugs = Array.isArray(body.programSlugs)
     ? body.programSlugs.map((entry: unknown) => String(entry))
     : [];
@@ -58,7 +61,9 @@ export async function POST(request: Request) {
         title,
         summary,
         slug: slugify(title) || slugify(`${title}-${Date.now()}`),
-        programSlugs
+        programSlugs,
+        weekdays,
+        durationMinutes
       }
     });
 
@@ -77,6 +82,8 @@ export async function PUT(request: Request) {
   const id = String(body.id ?? "").trim();
   const title = String(body.title ?? "").trim();
   const summary = String(body.summary ?? "").trim();
+  const weekdays = Array.isArray(body.weekdays) ? body.weekdays.map(Number) : [];
+  const durationMinutes = body.durationMinutes ? Number(body.durationMinutes) : null;
   const programSlugs = Array.isArray(body.programSlugs)
     ? body.programSlugs.map((entry: unknown) => String(entry))
     : [];
@@ -106,7 +113,9 @@ export async function PUT(request: Request) {
         title,
         summary,
         slug: slugify(title) || slugify(`${title}-${Date.now()}`),
-        programSlugs
+        programSlugs,
+        weekdays,
+        durationMinutes
       }
     });
 

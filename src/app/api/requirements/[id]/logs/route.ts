@@ -1,80 +1,32 @@
-import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDemoUser } from "@/lib/demo-user";
+import type { RequirementLog } from "@prisma/client";
 
 interface RouteContext {
   params: { id: string };
 }
 
-interface RequirementLogRow {
-  id: string;
-  requirementId: string;
-  userId: string | null;
-  content: string;
-  createdAt: Date;
-}
-
-let requirementLogTableReady: Promise<void> | null = null;
-
-async function ensureRequirementLogTable() {
-  if (!requirementLogTableReady) {
-    requirementLogTableReady = (async () => {
-      await prisma.$executeRaw`
-        CREATE TABLE IF NOT EXISTS "RequirementLog" (
-          "id" TEXT NOT NULL,
-          "requirementId" TEXT NOT NULL,
-          "userId" TEXT,
-          "content" TEXT NOT NULL,
-          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          CONSTRAINT "RequirementLog_pkey" PRIMARY KEY ("id"),
-          CONSTRAINT "RequirementLog_requirementId_fkey"
-            FOREIGN KEY ("requirementId") REFERENCES "Requirement"("id")
-            ON DELETE CASCADE ON UPDATE CASCADE,
-          CONSTRAINT "RequirementLog_userId_fkey"
-            FOREIGN KEY ("userId") REFERENCES "User"("id")
-            ON DELETE SET NULL ON UPDATE CASCADE
-        )
-      `;
-      await prisma.$executeRaw`
-        CREATE INDEX IF NOT EXISTS "RequirementLog_requirementId_idx"
-        ON "RequirementLog"("requirementId")
-      `;
-    })().catch((error) => {
-      requirementLogTableReady = null;
-      throw error;
-    });
-  }
-  return requirementLogTableReady;
-}
-
 async function fetchLogs(requirementId: string) {
-  await ensureRequirementLogTable();
-  return prisma.$queryRaw<RequirementLogRow[]>`
-    SELECT "id", "requirementId", "userId", "content", "createdAt"
-    FROM "RequirementLog"
-    WHERE "requirementId" = ${requirementId}
-    ORDER BY "createdAt" DESC
-  `;
+  return prisma.requirementLog.findMany({
+    where: { requirementId },
+    orderBy: { createdAt: "desc" }
+  });
 }
 
 async function insertLog(entry: {
   requirementId: string;
   userId: string;
   content: string;
-}) {
-  await ensureRequirementLogTable();
-  const id = randomUUID();
-  const [log] = await prisma.$queryRaw<RequirementLogRow[]>`
-    INSERT INTO "RequirementLog" ("id", "requirementId", "userId", "content")
-    VALUES (${id}, ${entry.requirementId}, ${entry.userId}, ${entry.content})
-    RETURNING "id", "requirementId", "userId", "content", "createdAt"
-  `;
-  if (!log) {
-    throw new Error("Log insert failed");
-  }
-  return log;
+}): Promise<RequirementLog> {
+  return prisma.requirementLog.create({
+    data: {
+      requirementId: entry.requirementId,
+      userId: entry.userId,
+      content: entry.content
+    }
+  });
 }
 
 async function resolveRequirementForUser(id: string, email?: string) {
