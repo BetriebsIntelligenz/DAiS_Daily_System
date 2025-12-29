@@ -98,6 +98,20 @@ export default async function HomePage({
                       ? [formatWeekdays(stack.weekdays)]
                       : []),
                     ...(stack.durationMinutes ? [`${stack.durationMinutes} Min.`] : []),
+                    ...(stack.startTime && stack.durationMinutes
+                      ? [
+                        (() => {
+                          const [h, m] = stack.startTime.split(":").map(Number);
+                          const end = new Date();
+                          end.setHours(h, m + stack.durationMinutes);
+                          const endTime = end.toLocaleTimeString("de-DE", {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          });
+                          return `${stack.startTime} - ${endTime}`;
+                        })()
+                      ]
+                      : []),
                     ...modules.slice(0, 3).map((program) => program!.code)
                   ]}
                 />

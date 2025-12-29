@@ -59,7 +59,9 @@ export function AdminPanels() {
     programDefinitions[0]?.slug ?? ""
   );
   const [stackWeekdays, setStackWeekdays] = useState<number[]>([]);
+
   const [stackDuration, setStackDuration] = useState<number | null>(null);
+  const [stackStartTime, setStackStartTime] = useState<string>("");
   const [editingStack, setEditingStack] = useState<ProgramStackDefinition | null>(
     null
   );
@@ -71,6 +73,7 @@ export function AdminPanels() {
   );
   const [editWeekdays, setEditWeekdays] = useState<number[]>([]);
   const [editDuration, setEditDuration] = useState<number | null>(null);
+  const [editStartTime, setEditStartTime] = useState<string>("");
 
   const [goals, setGoals] = useState<MindGoalWithProgress[]>([]);
   const [goalForm, setGoalForm] = useState({
@@ -540,7 +543,8 @@ export function AdminPanels() {
         summary: stackSummary,
         programSlugs: stackPrograms,
         weekdays: stackWeekdays,
-        durationMinutes: stackDuration
+        durationMinutes: stackDuration,
+        startTime: stackStartTime || null
       })
     });
     setStackTitle("");
@@ -548,6 +552,7 @@ export function AdminPanels() {
     setStackPrograms([]);
     setStackWeekdays([]);
     setStackDuration(null);
+    setStackStartTime("");
     await refreshMindData();
   };
 
@@ -569,7 +574,9 @@ export function AdminPanels() {
     setEditPrograms(stack.programSlugs);
     setEditSelection(stack.programSlugs[0] ?? programs[0]?.slug ?? "");
     setEditWeekdays(stack.weekdays ?? []);
+    setEditWeekdays(stack.weekdays ?? []);
     setEditDuration(stack.durationMinutes ?? null);
+    setEditStartTime(stack.startTime ?? "");
   };
 
   const addEditProgram = () => {
@@ -596,7 +603,8 @@ export function AdminPanels() {
         summary: editSummary,
         programSlugs: editPrograms,
         weekdays: editWeekdays,
-        durationMinutes: editDuration
+        durationMinutes: editDuration,
+        startTime: editStartTime || null
       })
     });
 
@@ -1416,6 +1424,28 @@ export function AdminPanels() {
               placeholder="Dauer (Minuten)"
               className="rounded-2xl border border-daisy-200 px-4 py-3"
             />
+            <div className="flex gap-3">
+              <input
+                type="time"
+                value={stackStartTime}
+                onChange={(e) => setStackStartTime(e.target.value)}
+                className="flex-1 rounded-2xl border border-daisy-200 px-4 py-3"
+              />
+              {stackStartTime && stackDuration && (
+                <div className="flex flex-1 items-center justify-center rounded-2xl border border-daisy-100 bg-daisy-50 text-sm text-daisy-700">
+                  Ende:{" "}
+                  {(() => {
+                    const [h, m] = stackStartTime.split(":").map(Number);
+                    const end = new Date();
+                    end.setHours(h, m + stackDuration);
+                    return end.toLocaleTimeString("de-DE", {
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    });
+                  })()}
+                </div>
+              )}
+            </div>
             <div className="grid gap-3 md:grid-cols-[2fr,auto]">
               <select
                 value={stackSelection}
@@ -2978,6 +3008,28 @@ export function AdminPanels() {
                 placeholder="Dauer (Minuten)"
                 className="rounded-2xl border border-daisy-200 px-4 py-3"
               />
+              <div className="flex gap-3">
+                <input
+                  type="time"
+                  value={editStartTime}
+                  onChange={(e) => setEditStartTime(e.target.value)}
+                  className="flex-1 rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                {editStartTime && editDuration && (
+                  <div className="flex flex-1 items-center justify-center rounded-2xl border border-daisy-100 bg-daisy-50 text-sm text-daisy-700">
+                    Ende:{" "}
+                    {(() => {
+                      const [h, m] = editStartTime.split(":").map(Number);
+                      const end = new Date();
+                      end.setHours(h, m + editDuration);
+                      return end.toLocaleTimeString("de-DE", {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      });
+                    })()}
+                  </div>
+                )}
+              </div>
               <div className="grid gap-3 md:grid-cols-[2fr,auto]">
                 <select
                   value={editSelection}

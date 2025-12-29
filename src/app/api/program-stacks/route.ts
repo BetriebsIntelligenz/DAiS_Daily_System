@@ -33,6 +33,7 @@ export async function POST(request: Request) {
   const summary = String(body.summary ?? "").trim();
   const weekdays = Array.isArray(body.weekdays) ? body.weekdays.map(Number) : [];
   const durationMinutes = body.durationMinutes ? Number(body.durationMinutes) : null;
+  const startTime = body.startTime ? String(body.startTime).trim() : null;
   const programSlugs = Array.isArray(body.programSlugs)
     ? body.programSlugs.map((entry: unknown) => String(entry))
     : [];
@@ -63,7 +64,9 @@ export async function POST(request: Request) {
         slug: slugify(title) || slugify(`${title}-${Date.now()}`),
         programSlugs,
         weekdays,
-        durationMinutes
+        weekdays,
+        durationMinutes,
+        startTime
       }
     });
 
@@ -84,6 +87,7 @@ export async function PUT(request: Request) {
   const summary = String(body.summary ?? "").trim();
   const weekdays = Array.isArray(body.weekdays) ? body.weekdays.map(Number) : [];
   const durationMinutes = body.durationMinutes ? Number(body.durationMinutes) : null;
+  const startTime = body.startTime ? String(body.startTime).trim() : null;
   const programSlugs = Array.isArray(body.programSlugs)
     ? body.programSlugs.map((entry: unknown) => String(entry))
     : [];
@@ -115,7 +119,9 @@ export async function PUT(request: Request) {
         slug: slugify(title) || slugify(`${title}-${Date.now()}`),
         programSlugs,
         weekdays,
-        durationMinutes
+        weekdays,
+        durationMinutes,
+        startTime
       }
     });
 
