@@ -11,6 +11,7 @@ import type {
 import { Button } from "@/components/ui/button";
 import { ProgramContent } from "@/components/program-content";
 import { ProgramCompletionProvider } from "@/contexts/program-completion-context";
+import { HOUSEHOLD_WEEKDAYS, formatWeekday } from "@/lib/household";
 
 export function ProgramStackRunner({
   stack,
@@ -132,6 +133,51 @@ export function ProgramStackRunner({
           </span>
         )}
       </div>
+
+      {stack.weekdays && stack.weekdays.length > 0 && (
+        <div className="overflow-hidden rounded-2xl border border-daisy-200 bg-white/50 text-xs shadow-sm">
+          <table className="w-full text-left">
+            <thead className="bg-daisy-50 text-daisy-700">
+              <tr>
+                <th className="px-3 py-2 font-semibold">Wochentag</th>
+                <th className="px-3 py-2 font-semibold">Start</th>
+                <th className="px-3 py-2 font-semibold">Ende</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-daisy-100">
+              {stack.weekdays
+                .sort((a, b) => a - b)
+                .map((day) => {
+                  const startTime =
+                    stack.startTimes && stack.startTimes[day]
+                      ? stack.startTimes[day]
+                      : stack.startTime;
+
+                  let endTime = "-";
+                  if (startTime && stack.durationMinutes) {
+                    const [h, m] = startTime.split(":").map(Number);
+                    const end = new Date();
+                    end.setHours(h, m + stack.durationMinutes);
+                    endTime = end.toLocaleTimeString("de-DE", {
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    });
+                  }
+
+                  return (
+                    <tr key={day} className="text-gray-600">
+                      <td className="px-3 py-2 font-medium">
+                        {formatWeekday(day)}
+                      </td>
+                      <td className="px-3 py-2">{startTime || "-"}</td>
+                      <td className="px-3 py-2">{endTime}</td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="flex items-center justify-between rounded-[24px] border border-daisy-200 bg-white/50 px-5 py-3 shadow-sm">
         <div className="flex items-center gap-3 text-lg font-bold font-mono text-daisy-900">

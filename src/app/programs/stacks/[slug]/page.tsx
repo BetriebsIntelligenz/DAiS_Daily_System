@@ -44,7 +44,8 @@ export default async function ProgramStackPage({ params }: ProgramStackPageProps
         stack={{
           ...stack,
           createdAt: stack.createdAt.toISOString(),
-          updatedAt: stack.updatedAt.toISOString()
+          updatedAt: stack.updatedAt.toISOString(),
+          startTimes: (stack.startTimes as Record<string, string> | null) ?? undefined
         }}
         programs={programs}
       />

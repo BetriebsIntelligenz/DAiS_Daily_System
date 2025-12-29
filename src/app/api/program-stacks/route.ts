@@ -34,6 +34,7 @@ export async function POST(request: Request) {
   const weekdays = Array.isArray(body.weekdays) ? body.weekdays.map(Number) : [];
   const durationMinutes = body.durationMinutes ? Number(body.durationMinutes) : null;
   const startTime = body.startTime ? String(body.startTime).trim() : null;
+  const startTimes = body.startTimes && typeof body.startTimes === "object" ? body.startTimes : null;
   const programSlugs = Array.isArray(body.programSlugs)
     ? body.programSlugs.map((entry: unknown) => String(entry))
     : [];

@@ -243,6 +243,7 @@ export interface ProgramStackDefinition {
   programSlugs: string[];
   weekdays?: number[];
   startTime?: string | null;
+  startTimes?: Record<string, string> | null;
   durationMinutes?: number | null;
   createdAt: string;
   updatedAt: string;

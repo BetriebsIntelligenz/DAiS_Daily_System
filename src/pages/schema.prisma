@@ -239,6 +239,7 @@ model ProgramStack {
   weekdays         Int[]
   durationMinutes Int?
   startTime       String?
+  startTimes      Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

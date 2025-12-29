@@ -62,6 +62,7 @@ export function AdminPanels() {
 
   const [stackDuration, setStackDuration] = useState<number | null>(null);
   const [stackStartTime, setStackStartTime] = useState<string>("");
+  const [stackStartTimes, setStackStartTimes] = useState<Record<string, string>>({});
   const [editingStack, setEditingStack] = useState<ProgramStackDefinition | null>(
     null
   );
@@ -74,6 +75,7 @@ export function AdminPanels() {
   const [editWeekdays, setEditWeekdays] = useState<number[]>([]);
   const [editDuration, setEditDuration] = useState<number | null>(null);
   const [editStartTime, setEditStartTime] = useState<string>("");
+  const [editStartTimes, setEditStartTimes] = useState<Record<string, string>>({});
 
   const [goals, setGoals] = useState<MindGoalWithProgress[]>([]);
   const [goalForm, setGoalForm] = useState({
@@ -544,7 +546,8 @@ export function AdminPanels() {
         programSlugs: stackPrograms,
         weekdays: stackWeekdays,
         durationMinutes: stackDuration,
-        startTime: stackStartTime || null
+        startTime: stackStartTime || null,
+        startTimes: stackStartTimes
       })
     });
     setStackTitle("");
@@ -553,6 +556,7 @@ export function AdminPanels() {
     setStackWeekdays([]);
     setStackDuration(null);
     setStackStartTime("");
+    setStackStartTimes({});
     await refreshMindData();
   };
 
@@ -576,7 +580,10 @@ export function AdminPanels() {
     setEditWeekdays(stack.weekdays ?? []);
     setEditWeekdays(stack.weekdays ?? []);
     setEditDuration(stack.durationMinutes ?? null);
+    setEditWeekdays(stack.weekdays ?? []);
+    setEditDuration(stack.durationMinutes ?? null);
     setEditStartTime(stack.startTime ?? "");
+    setEditStartTimes(stack.startTimes ?? {});
   };
 
   const addEditProgram = () => {
@@ -604,7 +611,9 @@ export function AdminPanels() {
         programSlugs: editPrograms,
         weekdays: editWeekdays,
         durationMinutes: editDuration,
-        startTime: editStartTime || null
+
+        startTime: editStartTime || null,
+        startTimes: editStartTimes
       })
     });
 
@@ -1397,13 +1406,18 @@ export function AdminPanels() {
                     <button
                       key={day.value}
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
                         setStackWeekdays((prev) =>
                           isSelected
                             ? prev.filter((d) => d !== day.value)
                             : [...prev, day.value]
-                        )
-                      }
+                        );
+                        if (isSelected) {
+                          const next = { ...stackStartTimes };
+                          delete next[day.value];
+                          setStackStartTimes(next);
+                        }
+                      }}
                       className={cn(
                         "h-8 w-8 rounded-full text-xs font-bold transition-all",
                         isSelected
@@ -1416,6 +1430,34 @@ export function AdminPanels() {
                   );
                 })}
               </div>
+              {stackWeekdays.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 rounded-2xl border border-daisy-100 bg-daisy-50/50 p-3">
+                  {stackWeekdays
+                    .sort((a, b) => a - b)
+                    .map((dayValue) => {
+                      const dayLabel =
+                        HOUSEHOLD_WEEKDAYS.find((d) => d.value === dayValue)?.label ?? "";
+                      return (
+                        <div key={dayValue} className="flex items-center gap-2">
+                          <span className="w-8 text-xs font-medium text-gray-500">
+                            {dayLabel.slice(0, 2)}
+                          </span>
+                          <input
+                            type="time"
+                            value={stackStartTimes[dayValue] || ""}
+                            onChange={(e) =>
+                              setStackStartTimes((prev) => ({
+                                ...prev,
+                                [dayValue]: e.target.value
+                              }))
+                            }
+                            className="flex-1 rounded-lg border border-daisy-200 px-2 py-1 text-sm shadow-sm"
+                          />
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
             </div>
             <input
               type="number"
@@ -2981,13 +3023,18 @@ export function AdminPanels() {
                       <button
                         key={day.value}
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
                           setEditWeekdays((prev) =>
                             isSelected
                               ? prev.filter((d) => d !== day.value)
                               : [...prev, day.value]
-                          )
-                        }
+                          );
+                          if (isSelected) {
+                            const next = { ...editStartTimes };
+                            delete next[day.value];
+                            setEditStartTimes(next);
+                          }
+                        }}
                         className={cn(
                           "h-8 w-8 rounded-full text-xs font-bold transition-all",
                           isSelected
@@ -3000,6 +3047,34 @@ export function AdminPanels() {
                     );
                   })}
                 </div>
+                {editWeekdays.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 rounded-2xl border border-daisy-100 bg-daisy-50/50 p-3">
+                    {editWeekdays
+                      .sort((a, b) => a - b)
+                      .map((dayValue) => {
+                        const dayLabel =
+                          HOUSEHOLD_WEEKDAYS.find((d) => d.value === dayValue)?.label ?? "";
+                        return (
+                          <div key={dayValue} className="flex items-center gap-2">
+                            <span className="w-8 text-xs font-medium text-gray-500">
+                              {dayLabel.slice(0, 2)}
+                            </span>
+                            <input
+                              type="time"
+                              value={editStartTimes[dayValue] || ""}
+                              onChange={(e) =>
+                                setEditStartTimes((prev) => ({
+                                  ...prev,
+                                  [dayValue]: e.target.value
+                                }))
+                              }
+                              className="flex-1 rounded-lg border border-daisy-200 px-2 py-1 text-sm shadow-sm"
+                            />
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
               </div>
               <input
                 type="number"
