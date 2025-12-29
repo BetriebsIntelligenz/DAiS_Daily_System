@@ -64,7 +64,6 @@ export async function POST(request: Request) {
         slug: slugify(title) || slugify(`${title}-${Date.now()}`),
         programSlugs,
         weekdays,
-        weekdays,
         durationMinutes,
         startTime
       }
@@ -118,7 +117,6 @@ export async function PUT(request: Request) {
         summary,
         slug: slugify(title) || slugify(`${title}-${Date.now()}`),
         programSlugs,
-        weekdays,
         weekdays,
         durationMinutes,
         startTime
