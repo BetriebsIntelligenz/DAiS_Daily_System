@@ -8,7 +8,7 @@
     "start": "node scripts/dev-server.js start",
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",
-    "db:generate": "prisma generate",
+    "db:generate": "prisma generate --schema=src/pages/schema.prisma",
     "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "prisma": {

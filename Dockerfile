@@ -6,7 +6,7 @@ COPY package*.json ./
 COPY prisma ./prisma
 RUN npm install
 COPY . .
-RUN npx prisma generate
+RUN npx prisma generate --schema=src/pages/schema.prisma
 RUN npm run build
 
 COPY docker-entrypoint.sh ./
