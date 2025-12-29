@@ -59,7 +59,7 @@ Hier sind die korrekten Abläufe für verschiedene Szenarien.
     ```
 3.  **Neustart**:
     ```bash
-    sudo docker compose up -d db web
+    docker compose up --build -d
     ```
 4.  **Schema & Datenbank initialisieren**:
     ```bash

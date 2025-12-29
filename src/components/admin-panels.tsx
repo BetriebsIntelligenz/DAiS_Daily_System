@@ -2860,7 +2860,7 @@ export function AdminPanels() {
       }
       {
         renderAccordionSection(
-          "xp-center",
+          "xp-control-center",
           "XP Center",
           "XP Verwaltung",
           <>
