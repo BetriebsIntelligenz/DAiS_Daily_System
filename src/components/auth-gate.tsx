@@ -258,9 +258,6 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           <button type="submit" className="pixel-button w-full py-3">
             Start
           </button>
-          <p className="text-center text-xs text-white/70">
-            Admin Login: <span className="font-semibold text-white">admin / admin100</span>
-          </p>
         </form>
       </div>
     );

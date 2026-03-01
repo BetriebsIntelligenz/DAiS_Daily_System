@@ -169,3 +169,33 @@ export async function PUT(request: Request) {
     );
   }
 }
+
+export async function DELETE(request: Request) {
+  console.log("API: DELETE /api/program-stacks called");
+  let body;
+  try {
+    body = await request.json();
+    console.log("API: DELETE body parsed:", JSON.stringify(body, null, 2));
+  } catch (error) {
+    console.error("API: DELETE JSON parsing failed", error);
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const id = String(body.id ?? "").trim();
+  if (!id) {
+    return NextResponse.json({ error: "ID wird benötigt." }, { status: 400 });
+  }
+
+  try {
+    await prisma.programStack.delete({
+      where: { id }
+    });
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error("API: DELETE failed with error:", error);
+    return NextResponse.json(
+      { error: "Programmstack konnte nicht gelöscht werden." },
+      { status: 500 }
+    );
+  }
+}

@@ -609,6 +609,22 @@ export function AdminPanels() {
     await refreshMindData();
   };
 
+  const handleStackDelete = async (stack: ProgramStackDefinition) => {
+    const confirmed = window.confirm(`Stack "${stack.title}" wirklich löschen?`);
+    if (!confirmed) return;
+
+    await fetch("/api/program-stacks", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: stack.id })
+    });
+
+    if (editingStack?.id === stack.id) {
+      setEditingStack(null);
+    }
+    await refreshMindData();
+  };
+
   const handleGoalSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     await fetch("/api/mind/goals", {
@@ -1539,9 +1555,14 @@ export function AdminPanels() {
                       {stack.durationMinutes && ` · ${stack.durationMinutes} Min.`}
                     </p>
                   </div>
-                  <Button type="button" variant="ghost" onClick={() => openEditStack(stack)}>
-                    Bearbeiten
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button type="button" variant="ghost" onClick={() => openEditStack(stack)}>
+                      Bearbeiten
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => handleStackDelete(stack)}>
+                      Löschen
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
