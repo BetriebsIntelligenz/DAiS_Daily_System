@@ -18,6 +18,9 @@ services:
       PORT: 3001
     ports:
       - "51991:3001"
+    volumes:
+      - ./:/app
+      - /app/node_modules
     env_file:
       - .env.docker
     depends_on:

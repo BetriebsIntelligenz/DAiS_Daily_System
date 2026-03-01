@@ -157,6 +157,8 @@ model User {
   humanContactLogs  HumanContactLog[]
   readingLogs       MindReadingLog[]
   roleProfiles      RoleProfile[]
+  results           ResultObject[]
+  resultLogs        ResultLogEntry[]
 }
 
 model Program {
@@ -275,6 +277,43 @@ model RoleStateEntry {
   @@index([roleId, createdAt])
   @@index([stateId, createdAt])
   @@index([programId])
+}
+
+model ResultObject {
+  id             String   @id @default(cuid())
+  userId         String?
+  name           String
+  icon           String   @default("🎯")
+  status         String   @default("open")
+  startDate      DateTime?
+  deadline       DateTime?
+  cost           Float    @default(0)
+  stakeholder    String?
+  outputFileType String?
+  checklist      Json
+  artifacts      Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  logs ResultLogEntry[]
+
+  @@index([userId])
+  @@index([updatedAt])
+}
+
+model ResultLogEntry {
+  id        String   @id @default(cuid())
+  resultId  String
+  userId    String?
+  message   String
+  logType   String   @default("manual")
+  createdAt DateTime @default(now())
+
+  result ResultObject @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  user   User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([resultId, createdAt])
 }
 
 model ProgramUnit {

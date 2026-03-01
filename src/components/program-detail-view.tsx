@@ -19,7 +19,11 @@ const PROGRAM_CARD_SECTIONS: Record<string, ProgramCardsSection[]> = {
   "brain-training": ["brain"],
   "higher-thinking": ["learning"],
   "emotion-training": ["emotion"],
-  meditation: ["meditation"]
+  meditation: ["meditation"],
+  "daily-checklist-body": ["program_settings"],
+  "daily-checklist-human": ["program_settings"],
+  "environment-program": ["program_settings"],
+  "business-development-program": ["program_settings"]
 };
 
 interface ProgramDetailViewProps {
@@ -309,6 +313,7 @@ export function ProgramDetailView({ program, backLink }: ProgramDetailViewProps)
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           sections={sections}
+          program={program}
           title={`${program.code} Einstellungen`}
         />
       )}

@@ -27,19 +27,16 @@ export function UserMenu() {
   }
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative z-30" ref={menuRef}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-3 rounded-2xl border-2 border-white/70 bg-white/10 px-4 py-2 text-sm font-arcade uppercase tracking-[0.3em] text-white transition hover:bg-white/20"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 bg-white/10 text-white transition hover:scale-[1.03] hover:bg-white/20 active:scale-95"
       >
         <UserCircle2 className="h-6 w-6" />
-        <span className="hidden md:inline">
-          {user.name.split(" ")[0]}
-        </span>
       </button>
       {open && (
-        <div className="absolute right-0 mt-3 w-56 rounded-3xl border-2 border-[#08112c] bg-white/95 p-4 text-sm text-[#0a1230] shadow-arcade">
+        <div className="absolute right-0 z-50 mt-3 w-56 rounded-3xl border-2 border-[#08112c] bg-white/95 p-4 text-sm text-[#0a1230] shadow-arcade">
           <div className="px-4 pb-3">
             <p className="font-arcade text-[10px] uppercase tracking-[0.4em] text-daisy-500">
               Angemeldet
@@ -52,7 +49,7 @@ export function UserMenu() {
             onClick={logout}
             className="w-full rounded-2xl bg-gradient-to-r from-[#ffbed3] to-[#ff8498] px-4 py-2 text-left text-xs font-arcade uppercase tracking-[0.3em] text-[#5d0b1a] hover:opacity-95"
           >
-            Logoff
+            Abmelden
           </button>
         </div>
       )}

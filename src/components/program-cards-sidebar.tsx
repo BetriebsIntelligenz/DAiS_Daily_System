@@ -15,7 +15,9 @@ import type {
   MindMeditationFlow,
   MindReadingBook,
   MindVisualizationAsset,
-  PerformanceChecklistItem
+  PerformanceChecklistItem,
+  ProgramDefinition,
+  ProgramExercise
 } from "@/lib/types";
 
 export type ProgramCardsSection =
@@ -27,12 +29,14 @@ export type ProgramCardsSection =
   | "brain"
   | "learning"
   | "emotion"
-  | "meditation";
+  | "meditation"
+  | "program_settings";
 
 interface ProgramCardsSidebarProps {
   open: boolean;
   onClose: () => void;
   sections: ProgramCardsSection[];
+  program?: ProgramDefinition;
   title?: string;
 }
 
@@ -40,6 +44,7 @@ export function ProgramCardsSidebar({
   open,
   onClose,
   sections,
+  program,
   title = "Cards Einstellungen"
 }: ProgramCardsSidebarProps) {
   useEffect(() => {
@@ -77,14 +82,264 @@ export function ProgramCardsSidebar({
           </Button>
         </header>
         <div className="h-full overflow-y-auto px-6 pb-10 pt-6">
-          <CardsSettingsPanel sections={sections} />
+          <CardsSettingsPanel sections={sections} program={program} />
         </div>
       </aside>
     </div>
   );
 }
 
-function CardsSettingsPanel({ sections }: { sections: ProgramCardsSection[] }) {
+type SidebarFieldType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "checkbox"
+  | "toggle"
+  | "scale"
+  | "multiselect"
+  | "select"
+  | "date";
+
+interface SidebarExerciseDraft {
+  id?: string;
+  label: string;
+  description: string;
+  fieldType: SidebarFieldType;
+  xpValue: number;
+  placeholder: string;
+  optionsText: string;
+  scaleMin: number;
+  scaleMax: number;
+}
+
+interface SidebarUnitDraft {
+  id?: string;
+  title: string;
+  order: number;
+  exercises: SidebarExerciseDraft[];
+}
+
+interface SidebarProgramDraft {
+  id: string;
+  name: string;
+  slug: string;
+  code: string;
+  summary: string;
+  category: ProgramDefinition["category"];
+  frequency: ProgramDefinition["frequency"];
+  mode: ProgramDefinition["mode"];
+  durationMinutes: number;
+  xpReward: number;
+  units: SidebarUnitDraft[];
+}
+
+const CATEGORY_OPTIONS: ProgramDefinition["category"][] = [
+  "mind",
+  "body",
+  "human",
+  "environment",
+  "business"
+];
+const FREQUENCY_OPTIONS: ProgramDefinition["frequency"][] = [
+  "daily",
+  "weekly",
+  "monthly",
+  "adhoc",
+  "block_only"
+];
+const MODE_OPTIONS: ProgramDefinition["mode"][] = ["single", "flow"];
+
+function normalizeProgramSlug(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function createEmptySidebarExercise(): SidebarExerciseDraft {
+  return {
+    label: "",
+    description: "",
+    fieldType: "text",
+    xpValue: 100,
+    placeholder: "",
+    optionsText: "",
+    scaleMin: 1,
+    scaleMax: 5
+  };
+}
+
+function createEmptySidebarUnit(order: number): SidebarUnitDraft {
+  return {
+    title: `Unit ${order}`,
+    order,
+    exercises: [createEmptySidebarExercise()]
+  };
+}
+
+function inferSidebarFieldType(exercise: ProgramExercise): SidebarFieldType {
+  const variant = exercise.config?.inputVariant;
+  if (exercise.type === "checkbox") {
+    return variant === "toggle" ? "toggle" : "checkbox";
+  }
+  if (exercise.type === "multiselect") {
+    return exercise.config?.singleSelect ? "select" : "multiselect";
+  }
+  if (exercise.type === "scale") {
+    return "scale";
+  }
+  if (exercise.type === "number") {
+    return "number";
+  }
+  if (exercise.type === "html") {
+    return "textarea";
+  }
+  if (exercise.type === "text") {
+    if (variant === "date") {
+      return "date";
+    }
+    if (variant === "text") {
+      return "text";
+    }
+    return "textarea";
+  }
+
+  return "text";
+}
+
+function programToSidebarDraft(program: ProgramDefinition): SidebarProgramDraft {
+  return {
+    id: program.id,
+    name: program.name,
+    slug: program.slug,
+    code: program.code,
+    summary: program.summary,
+    category: program.category,
+    frequency: program.frequency,
+    mode: program.mode,
+    durationMinutes: program.durationMinutes,
+    xpReward: program.xpReward,
+    units:
+      program.units.length > 0
+        ? program.units
+            .slice()
+            .sort((left, right) => left.order - right.order)
+            .map((unit, unitIndex) => ({
+              id: unit.id,
+              title: unit.title,
+              order: unit.order || unitIndex + 1,
+              exercises:
+                unit.exercises.length > 0
+                  ? unit.exercises.map((exercise) => ({
+                      id: exercise.id,
+                      label: exercise.label,
+                      description: exercise.description ?? "",
+                      fieldType: inferSidebarFieldType(exercise),
+                      xpValue: exercise.xpValue,
+                      placeholder: exercise.config?.placeholder ?? "",
+                      optionsText: Array.isArray(exercise.config?.options)
+                        ? exercise.config.options.join("\n")
+                        : "",
+                      scaleMin: Number(exercise.config?.scaleMin ?? 1),
+                      scaleMax: Number(exercise.config?.scaleMax ?? 5)
+                    }))
+                  : [createEmptySidebarExercise()]
+            }))
+        : [createEmptySidebarUnit(1)]
+  };
+}
+
+function sidebarExerciseToPayload(exercise: SidebarExerciseDraft) {
+  const options = exercise.optionsText
+    .split("\n")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  const basePayload = {
+    label: exercise.label.trim(),
+    description: exercise.description.trim() || undefined,
+    xpValue: Math.max(0, Math.round(Number(exercise.xpValue) || 0))
+  };
+
+  switch (exercise.fieldType) {
+    case "textarea":
+      return {
+        ...basePayload,
+        type: "html" as const,
+        config: {
+          inputVariant: "textarea",
+          placeholder: exercise.placeholder.trim() || undefined
+        }
+      };
+    case "number":
+      return {
+        ...basePayload,
+        type: "number" as const,
+        config: {
+          placeholder: exercise.placeholder.trim() || undefined
+        }
+      };
+    case "checkbox":
+      return { ...basePayload, type: "checkbox" as const, config: {} };
+    case "toggle":
+      return {
+        ...basePayload,
+        type: "checkbox" as const,
+        config: { inputVariant: "toggle" }
+      };
+    case "scale":
+      return {
+        ...basePayload,
+        type: "scale" as const,
+        config: {
+          scaleMin: Math.round(Number(exercise.scaleMin) || 1),
+          scaleMax: Math.round(Number(exercise.scaleMax) || 5)
+        }
+      };
+    case "multiselect":
+      return {
+        ...basePayload,
+        type: "multiselect" as const,
+        config: {
+          options,
+          singleSelect: false
+        }
+      };
+    case "select":
+      return {
+        ...basePayload,
+        type: "multiselect" as const,
+        config: {
+          options,
+          singleSelect: true
+        }
+      };
+    case "date":
+      return {
+        ...basePayload,
+        type: "text" as const,
+        config: { inputVariant: "date" }
+      };
+    case "text":
+    default:
+      return {
+        ...basePayload,
+        type: "text" as const,
+        config: {
+          inputVariant: "text",
+          placeholder: exercise.placeholder.trim() || undefined
+        }
+      };
+  }
+}
+
+function CardsSettingsPanel({
+  sections,
+  program
+}: {
+  sections: ProgramCardsSection[];
+  program?: ProgramDefinition;
+}) {
   const sectionSet = useMemo(() => new Set(sections), [sections]);
   const hasSection = (section: ProgramCardsSection) => sectionSet.has(section);
 
@@ -178,6 +433,20 @@ function CardsSettingsPanel({ sections }: { sections: ProgramCardsSection[] }) {
   const [householdAdminError, setHouseholdAdminError] = useState<string | null>(
     null
   );
+  const [programDraft, setProgramDraft] = useState<SidebarProgramDraft | null>(
+    program ? programToSidebarDraft(program) : null
+  );
+  const [programSaveLoading, setProgramSaveLoading] = useState(false);
+  const [programSaveError, setProgramSaveError] = useState<string | null>(null);
+  const [programSaveSuccess, setProgramSaveSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!program) {
+      setProgramDraft(null);
+      return;
+    }
+    setProgramDraft(programToSidebarDraft(program));
+  }, [program]);
 
   const refreshCardsData = async () => {
     const loadJson = async (path: string) => {
@@ -946,8 +1215,547 @@ function CardsSettingsPanel({ sections }: { sections: ProgramCardsSection[] }) {
     }
   };
 
+  const updateProgramUnit = (
+    unitIndex: number,
+    updater: (unit: SidebarUnitDraft) => SidebarUnitDraft
+  ) => {
+    setProgramDraft((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        units: prev.units.map((unit, index) =>
+          index === unitIndex ? updater(unit) : unit
+        )
+      };
+    });
+  };
+
+  const validateProgramDraft = (draft: SidebarProgramDraft) => {
+    if (!draft.name.trim()) {
+      return "Programmtitel ist erforderlich.";
+    }
+    if (draft.units.length === 0) {
+      return "Mindestens eine Unit ist erforderlich.";
+    }
+    for (const unit of draft.units) {
+      if (!unit.title.trim()) {
+        return "Jede Unit benötigt einen Titel.";
+      }
+      if (unit.exercises.length === 0) {
+        return `Unit \"${unit.title}\" benötigt mindestens ein Feld.`;
+      }
+      for (const exercise of unit.exercises) {
+        if (!exercise.label.trim()) {
+          return `Jedes Feld in Unit \"${unit.title}\" benötigt ein Label.`;
+        }
+        if (
+          (exercise.fieldType === "select" || exercise.fieldType === "multiselect") &&
+          exercise.optionsText
+            .split("\n")
+            .map((entry) => entry.trim())
+            .filter(Boolean).length === 0
+        ) {
+          return `Feld \"${exercise.label}\" benötigt mindestens eine Option.`;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const saveProgramSettings = async () => {
+    if (!programDraft) {
+      return;
+    }
+
+    const validationError = validateProgramDraft(programDraft);
+    if (validationError) {
+      setProgramSaveError(validationError);
+      setProgramSaveSuccess(null);
+      return;
+    }
+
+    const payload = {
+      id: programDraft.id,
+      name: programDraft.name.trim(),
+      slug: normalizeProgramSlug(programDraft.slug.trim() || programDraft.name),
+      code: (programDraft.code.trim() || programDraft.name.slice(0, 3)).toUpperCase(),
+      summary: programDraft.summary.trim(),
+      category: programDraft.category,
+      frequency: programDraft.frequency,
+      mode: programDraft.mode,
+      durationMinutes: Math.max(1, Math.round(Number(programDraft.durationMinutes) || 1)),
+      xpReward: Math.max(0, Math.round(Number(programDraft.xpReward) || 0)),
+      units: programDraft.units.map((unit, unitIndex) => ({
+        id: unit.id,
+        title: unit.title.trim(),
+        order: unitIndex + 1,
+        exercises: unit.exercises.map((exercise) => sidebarExerciseToPayload(exercise))
+      }))
+    };
+
+    setProgramSaveLoading(true);
+    setProgramSaveError(null);
+    setProgramSaveSuccess(null);
+    try {
+      const response = await fetch("/api/programs", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? "Card-Einstellungen konnten nicht gespeichert werden.");
+      }
+
+      const updatedProgram = (await response.json()) as ProgramDefinition;
+      setProgramDraft(programToSidebarDraft(updatedProgram));
+      setProgramSaveSuccess("Card-Einstellungen gespeichert.");
+    } catch (error) {
+      console.error("Failed to save program settings", error);
+      setProgramSaveError(
+        error instanceof Error
+          ? error.message
+          : "Card-Einstellungen konnten nicht gespeichert werden."
+      );
+    } finally {
+      setProgramSaveLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
+      {hasSection("program_settings") && (
+        <article
+          id="cards-program-settings"
+          className="rounded-3xl border border-white/20 bg-white/90 p-6 text-gray-900 shadow-sm"
+        >
+          <header className="flex flex-col gap-1">
+            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+              Ändert: Programm Card
+            </p>
+            <h3 className="text-xl font-semibold">
+              {programDraft?.name ?? program?.name ?? "Card Einstellungen"}
+            </h3>
+            <p className="text-sm text-gray-500">
+              Bearbeite die gleichen Kern-Card-Einstellungen direkt aus der Einzelansicht.
+            </p>
+            {programSaveError && (
+              <p className="mt-2 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                {programSaveError}
+              </p>
+            )}
+            {programSaveSuccess && (
+              <p className="mt-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+                {programSaveSuccess}
+              </p>
+            )}
+          </header>
+
+          {programDraft ? (
+            <div className="mt-4 space-y-5">
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  value={programDraft.name}
+                  onChange={(event) =>
+                    setProgramDraft((prev) =>
+                      prev ? { ...prev, name: event.target.value } : prev
+                    )
+                  }
+                  placeholder="Programmtitel"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <input
+                  value={programDraft.code}
+                  onChange={(event) =>
+                    setProgramDraft((prev) =>
+                      prev ? { ...prev, code: event.target.value.toUpperCase() } : prev
+                    )
+                  }
+                  placeholder="Code (z.B. BU1)"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <input
+                  value={programDraft.slug}
+                  onChange={(event) =>
+                    setProgramDraft((prev) =>
+                      prev ? { ...prev, slug: normalizeProgramSlug(event.target.value) } : prev
+                    )
+                  }
+                  placeholder="Slug"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <select
+                  value={programDraft.category}
+                  onChange={(event) =>
+                    setProgramDraft((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            category: event.target.value as ProgramDefinition["category"]
+                          }
+                        : prev
+                    )
+                  }
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                >
+                  {CATEGORY_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={programDraft.frequency}
+                  onChange={(event) =>
+                    setProgramDraft((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            frequency: event.target.value as ProgramDefinition["frequency"]
+                          }
+                        : prev
+                    )
+                  }
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                >
+                  {FREQUENCY_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={programDraft.mode}
+                  onChange={(event) =>
+                    setProgramDraft((prev) =>
+                      prev
+                        ? { ...prev, mode: event.target.value as ProgramDefinition["mode"] }
+                        : prev
+                    )
+                  }
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                >
+                  {MODE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  value={programDraft.durationMinutes}
+                  onChange={(event) =>
+                    setProgramDraft((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            durationMinutes: Math.max(1, Number(event.target.value) || 1)
+                          }
+                        : prev
+                    )
+                  }
+                  placeholder="Dauer (Minuten)"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+                <input
+                  type="number"
+                  value={programDraft.xpReward}
+                  onChange={(event) =>
+                    setProgramDraft((prev) =>
+                      prev
+                        ? { ...prev, xpReward: Math.max(0, Number(event.target.value) || 0) }
+                        : prev
+                    )
+                  }
+                  placeholder="XP Reward"
+                  className="rounded-2xl border border-daisy-200 px-4 py-3"
+                />
+              </div>
+
+              <textarea
+                value={programDraft.summary}
+                onChange={(event) =>
+                  setProgramDraft((prev) =>
+                    prev ? { ...prev, summary: event.target.value } : prev
+                  )
+                }
+                placeholder="Beschreibung"
+                className="min-h-[120px] w-full rounded-2xl border border-daisy-200 px-4 py-3"
+              />
+
+              <div className="space-y-3">
+                {programDraft.units.map((unit, unitIndex) => (
+                  <section
+                    key={`${unit.id ?? "new"}-${unitIndex}`}
+                    className="rounded-2xl border border-daisy-100 bg-white p-3"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        value={unit.title}
+                        onChange={(event) =>
+                          updateProgramUnit(unitIndex, (current) => ({
+                            ...current,
+                            title: event.target.value
+                          }))
+                        }
+                        placeholder="Unit Titel"
+                        className="min-w-[220px] flex-1 rounded-xl border border-daisy-200 px-3 py-2"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={programDraft.units.length <= 1}
+                        onClick={() =>
+                          setProgramDraft((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  units: prev.units.filter((_, index) => index !== unitIndex)
+                                }
+                              : prev
+                          )
+                        }
+                      >
+                        Unit löschen
+                      </Button>
+                    </div>
+
+                    <div className="mt-3 space-y-3">
+                      {unit.exercises.map((exercise, exerciseIndex) => (
+                        <div
+                          key={`${exercise.id ?? "new"}-${exerciseIndex}`}
+                          className="rounded-2xl border border-daisy-100 bg-daisy-50/40 p-3"
+                        >
+                          <div className="grid gap-2 md:grid-cols-2">
+                            <input
+                              value={exercise.label}
+                              onChange={(event) =>
+                                updateProgramUnit(unitIndex, (current) => ({
+                                  ...current,
+                                  exercises: current.exercises.map((entry, index) =>
+                                    index === exerciseIndex
+                                      ? { ...entry, label: event.target.value }
+                                      : entry
+                                  )
+                                }))
+                              }
+                              placeholder="Feldlabel"
+                              className="rounded-xl border border-daisy-200 px-3 py-2"
+                            />
+                            <select
+                              value={exercise.fieldType}
+                              onChange={(event) =>
+                                updateProgramUnit(unitIndex, (current) => ({
+                                  ...current,
+                                  exercises: current.exercises.map((entry, index) =>
+                                    index === exerciseIndex
+                                      ? {
+                                          ...entry,
+                                          fieldType: event.target.value as SidebarFieldType
+                                        }
+                                      : entry
+                                  )
+                                }))
+                              }
+                              className="rounded-xl border border-daisy-200 px-3 py-2"
+                            >
+                              <option value="text">Text</option>
+                              <option value="textarea">Textarea</option>
+                              <option value="number">Number</option>
+                              <option value="checkbox">Checkbox</option>
+                              <option value="toggle">Toggle</option>
+                              <option value="scale">Scale</option>
+                              <option value="multiselect">Multi Select</option>
+                              <option value="select">Select</option>
+                              <option value="date">Date</option>
+                            </select>
+                            <textarea
+                              value={exercise.description}
+                              onChange={(event) =>
+                                updateProgramUnit(unitIndex, (current) => ({
+                                  ...current,
+                                  exercises: current.exercises.map((entry, index) =>
+                                    index === exerciseIndex
+                                      ? { ...entry, description: event.target.value }
+                                      : entry
+                                  )
+                                }))
+                              }
+                              placeholder="Beschreibung"
+                              className="rounded-xl border border-daisy-200 px-3 py-2 md:col-span-2"
+                            />
+                            {(exercise.fieldType === "text" ||
+                              exercise.fieldType === "textarea" ||
+                              exercise.fieldType === "number") && (
+                              <input
+                                value={exercise.placeholder}
+                                onChange={(event) =>
+                                  updateProgramUnit(unitIndex, (current) => ({
+                                    ...current,
+                                    exercises: current.exercises.map((entry, index) =>
+                                      index === exerciseIndex
+                                        ? { ...entry, placeholder: event.target.value }
+                                        : entry
+                                    )
+                                  }))
+                                }
+                                placeholder="Placeholder"
+                                className="rounded-xl border border-daisy-200 px-3 py-2 md:col-span-2"
+                              />
+                            )}
+                            {(exercise.fieldType === "select" ||
+                              exercise.fieldType === "multiselect") && (
+                              <textarea
+                                value={exercise.optionsText}
+                                onChange={(event) =>
+                                  updateProgramUnit(unitIndex, (current) => ({
+                                    ...current,
+                                    exercises: current.exercises.map((entry, index) =>
+                                      index === exerciseIndex
+                                        ? { ...entry, optionsText: event.target.value }
+                                        : entry
+                                    )
+                                  }))
+                                }
+                                placeholder="Optionen (jede Zeile eine Option)"
+                                className="rounded-xl border border-daisy-200 px-3 py-2 md:col-span-2"
+                              />
+                            )}
+                            {exercise.fieldType === "scale" && (
+                              <div className="grid gap-2 md:col-span-2 md:grid-cols-2">
+                                <input
+                                  type="number"
+                                  value={exercise.scaleMin}
+                                  onChange={(event) =>
+                                    updateProgramUnit(unitIndex, (current) => ({
+                                      ...current,
+                                      exercises: current.exercises.map((entry, index) =>
+                                        index === exerciseIndex
+                                          ? {
+                                              ...entry,
+                                              scaleMin: Number(event.target.value) || 1
+                                            }
+                                          : entry
+                                      )
+                                    }))
+                                  }
+                                  placeholder="Scale Min"
+                                  className="rounded-xl border border-daisy-200 px-3 py-2"
+                                />
+                                <input
+                                  type="number"
+                                  value={exercise.scaleMax}
+                                  onChange={(event) =>
+                                    updateProgramUnit(unitIndex, (current) => ({
+                                      ...current,
+                                      exercises: current.exercises.map((entry, index) =>
+                                        index === exerciseIndex
+                                          ? {
+                                              ...entry,
+                                              scaleMax: Number(event.target.value) || 5
+                                            }
+                                          : entry
+                                      )
+                                    }))
+                                  }
+                                  placeholder="Scale Max"
+                                  className="rounded-xl border border-daisy-200 px-3 py-2"
+                                />
+                              </div>
+                            )}
+                            <input
+                              type="number"
+                              value={exercise.xpValue}
+                              onChange={(event) =>
+                                updateProgramUnit(unitIndex, (current) => ({
+                                  ...current,
+                                  exercises: current.exercises.map((entry, index) =>
+                                    index === exerciseIndex
+                                      ? {
+                                          ...entry,
+                                          xpValue: Math.max(0, Number(event.target.value) || 0)
+                                        }
+                                      : entry
+                                  )
+                                }))
+                              }
+                              placeholder="XP"
+                              className="rounded-xl border border-daisy-200 px-3 py-2 md:col-span-2"
+                            />
+                          </div>
+                          <div className="mt-2 flex justify-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              disabled={unit.exercises.length <= 1}
+                              onClick={() =>
+                                updateProgramUnit(unitIndex, (current) => ({
+                                  ...current,
+                                  exercises: current.exercises.filter(
+                                    (_, index) => index !== exerciseIndex
+                                  )
+                                }))
+                              }
+                            >
+                              Feld löschen
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-3"
+                      onClick={() =>
+                        updateProgramUnit(unitIndex, (current) => ({
+                          ...current,
+                          exercises: [...current.exercises, createEmptySidebarExercise()]
+                        }))
+                      }
+                    >
+                      Feld hinzufügen
+                    </Button>
+                  </section>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setProgramDraft((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            units: [...prev.units, createEmptySidebarUnit(prev.units.length + 1)]
+                          }
+                        : prev
+                    )
+                  }
+                >
+                  Unit hinzufügen
+                </Button>
+                <Button
+                  type="button"
+                  onClick={saveProgramSettings}
+                  disabled={programSaveLoading}
+                >
+                  {programSaveLoading ? "Speichern..." : "Card speichern"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-gray-500">
+              Für diese Card sind keine Einstellungen verfügbar.
+            </p>
+          )}
+        </article>
+      )}
+
       {hasSection("visuals") && (
         <article
           id="cards-visuals"

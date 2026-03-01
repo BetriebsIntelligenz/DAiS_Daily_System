@@ -578,3 +578,44 @@ export interface RoleDefinition {
   emotions?: RoleEmotionEntry[];
   states: RoleStateDefinition[];
 }
+
+export interface ResultChecklistItem {
+  id: string;
+  label: string;
+  done: boolean;
+}
+
+export type ResultStatus =
+  | "open"
+  | "in_progress"
+  | "delayed"
+  | "problem"
+  | "completed"
+  | "stopped"
+  | "archived";
+
+export interface ResultLogEntry {
+  id: string;
+  resultId: string;
+  userId?: string | null;
+  message: string;
+  logType: "manual" | "change";
+  createdAt: string;
+}
+
+export interface ResultObject {
+  id: string;
+  name: string;
+  icon: string;
+  status: ResultStatus;
+  startDate?: string | null;
+  deadline?: string | null;
+  cost: number;
+  stakeholder?: string | null;
+  outputFileType?: string | null;
+  checklist: ResultChecklistItem[];
+  artifacts: string[];
+  createdAt: string;
+  updatedAt: string;
+  logs: ResultLogEntry[];
+}

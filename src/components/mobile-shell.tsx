@@ -24,7 +24,7 @@ export function MobileShell({
             </div>
           )}
 
-          <section className="arcade-shell crt-noise relative overflow-visible rounded-[42px] border-[3px] border-white/40 bg-gradient-to-b from-[#18205a]/95 via-[#2e3fa3]/85 to-[#6d7fff]/85 p-6 pb-10 text-white shadow-arcade">
+          <section className="arcade-shell crt-noise relative z-40 !overflow-visible rounded-[42px] border-[3px] border-white/40 bg-gradient-to-b from-[#18205a]/95 via-[#2e3fa3]/85 to-[#6d7fff]/85 p-6 pb-10 text-white shadow-arcade">
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               <div>
                 <h1 className="mt-3 font-arcade text-2xl leading-relaxed tracking-[0.2em] text-white md:text-3xl">
@@ -40,7 +40,7 @@ export function MobileShell({
 
           </section>
 
-          <main className="crt-noise relative rounded-[38px] border-4 border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(5,20,52,0.35)] sm:p-8">
+          <main className="crt-noise relative z-10 rounded-[38px] border-4 border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(5,20,52,0.35)] sm:p-8">
             {children}
           </main>
         </div>
