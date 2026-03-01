@@ -6,6 +6,12 @@ services:
       POSTGRES_USER: dais
       POSTGRES_PASSWORD: dais
       POSTGRES_DB: dais
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dais -d dais"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
     ports:
       - "51992:5432"
     volumes:
@@ -24,7 +30,8 @@ services:
     env_file:
       - .env.docker
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
