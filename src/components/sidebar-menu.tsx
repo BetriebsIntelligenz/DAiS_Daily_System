@@ -10,6 +10,7 @@ import {
     ListChecks,
     Gift,
     BookOpen,
+    Users,
     Shield,
     Menu,
     X
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
     { href: "/timeline", label: "Timeline", icon: CalendarDays, accent: "from-[#fce0ff] to-[#ff9edc]" },
     { href: "/requirements", label: "Tasks", icon: ListChecks, accent: "from-[#d7ffe6] to-[#6bf2a0]" },
     { href: "/rewards", label: "Rewards", icon: Gift, accent: "from-[#ffe0f1] to-[#ff9ad1]" },
+    { href: "/roles", label: "Roles", icon: Users, accent: "from-[#d6f8ff] to-[#72e4ff]" },
     { href: "/day", label: "Day", icon: CalendarDays, accent: "from-[#ffebb3] to-[#ffb347]" },
     { href: "/journals", label: "Journal", icon: BookOpen, accent: "from-[#e8e4ff] to-[#b2a3ff]" },
     { href: "/admin", label: "Admin", icon: Shield, accent: "from-[#d9f3ff] to-[#9ad7ff]" }

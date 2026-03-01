@@ -3,8 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "npm run db:generate",
     "dev": "node scripts/dev-server.js dev",
+    "prebuild": "npm run db:generate",
     "build": "next build",
+    "prestart": "npm run db:generate",
     "start": "node scripts/dev-server.js start",
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",

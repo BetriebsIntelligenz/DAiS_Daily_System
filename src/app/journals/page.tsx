@@ -5,7 +5,7 @@ export default function JournalsPage() {
   return (
     <MobileShell
       title="Journale"
-      description="Lern-, Erfolgs- und Dankbarkeitsjournal führen."
+      description="Lern-, Erfolgs-, Dankbarkeits- und Role Journal führen."
     >
       <JournalBoard />
     </MobileShell>

@@ -519,3 +519,62 @@ export interface HumanContactStatsEntry {
     percentage: number;
   }>;
 }
+
+export interface RoleLinkedProgram {
+  id: string;
+  slug: string;
+  code: string;
+  name: string;
+  summary: string;
+  category: ProgramCategoryName;
+}
+
+export interface RoleEmotionEntry {
+  id: string;
+  roleId: string;
+  score: number;
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface RoleStateDefinition {
+  id: string;
+  roleId: string;
+  name: string;
+  minValue: number;
+  maxValue: number;
+  step: number;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoleStateEntry {
+  id: string;
+  roleId: string;
+  stateId: string;
+  programId?: string | null;
+  score: number;
+  note?: string | null;
+  createdAt: string;
+  roleName?: string;
+  stateName?: string;
+  programCode?: string;
+  programName?: string;
+}
+
+export interface RoleDefinition {
+  id: string;
+  name: string;
+  goal?: string | null;
+  description?: string | null;
+  notes?: string | null;
+  attributes?: string | null;
+  avatarSeed?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  linkedProgramIds: string[];
+  linkedPrograms: RoleLinkedProgram[];
+  emotions?: RoleEmotionEntry[];
+  states: RoleStateDefinition[];
+}
