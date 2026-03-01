@@ -5,6 +5,7 @@ import { MenuCard } from "@/components/menu-card";
 import { MobileShell } from "@/components/mobile-shell";
 import { prisma } from "@/lib/prisma";
 import { formatWeekdays } from "@/lib/household";
+import { loadPrograms } from "@/lib/programs";
 import {
   Activity,
   Brain,
@@ -36,6 +37,7 @@ export default async function HomePage({
     ReturnType<typeof prisma.programStack.findMany>
   >;
   let programStacks: ProgramStackRecord = [];
+  const allPrograms = await loadPrograms();
   try {
     programStacks = await prisma.programStack.findMany({
       orderBy: { createdAt: "desc" }
@@ -84,6 +86,7 @@ export default async function HomePage({
             {programStacks.map((stack) => {
               const modules = stack.programSlugs
                 .map((slug) =>
+                  allPrograms.find((program) => program.slug === slug) ??
                   programDefinitions.find((program) => program.slug === slug)
                 )
                 .filter(Boolean);

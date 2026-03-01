@@ -184,6 +184,8 @@ export interface ExerciseConfig {
   scaleMax?: number;
   scaleLabels?: string[];
   options?: string[];
+  singleSelect?: boolean;
+  inputVariant?: "text" | "textarea" | "toggle" | "date";
   optionsRequireMinutes?: boolean;
   placeholder?: string;
   richText?: boolean;

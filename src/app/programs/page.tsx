@@ -1,23 +1,22 @@
-"use client";
-
-import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Gamepad2, Sparkles } from "lucide-react";
 
-import { programDefinitions } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { MobileShell } from "@/components/mobile-shell";
+import { loadPrograms } from "@/lib/programs";
 
-export default function ProgramsPage() {
-  const searchParams = useSearchParams();
-  const category = searchParams?.get("category") ?? null;
-
-  const programs = useMemo(() => {
-    if (!category) return programDefinitions;
-    return programDefinitions.filter((program) => program.category === category);
-  }, [category]);
+export default async function ProgramsPage({
+  searchParams
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  const category =
+    typeof searchParams?.category === "string" ? searchParams.category : null;
+  const allPrograms = await loadPrograms();
+  const programs = category
+    ? allPrograms.filter((program) => program.category === category)
+    : allPrograms;
 
   return (
     <MobileShell
@@ -51,12 +50,14 @@ export default function ProgramsPage() {
                     </span>
                   </div>
                   <div>
-                    <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[#0b1230] leading-tight">
-                      <span className="uppercase tracking-widest opacity-70 text-xs sm:text-base">{program.code}</span>
+                    <CardTitle className="flex flex-col gap-1 text-[#0b1230] leading-tight sm:flex-row sm:items-center sm:gap-2">
+                      <span className="text-xs uppercase tracking-widest opacity-70 sm:text-base">
+                        {program.code}
+                      </span>
                       <span className="hidden sm:inline">—</span>
                       <span>{program.name}</span>
                     </CardTitle>
-                    <CardDescription className="text-sm text-[#4b5685] mt-1">
+                    <CardDescription className="mt-1 text-sm text-[#4b5685]">
                       {program.summary}
                     </CardDescription>
                   </div>

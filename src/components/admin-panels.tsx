@@ -25,6 +25,7 @@ import type {
   RewardDefinition
 } from "@/lib/types";
 import { Button } from "./ui/button";
+import { AdminCardEditor } from "./admin-card-editor";
 import { cn } from "@/lib/utils";
 import { HOUSEHOLD_WEEKDAYS, formatWeekday, formatWeekdays } from "@/lib/household";
 import {
@@ -40,8 +41,6 @@ const HUMAN_DEFAULT_RELATION = HUMAN_RELATION_OPTIONS[0]?.value ?? "family";
 
 
 export function AdminPanels() {
-  const [programName, setProgramName] = useState("");
-  const [category, setCategory] = useState("mind");
   const [programs, setPrograms] = useState<ProgramDefinition[]>(programDefinitions);
   const [rewardName, setRewardName] = useState("");
   const [rewardCost, setRewardCost] = useState(1000);
@@ -436,17 +435,6 @@ export function AdminPanels() {
     setRewards(
       (rewardsPayload as any)?.rewards || []
     );
-  };
-
-  const createProgram = async () => {
-    await fetch("/api/programs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: programName, category })
-    });
-    setProgramName("");
-    await refreshMindData();
-    alert("Programm stub angelegt – erweitere anschließend Units & Exercises.");
   };
 
   const createReward = async () => {
@@ -1373,6 +1361,14 @@ export function AdminPanels() {
   };
   return (
     <div className="space-y-6">
+      {renderAccordionSection(
+        "program-builder",
+        "Card Editor",
+        "Neue Programm-Cards",
+        <AdminCardEditor programs={programs} onRefresh={refreshMindData} />,
+        <Layers className="h-6 w-6" />
+      )}
+
       {renderAccordionSection(
         "program-stacks",
         "Stacks",

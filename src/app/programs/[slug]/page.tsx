@@ -1,20 +1,15 @@
 import { notFound } from "next/navigation";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
 import { MobileShell } from "@/components/mobile-shell";
-import { ProgramContent } from "@/components/program-content";
-import { programDefinitions } from "@/lib/data";
+import { ProgramDetailView } from "@/components/program-detail-view";
+import { loadProgramBySlug } from "@/lib/programs";
 
 interface ProgramPageProps {
   params: { slug: string };
 }
 
-export default function ProgramPage({ params }: ProgramPageProps) {
-  const program = programDefinitions.find(
-    (candidate) => candidate.slug === params.slug
-  );
+export default async function ProgramPage({ params }: ProgramPageProps) {
+  const program = await loadProgramBySlug(params.slug);
 
   if (!program) {
     return notFound();
@@ -27,16 +22,7 @@ export default function ProgramPage({ params }: ProgramPageProps) {
       title={`${program.code} — ${program.name}`}
       description={`${program.summary} (${program.durationMinutes} Minuten | +${program.xpReward} XP)`}
     >
-      <div className="mb-4">
-        <Link
-          href={categoryBackLink}
-          className="inline-flex items-center gap-2 rounded-2xl border-2 border-white/70 bg-white/80 px-4 py-2 text-xs font-arcade uppercase tracking-[0.35em] text-[#0b1230] shadow-arcade transition hover:-translate-x-0.5 hover:bg-white"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Zurück
-        </Link>
-      </div>
-      <ProgramContent program={program} />
+      <ProgramDetailView program={program} backLink={categoryBackLink} />
     </MobileShell>
   );
 }

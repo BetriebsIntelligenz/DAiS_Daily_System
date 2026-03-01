@@ -4,6 +4,7 @@ import { MobileShell } from "@/components/mobile-shell";
 import { ProgramStackRunner } from "@/components/program-stack-runner";
 import { prisma } from "@/lib/prisma";
 import { programDefinitions } from "@/lib/data";
+import { loadPrograms } from "@/lib/programs";
 import type { ProgramDefinition } from "@/lib/types";
 
 interface ProgramStackPageProps {
@@ -27,8 +28,13 @@ export default async function ProgramStackPage({ params }: ProgramStackPageProps
     return notFound();
   }
 
+  const allPrograms = await loadPrograms();
   const programs = stack.programSlugs
-    .map((slug) => programDefinitions.find((program) => program.slug === slug))
+    .map(
+      (slug) =>
+        allPrograms.find((program) => program.slug === slug) ??
+        programDefinitions.find((program) => program.slug === slug)
+    )
     .filter(Boolean) as ProgramDefinition[];
 
   if (programs.length === 0) {

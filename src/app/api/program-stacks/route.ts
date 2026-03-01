@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { programDefinitions } from "@/lib/data";
-
-const validProgramSlugs = new Set(programDefinitions.map((program) => program.slug));
+import { loadPrograms } from "@/lib/programs";
+const staticProgramSlugs = new Set(programDefinitions.map((program) => program.slug));
 
 const slugify = (value: string) =>
   value
@@ -11,14 +11,29 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+async function resolveValidProgramSlugs() {
+  try {
+    const programs = await loadPrograms();
+    return new Set([
+      ...staticProgramSlugs,
+      ...programs.map((program) => program.slug)
+    ]);
+  } catch (error) {
+    console.error("Valid Program Slugs konnten nicht aus der DB geladen werden", error);
+    return staticProgramSlugs;
+  }
+}
+
 export async function GET() {
+  console.log("API: GET /api/program-stacks called");
   try {
     const stacks = await prisma.programStack.findMany({
       orderBy: { createdAt: "desc" }
     });
+    console.log(`API: GET success, found ${stacks.length} stacks`);
     return NextResponse.json(stacks);
   } catch (error) {
-    console.error("Program stacks GET failed", error);
+    console.error("API: GET failed with error:", error);
     return NextResponse.json(
       { error: "Programms konnten nicht geladen werden." },
       { status: 500 }
@@ -28,7 +43,15 @@ export async function GET() {
 
 // POST Handler Fix
 export async function POST(request: Request) {
-  const body = await request.json();
+  console.log("API: POST /api/program-stacks called");
+  let body;
+  try {
+    body = await request.json();
+    console.log("API: POST body parsed:", JSON.stringify(body, null, 2));
+  } catch (e) {
+    console.error("API: POST JSON parsing failed", e);
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const title = String(body.title ?? "").trim();
   const summary = String(body.summary ?? "").trim();
   const weekdays = Array.isArray(body.weekdays) ? body.weekdays.map(Number) : [];
@@ -46,6 +69,7 @@ export async function POST(request: Request) {
     );
   }
 
+  const validProgramSlugs = await resolveValidProgramSlugs();
   const invalidSlugs = programSlugs.filter((slug: string) => !validProgramSlugs.has(slug));
   if (invalidSlugs.length > 0) {
     return NextResponse.json(
@@ -73,16 +97,24 @@ export async function POST(request: Request) {
 
     return NextResponse.json(stack, { status: 201 });
   } catch (error) {
-    console.error("Program stack konnte nicht erstellt werden", error);
+    console.error("API: POST failed with error:", error);
     return NextResponse.json(
-      { error: "Programm konnte nicht gespeichert werden." },
+      { error: "Programmstack konnte nicht erstellt werden." },
       { status: 500 }
     );
   }
 }
 
 export async function PUT(request: Request) {
-  const body = await request.json();
+  console.log("API: PUT /api/program-stacks called");
+  let body;
+  try {
+    body = await request.json();
+    console.log("API: PUT body parsed:", JSON.stringify(body, null, 2));
+  } catch (e) {
+    console.error("API: PUT JSON parsing failed", e);
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const id = String(body.id ?? "").trim();
   const title = String(body.title ?? "").trim();
   const summary = String(body.summary ?? "").trim();
@@ -101,6 +133,7 @@ export async function PUT(request: Request) {
     );
   }
 
+  const validProgramSlugs = await resolveValidProgramSlugs();
   const invalidSlugs = programSlugs.filter((slug: string) => !validProgramSlugs.has(slug));
   if (invalidSlugs.length > 0) {
     return NextResponse.json(
@@ -129,9 +162,9 @@ export async function PUT(request: Request) {
 
     return NextResponse.json(stack, { status: 200 });
   } catch (error) {
-    console.error("Program stack konnte nicht aktualisiert werden", error);
+    console.error("API: PUT failed with error:", error);
     return NextResponse.json(
-      { error: "Programm konnte nicht aktualisiert werden." },
+      { error: "Programmstack konnte nicht aktualisiert werden." },
       { status: 500 }
     );
   }

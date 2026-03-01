@@ -16,6 +16,7 @@ const buildSchema = (exercises: ProgramExercise[]) => {
   const shape: Record<string, z.ZodTypeAny> = {};
 
   exercises.forEach((exercise) => {
+    const inputVariant = exercise.config?.inputVariant;
     switch (exercise.type) {
       case "checkbox":
         shape[exercise.id] = z.boolean().optional();
@@ -28,17 +29,42 @@ const buildSchema = (exercises: ProgramExercise[]) => {
           .optional();
         break;
       case "multiselect":
-        shape[exercise.id] = z.array(z.string()).optional();
+        shape[exercise.id] = exercise.config?.singleSelect
+          ? z.string().optional()
+          : z.array(z.string()).optional();
         break;
       case "html":
       case "text":
       default:
-        shape[exercise.id] = z.string().optional();
+        if (inputVariant === "date") {
+          shape[exercise.id] = z
+            .string()
+            .optional()
+            .refine((value) => !value || !Number.isNaN(Date.parse(value)), {
+              message: "Bitte ein gültiges Datum wählen."
+            });
+        } else {
+          shape[exercise.id] = z.string().optional();
+        }
         break;
     }
   });
   return z.object(shape);
 };
+
+const EXERCISE_DESCRIPTION_CLASS =
+  "text-[15px] font-normal leading-relaxed text-[#3f4e7d]";
+
+function ExerciseDescription({
+  description,
+  className = ""
+}: {
+  description?: string;
+  className?: string;
+}) {
+  if (!description) return null;
+  return <p className={`${EXERCISE_DESCRIPTION_CLASS} ${className}`}>{description}</p>;
+}
 
 export function ProgramForm({ program }: { program: ProgramDefinition }) {
   const exercises = program.units.flatMap((unit) => unit.exercises);
@@ -132,11 +158,35 @@ function ExerciseField({
   exercise: ProgramExercise;
   register: UseFormRegister<Record<string, unknown>>;
 }) {
+  const inputVariant = exercise.config?.inputVariant;
+
   switch (exercise.type) {
     case "checkbox":
+      if (inputVariant === "toggle") {
+        return (
+          <label className="flex items-center justify-between rounded-[24px] border-2 border-white/70 bg-white/90 px-4 py-3 text-sm font-semibold text-[#0b1230]">
+            <span className="min-w-0">
+              <span>{exercise.label}</span>
+              <ExerciseDescription description={exercise.description} className="mt-1" />
+            </span>
+            <span className="relative inline-flex h-7 w-12 items-center">
+              <input
+                type="checkbox"
+                {...register(exercise.id)}
+                className="peer h-0 w-0 opacity-0"
+              />
+              <span className="absolute inset-0 rounded-full bg-[#c4d4f8] transition peer-checked:bg-[#ff5fa8]" />
+              <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5" />
+            </span>
+          </label>
+        );
+      }
       return (
         <label className="flex items-center justify-between rounded-[24px] border-2 border-white/70 bg-white/90 px-4 py-3 text-sm font-semibold text-[#0b1230]">
-          <span>{exercise.label}</span>
+          <span className="min-w-0">
+            <span>{exercise.label}</span>
+            <ExerciseDescription description={exercise.description} className="mt-1" />
+          </span>
           <input
             type="checkbox"
             {...register(exercise.id)}
@@ -148,6 +198,7 @@ function ExerciseField({
       return (
         <label className="flex flex-col gap-2 text-sm font-semibold text-[#0b1230]">
           {exercise.label}
+          <ExerciseDescription description={exercise.description} />
           <input
             type="range"
             min={exercise.config?.scaleMin ?? 1}
@@ -159,9 +210,29 @@ function ExerciseField({
         </label>
       );
     case "multiselect":
+      if (exercise.config?.singleSelect) {
+        return (
+          <label className="flex flex-col gap-2 text-sm font-semibold text-[#0b1230]">
+            {exercise.label}
+            <ExerciseDescription description={exercise.description} />
+            <select
+              {...register(exercise.id)}
+              className="retro-input bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
+            >
+              <option value="">Bitte wählen…</option>
+              {exercise.config?.options?.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+        );
+      }
       return (
         <div className="space-y-2">
           <p className="text-sm font-semibold text-[#0b1230]">{exercise.label}</p>
+          <ExerciseDescription description={exercise.description} />
           <div className="flex flex-wrap gap-2">
             {exercise.config?.options?.map((option) => (
               <label
@@ -183,23 +254,74 @@ function ExerciseField({
       return (
         <label className="flex flex-col gap-2 text-sm font-semibold text-[#0b1230]">
           {exercise.label}
+          <ExerciseDescription description={exercise.description} />
           <input
             type="number"
             {...register(exercise.id, { valueAsNumber: true })}
-            className="retro-input bg-white/95 text-[#0b1230]"
+            className="retro-input bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
           />
         </label>
       );
     case "html":
+      return (
+        <label className="flex flex-col gap-2 text-sm font-semibold text-[#0b1230]">
+          {exercise.label}
+          <ExerciseDescription description={exercise.description} />
+          <textarea
+            {...register(exercise.id)}
+            placeholder={exercise.config?.placeholder}
+            className="retro-input min-h-[120px] bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
+          />
+        </label>
+      );
     case "text":
+      if (inputVariant === "date") {
+        return (
+          <label className="flex flex-col gap-2 text-sm font-semibold text-[#0b1230]">
+            {exercise.label}
+            <ExerciseDescription description={exercise.description} />
+            <input
+              type="date"
+              {...register(exercise.id)}
+              className="retro-input bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
+            />
+          </label>
+        );
+      }
+      if (inputVariant === "text") {
+        return (
+          <label className="flex flex-col gap-2 text-sm font-semibold text-[#0b1230]">
+            {exercise.label}
+            <ExerciseDescription description={exercise.description} />
+            <input
+              type="text"
+              {...register(exercise.id)}
+              placeholder={exercise.config?.placeholder}
+              className="retro-input bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
+            />
+          </label>
+        );
+      }
+      return (
+        <label className="flex flex-col gap-2 text-sm font-semibold text-[#0b1230]">
+          {exercise.label}
+          <ExerciseDescription description={exercise.description} />
+          <textarea
+            {...register(exercise.id)}
+            placeholder={exercise.config?.placeholder}
+            className="retro-input min-h-[120px] bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
+          />
+        </label>
+      );
     default:
       return (
         <label className="flex flex-col gap-2 text-sm font-semibold text-[#0b1230]">
           {exercise.label}
+          <ExerciseDescription description={exercise.description} />
           <textarea
             {...register(exercise.id)}
             placeholder={exercise.config?.placeholder}
-            className="retro-input min-h-[120px] bg-white/95 text-[#0b1230]"
+            className="retro-input min-h-[120px] bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
           />
         </label>
       );

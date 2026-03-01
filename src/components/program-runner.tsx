@@ -403,7 +403,9 @@ export function ProgramRunner({ program }: { program: ProgramDefinition }) {
               <header>
                 <h3 className="text-xl font-semibold text-[#0b1230]">{step.title}</h3>
                 {step.description && (
-                  <p className="mt-1 text-sm text-[#4b5685]">{step.description}</p>
+                  <p className="mt-2 text-base leading-relaxed text-[#3f4e7d]">
+                    {step.description}
+                  </p>
                 )}
               </header>
               <div className="mt-4">
@@ -563,7 +565,7 @@ function StepInput({
                         minutes: nextMinutes
                       });
                     }}
-                    className="w-24 rounded-xl border-2 border-white/70 px-3 py-1 text-sm"
+                    className="w-24 rounded-xl border-2 border-white/70 px-3 py-1 text-sm placeholder:text-xs placeholder:font-normal placeholder:text-[#8b94bb]"
                   />
                 </div>
               );
@@ -599,7 +601,7 @@ function StepInput({
           value={typeof value === "string" ? value : ""}
           onChange={(event) => onChange(event.target.value)}
           placeholder={step.input.placeholder}
-          className="retro-input min-h-[130px] w-full bg-white/95 text-[#0b1230]"
+          className="retro-input min-h-[130px] w-full bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
         />
       );
     case "timer":
@@ -615,7 +617,7 @@ function StepInput({
           value={typeof value === "string" ? value : ""}
           onChange={(event) => onChange(event.target.value)}
           placeholder={step.input.placeholder}
-          className="retro-input w-full bg-white/95 text-[#0b1230]"
+          className="retro-input w-full bg-white/95 text-[#0b1230] placeholder:text-sm placeholder:font-normal placeholder:text-[#8b94bb]"
         />
       );
   }
